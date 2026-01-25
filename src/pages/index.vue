@@ -17,13 +17,14 @@ const visibleDates = computed<Temporal.PlainDate[]>(() => {
 
 const taskBarMeta = computed(() => {
     // We search in reverse so the ganttbar that uses this is draw latest, so if we have borders they are drawn under.
+    // Additionally, we offset the end date by one so we can draw the drag handles a bit outside of the container.
     const meta = tasks.value.map((t) => {
         const date = visibleDates.value.findLast((d) => {
-            return isBetween(t.startDate, t.endDate, d);
+            return isBetween(t.startDate, t.endDate.add({ days: 1 }), d);
         });
         if (date) {
             return {
-                startDate: date,
+                endDate: date,
                 span: daysBetween(date, t.startDate),
             };
         }
@@ -105,7 +106,7 @@ onMounted(() => {
                 class="flex items-center justify-center border border-muted"
                 :style="{ height: `${pixelsHeight}px` }"
             >
-                {{ t.label }}
+                {{ t.endDate }}
             </div>
         </div>
         <UScrollArea
@@ -123,7 +124,7 @@ onMounted(() => {
                     width: `${pixelsWidth}px`,
                 }"
             >
-                {{ item.date.toPlainMonthDay() }} {{ index }}
+                {{ item.date.toPlainMonthDay() }}
             </div>
             <div v-for="(_, i) in tasks">
                 <div
@@ -134,24 +135,31 @@ onMounted(() => {
                         v-model="tasks[i]"
                         v-if="
                             taskBarMeta[i] !== undefined &&
-                            taskBarMeta[i].startDate == item.date
+                            taskBarMeta[i].endDate == item.date
                         "
                         class="absolute top-0 bottom-0 right-0 my-1"
                         :style="{
                             width:
-                                (taskBarMeta[i].span + 1) * pixelsWidth + 'px',
+    (taskBarMeta[i].span) * pixelsWidth + 'px',
+                                right: pixelsWidth + 'px'
                         }"
+                        :pixels-width="pixelsWidth"
                     />
                 </div>
             </div>
         </UScrollArea>
     </div>
-    <UCard>
+    <UCard :ui="{ body: 'flex gap-4'}" class="absolute bottom-4 left-4 ">
         <UButton
             label="Scroll to today"
             @click="scrollToDate(Temporal.Now.plainDateISO())"
         />
-        {{tasks}}
+        <UFormField label="Height" orientation="horizontal" class="w-32">
+            <UInput v-model="pixelsHeight" type="number"/>
+        </UFormField>
+        <UFormField label="Width" orientation="horizontal" class="w-32">
+            <UInput v-model="pixelsWidth" type="number"/>
+        </UFormField>
     </UCard>
 </template>
 
