@@ -1,7 +1,7 @@
 <template>
-    <Suspense>
-        <UApp>
-        <RouterView />
-        </UApp>
-    </Suspense>
+  <Suspense>
+    <UApp>
+      <RouterView />
+    </UApp>
+  </Suspense>
 </template>

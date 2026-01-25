@@ -6,8 +6,12 @@ import { daysBetween, isBetween } from "../utils/temporal";
 
 const scrollArea = useTemplateRef("scrollArea");
 
-const pixelsWidth = ref(120);
-const pixelsHeight = ref(40);
+const formatter = new Intl.DateTimeFormat("en", {
+    month: "short",
+});
+
+const pixelsWidth = ref(20);
+const pixelsHeight = ref(20);
 
 const visibleDates = computed<Temporal.PlainDate[]>(() => {
     const indexes: number[] =
@@ -52,7 +56,7 @@ const _tasks: Task[] = [
         endDate: Temporal.Now.plainDateISO().subtract({ days: 3 }),
     },
 ];
-const tasks = ref(Array.from({ length: 1 }, () => _tasks).flat());
+const tasks = ref(Array.from({ length: 10 }, () => _tasks).flat());
 
 const now = Temporal.Now.plainDateISO();
 const startDate = now.subtract({ years: 1 });
@@ -91,11 +95,23 @@ onMounted(() => {
         scrollToDate(Temporal.Now.plainDateISO());
     });
 });
+
+function addTask() {
+    tasks.value = [
+        ...tasks.value,
+        {
+            id: "0",
+            label: "Do task",
+            startDate: Temporal.Now.plainDateISO(),
+            endDate: Temporal.Now.plainDateISO(),
+        },
+    ];
+}
 </script>
 
 <template>
     <div class="grid grid-cols-[20rem_1fr]">
-        <div>
+        <div class="sticky top-0">
             <div
                 class="flex h-8 items-center justify-center border border-muted"
             >
@@ -106,11 +122,11 @@ onMounted(() => {
                 class="flex items-center justify-center border border-muted"
                 :style="{ height: `${pixelsHeight}px` }"
             >
-                {{ t.endDate }}
+                {{ t.label }}
             </div>
         </div>
         <UScrollArea
-            v-slot="{ item, index }"
+            v-slot="{ item, _ }"
             :items="items"
             ref="scrollArea"
             orientation="horizontal"
@@ -119,16 +135,25 @@ onMounted(() => {
             :virtualize="{ estimateSize: pixelsWidth }"
         >
             <div
-                class="flex items-center justify-center border border-muted h-8"
+                class="flex h-8 items-center justify-center border-b border-muted text-sm"
                 :style="{
                     width: `${pixelsWidth}px`,
                 }"
             >
-                {{ item.date.toPlainMonthDay() }}
+                {{
+                    item.date.day == 1
+                        ? item.date.toLocaleString("en", { month: "short" })
+                        : ""
+                }}
+                {{
+                    item.date.day % 3 == 0 && item.date.day > 2
+                        ? item.date.day
+                        : ""
+                }}
             </div>
             <div v-for="(_, i) in tasks">
                 <div
-                    class="border-l border-muted relative"
+                    class="relative border-l border-muted"
                     :style="{ height: `${pixelsHeight}px` }"
                 >
                     <GanttBar
@@ -137,11 +162,10 @@ onMounted(() => {
                             taskBarMeta[i] !== undefined &&
                             taskBarMeta[i].endDate == item.date
                         "
-                        class="absolute top-0 bottom-0 right-0 my-1"
+                        class="absolute top-0 right-0 bottom-0 my-1"
                         :style="{
-                            width:
-    (taskBarMeta[i].span) * pixelsWidth + 'px',
-                                right: pixelsWidth + 'px'
+                            width: taskBarMeta[i].span * pixelsWidth + 'px',
+                            right: pixelsWidth + 'px',
                         }"
                         :pixels-width="pixelsWidth"
                     />
@@ -149,17 +173,22 @@ onMounted(() => {
             </div>
         </UScrollArea>
     </div>
-    <UCard :ui="{ body: 'flex gap-4'}" class="absolute bottom-4 left-4 ">
+    <div>
+        <UButton label="Add task" class="ml-2 mt-2" @click="addTask()" />
+    </div>
+    <UCard :ui="{ body: 'flex gap-4' }" class="fixed bottom-4 left-4">
         <UButton
             label="Scroll to today"
             @click="scrollToDate(Temporal.Now.plainDateISO())"
         />
         <UFormField label="Height" orientation="horizontal" class="w-32">
-            <UInput v-model="pixelsHeight" type="number"/>
+            <UInput v-model="pixelsHeight" type="number" />
         </UFormField>
         <UFormField label="Width" orientation="horizontal" class="w-32">
-            <UInput v-model="pixelsWidth" type="number"/>
+            <UInput v-model="pixelsWidth" type="number" />
         </UFormField>
+        <UButton title="load" icon="i-lucide-upload" />
+        <UButton title="save" icon="i-lucide-download" />
     </UCard>
 </template>
 

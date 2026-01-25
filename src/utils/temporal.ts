@@ -10,9 +10,6 @@ export function isBetween(
   );
 }
 
-export function daysBetween(
-  date1: Temporal.PlainDate,
-  date2: Temporal.PlainDate,
-): number {
+export function daysBetween(date1: Temporal.PlainDate, date2: Temporal.PlainDate): number {
   return Math.abs(date1.until(date2).days);
 }

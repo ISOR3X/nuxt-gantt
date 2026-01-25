@@ -18,16 +18,16 @@ const originalEndDate = ref<Temporal.PlainDate | null>(null);
 
 function onMouseDownBar(e: MouseEvent) {
   if (isResizingLeft.value || isResizingRight.value) return;
-  
+
   e.stopPropagation();
   isDragging.value = true;
   dragStartX.value = e.clientX;
-  
+
   if (model.value) {
     originalStartDate.value = model.value.startDate;
     originalEndDate.value = model.value.endDate;
   }
-  
+
   document.addEventListener("mousemove", onMouseMove);
   document.addEventListener("mouseup", onMouseUp);
 }
@@ -36,12 +36,12 @@ function onMouseDownLeft(e: MouseEvent) {
   e.stopPropagation();
   isResizingLeft.value = true;
   dragStartX.value = e.clientX;
-  
+
   if (model.value) {
     originalStartDate.value = model.value.startDate;
     originalEndDate.value = model.value.endDate;
   }
-  
+
   document.addEventListener("mousemove", onMouseMove);
   document.addEventListener("mouseup", onMouseUp);
 }
@@ -50,12 +50,12 @@ function onMouseDownRight(e: MouseEvent) {
   e.stopPropagation();
   isResizingRight.value = true;
   dragStartX.value = e.clientX;
-  
+
   if (model.value) {
     originalStartDate.value = model.value.startDate;
     originalEndDate.value = model.value.endDate;
   }
-  
+
   document.addEventListener("mousemove", onMouseMove);
   document.addEventListener("mouseup", onMouseUp);
 }
@@ -63,13 +63,13 @@ function onMouseDownRight(e: MouseEvent) {
 function onMouseMove(e: MouseEvent) {
   if (!model.value) return;
   if (!originalStartDate.value || !originalEndDate.value) return;
-  
+
   const pixelWidth = props.pixelsWidth || 120;
   const deltaX = e.clientX - dragStartX.value;
-  
+
   // Calculate days moved with snapping
   const daysMoved = Math.round(deltaX / pixelWidth);
-  
+
   if (isDragging.value) {
     // Move entire bar (always update, even when daysMoved is 0)
     model.value.startDate = originalStartDate.value.add({ days: daysMoved });
@@ -97,7 +97,7 @@ function onMouseUp() {
   isResizingRight.value = false;
   originalStartDate.value = null;
   originalEndDate.value = null;
-  
+
   document.removeEventListener("mousemove", onMouseMove);
   document.removeEventListener("mouseup", onMouseUp);
 }
@@ -110,21 +110,16 @@ const cursorStyle = computed(() => {
 </script>
 
 <template>
-  <div 
-    class="bg-primary rounded-md select-none"
-    :class="cursorStyle"
-    @mousedown="onMouseDownBar"
-  >
+  <div class="rounded-md bg-primary select-none" :class="cursorStyle" @mousedown="onMouseDownBar">
     <!-- Left resize handle -->
     <div
-      class="absolute -left-5 top-0 bottom-0 bg-error/50 cursor-ew-resize z-20 w-10"
+      class="absolute top-0 bottom-0 -left-5 z-20 w-10 cursor-ew-resize bg-error/50"
       @mousedown.stop="onMouseDownLeft"
     />
-    
-    
+
     <!-- Right resize handle -->
     <div
-      class="absolute -right-5 top-0 bottom-0 bg-error/50 cursor-ew-resize z-20 w-10"
+      class="absolute top-0 -right-5 bottom-0 z-20 w-10 cursor-ew-resize bg-error/50"
       @mousedown.stop="onMouseDownRight"
     />
   </div>
