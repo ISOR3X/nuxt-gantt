@@ -20,34 +20,40 @@ A Vue 3 application demonstrating the [Frappe Gantt](https://github.com/frappe/g
 The demo includes 6 interactive sections:
 
 ### 1. **Edit Access Control**
+
 - Toggle editable/read-only mode
 - Control whether dates can be modified
 - Control whether progress can be updated
 - Demonstrates permission management
 
 ### 2. **Versatile Actions**
+
 - Built-in "Scroll to Today" button
 - Built-in view mode selector
 - Shows how to add custom UI controls to the Gantt chart
 
 ### 3. **Mark Holidays**
+
 - Highlight weekends with custom colors
 - Display public holidays (16 Indian holidays included)
 - Custom weekend definition (e.g., Friday-Saturday vs Saturday-Sunday)
 - Multiple highlight colors for different holiday types
 
 ### 4. **Ignore Time Periods**
+
 - Completely skip weekends in timeline calculations
 - Remove holidays from the timeline
 - Tasks automatically adjust to ignore specified dates
 
 ### 5. **Style Customization**
+
 - **Grid Controls**: Adjust height, padding, column width
 - **Bar Controls**: Modify height, corner radius
 - **Arrow Controls**: Adjust dependency arrow curvature
 - Real-time visual updates with sliders
 
 ### 6. **Advanced Features**
+
 - Custom snap intervals (snap to second, minute, hour, day, month, or year)
 - Auto-moving labels that reposition based on available space
 - Fine-grained control over user interactions
@@ -56,7 +62,7 @@ The demo includes 6 interactive sections:
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (recommended) or npm
 
 ### Installation
@@ -113,31 +119,31 @@ The Gantt chart is implemented in `src/pages/index.vue`. Here's a basic example:
 
 ```vue
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import Gantt from '../../../gantt/src/index.js'
-import '../../../gantt/src/styles/gantt.css'
+import { ref, onMounted } from "vue";
+import Gantt from "../../../gantt/src/index.js";
+import "../../../gantt/src/styles/gantt.css";
 
-const ganttContainer = ref<HTMLElement | null>(null)
+const ganttContainer = ref<HTMLElement | null>(null);
 
 const tasks = [
   {
-    id: 'task-1',
-    name: 'Task Name',
+    id: "task-1",
+    name: "Task Name",
     start: new Date(2024, 0, 1),
     end: new Date(2024, 0, 5),
     progress: 50,
-    dependencies: ''
-  }
-]
+    dependencies: "",
+  },
+];
 
 onMounted(() => {
   new Gantt(ganttContainer.value, tasks, {
-    view_mode: 'Day',
+    view_mode: "Day",
     on_click: (task) => console.log(task),
-    on_date_change: (task, start, end) => console.log('Date changed'),
-    on_progress_change: (task, progress) => console.log('Progress changed')
-  })
-})
+    on_date_change: (task, start, end) => console.log("Date changed"),
+    on_progress_change: (task, progress) => console.log("Progress changed"),
+  });
+});
 </script>
 
 <template>
@@ -147,29 +153,29 @@ onMounted(() => {
 
 ## Gantt Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `view_mode` | String | 'Day' | Quarter Day, Half Day, Day, Week, Month, Year |
-| `bar_height` | Number | 30 | Height of task bars |
-| `bar_corner_radius` | Number | 3 | Corner radius of task bars |
-| `arrow_curve` | Number | 5 | Curve of dependency arrows |
-| `padding` | Number | 18 | Padding around the chart |
-| `on_click` | Function | - | Callback when task is clicked |
-| `on_date_change` | Function | - | Callback when task dates change |
-| `on_progress_change` | Function | - | Callback when progress changes |
-| `on_view_change` | Function | - | Callback when view mode changes |
-| `readonly` | Boolean | false | Make entire chart read-only |
-| `readonly_dates` | Boolean | false | Prevent date modifications |
-| `readonly_progress` | Boolean | false | Prevent progress updates |
-| `today_button` | Boolean | false | Show "Scroll to Today" button |
-| `view_mode_select` | Boolean | false | Show view mode dropdown |
-| `holidays` | Object/null | null | Define highlighted dates with colors |
-| `ignore` | Array | [] | Array of dates/periods to skip |
-| `is_weekend` | Function | - | Custom function to determine weekends |
-| `snap_at` | String | '1d' | Snap interval (e.g., '1d', '2h', '30min') |
-| `auto_move_label` | Boolean | true | Automatically reposition labels |
-| `container_height` | Number | - | Override default chart height |
-| `column_width` | Number | 30 | Width of timeline columns |
+| Option               | Type        | Default | Description                                   |
+| -------------------- | ----------- | ------- | --------------------------------------------- |
+| `view_mode`          | String      | 'Day'   | Quarter Day, Half Day, Day, Week, Month, Year |
+| `bar_height`         | Number      | 30      | Height of task bars                           |
+| `bar_corner_radius`  | Number      | 3       | Corner radius of task bars                    |
+| `arrow_curve`        | Number      | 5       | Curve of dependency arrows                    |
+| `padding`            | Number      | 18      | Padding around the chart                      |
+| `on_click`           | Function    | -       | Callback when task is clicked                 |
+| `on_date_change`     | Function    | -       | Callback when task dates change               |
+| `on_progress_change` | Function    | -       | Callback when progress changes                |
+| `on_view_change`     | Function    | -       | Callback when view mode changes               |
+| `readonly`           | Boolean     | false   | Make entire chart read-only                   |
+| `readonly_dates`     | Boolean     | false   | Prevent date modifications                    |
+| `readonly_progress`  | Boolean     | false   | Prevent progress updates                      |
+| `today_button`       | Boolean     | false   | Show "Scroll to Today" button                 |
+| `view_mode_select`   | Boolean     | false   | Show view mode dropdown                       |
+| `holidays`           | Object/null | null    | Define highlighted dates with colors          |
+| `ignore`             | Array       | []      | Array of dates/periods to skip                |
+| `is_weekend`         | Function    | -       | Custom function to determine weekends         |
+| `snap_at`            | String      | '1d'    | Snap interval (e.g., '1d', '2h', '30min')     |
+| `auto_move_label`    | Boolean     | true    | Automatically reposition labels               |
+| `container_height`   | Number      | -       | Override default chart height                 |
+| `column_width`       | Number      | 30      | Width of timeline columns                     |
 
 ## Task Object Structure
 
@@ -212,6 +218,7 @@ onMounted(() => {
 This project uses [Frappe Gantt](https://github.com/frappe/gantt), a simple, modern, interactive gantt library for the web. It's a lightweight solution for creating beautiful project timelines without heavy dependencies.
 
 ### Key Features of Frappe Gantt:
+
 - Pure JavaScript (no framework required)
 - SVG-based rendering
 - Lightweight (~15kb gzipped)

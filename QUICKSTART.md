@@ -31,24 +31,29 @@ Open your browser to `http://localhost:5173` (or the port shown in the terminal)
 The demo page contains **6 interactive sections**:
 
 ### 1️⃣ Edit Access Control
+
 - Toggle editing permissions
 - Try dragging tasks when "Editable" is checked vs unchecked
 - Control date and progress editing separately
 
 ### 2️⃣ Versatile Actions
+
 - Click the "Today" button in the chart to jump to current date
 - Use the view mode dropdown in the chart to switch time scales
 
 ### 3️⃣ Holiday Marking
+
 - Toggle "Show weekends" to highlight Saturday-Sunday
 - Toggle "Custom weekends" to change to Friday-Saturday
 - Green highlights = public holidays, Blue = weekends
 
 ### 4️⃣ Ignore Time Periods
+
 - Toggle "Ignore weekends" to remove weekends from the timeline
 - Notice how tasks extend to account for skipped days
 
 ### 5️⃣ Style Customization
+
 - Move the sliders to adjust:
   - **Grid Height**: Overall chart height
   - **Padding**: Space between bars and grid
@@ -58,6 +63,7 @@ The demo page contains **6 interactive sections**:
   - **Arrow Curve**: Curvature of dependency arrows
 
 ### 6️⃣ Advanced Features
+
 - Change "Snap By" to control how tasks align when dragged
 - Try "1d" (snap to days) vs "2h" (snap to 2-hour increments)
 - Toggle "Auto-moving label" to see how task names reposition
@@ -106,24 +112,24 @@ nuxt-gantt/
 
 ```vue
 <script setup>
-import Gantt from '../../../gantt/src/index.js'
-import '../../../gantt/src/styles/gantt.css'
+import Gantt from "../../../gantt/src/index.js";
+import "../../../gantt/src/styles/gantt.css";
 
-const ganttContainer = ref(null)
+const ganttContainer = ref(null);
 
 const tasks = [
   {
-    id: 'task1',
-    name: 'My Task',
+    id: "task1",
+    name: "My Task",
     start: new Date(2024, 0, 1),
     end: new Date(2024, 0, 5),
-    progress: 50
-  }
-]
+    progress: 50,
+  },
+];
 
 onMounted(() => {
-  new Gantt(ganttContainer.value, tasks)
-})
+  new Gantt(ganttContainer.value, tasks);
+});
 </script>
 
 <template>
@@ -135,27 +141,30 @@ onMounted(() => {
 
 ```javascript
 new Gantt(container, tasks, {
-  view_mode: 'Week',
+  view_mode: "Week",
   bar_height: 40,
   readonly: true,
   holidays: {
-    '#bfdbfe': 'weekend'
-  }
-})
+    "#bfdbfe": "weekend",
+  },
+});
 ```
 
 ## Troubleshooting
 
 **Port already in use?**
+
 - The dev server will automatically try the next available port
 - Check the terminal output for the actual URL
 
 **Gantt not showing?**
+
 - Make sure the container ref is properly connected
 - Check browser console for errors
 - Verify CSS is imported
 
 **Controls not working?**
+
 - Ensure you're calling `update_options()` on the Gantt instance
 - Check that refs are initialized in `onMounted()`
 

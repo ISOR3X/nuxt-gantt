@@ -1,27 +1,64 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { Temporal } from "temporal-polyfill";
 import { Task } from "../utils/types";
+import { daysBetween, isBetween } from "../utils/temporal";
 
 const scrollArea = useTemplateRef("scrollArea");
 
-const workDays = [2, 3, 4, 5];
+const pixelsWidth = ref(120);
+const pixelsHeight = ref(20);
 
-const tasks: Task[] = [
+const visibleDates = computed<Temporal.PlainDate[]>(() => {
+    const indexes: number[] =
+        scrollArea.value?.virtualizer?.getVirtualIndexes() ?? [];
+    return indexes.map((i) => items.value[i].date);
+});
+
+const taskBarMeta = computed(() => {
+    // We search in reverse so the ganttbar that uses this is draw latest, so if we have borders they are drawn under.
+    const meta = tasks.map((t) => {
+        const date = visibleDates.value.findLast((d) => {
+            return isBetween(t.startDate, t.endDate, d);
+        });
+        if (date) {
+            return {
+                startDate: date,
+                span: daysBetween(date, t.startDate),
+            };
+        }
+    });
+    return meta;
+});
+
+const _tasks: Task[] = [
     {
         id: "0",
-        label: "label",
+        label: "Do task",
         startDate: Temporal.Now.plainDateISO(),
         endDate: Temporal.Now.plainDateISO(),
     },
+    {
+        id: "1",
+        label: "Do other task",
+        startDate: Temporal.Now.plainDateISO().subtract({ days: 2 }),
+        endDate: Temporal.Now.plainDateISO().add({ days: 50 }),
+    },
+    {
+        id: "2",
+        label: "Do another task",
+        startDate: Temporal.Now.plainDateISO().subtract({ days: 5 }),
+        endDate: Temporal.Now.plainDateISO().subtract({ days: 3 }),
+    },
 ];
+const tasks = Array.from({ length: 20 }, () => _tasks).flat();
 
 const now = Temporal.Now.plainDateISO();
 const startDate = now.subtract({ years: 1 });
 const endDate = now.add({ years: 1 });
 const totalDays = startDate.until(endDate).total("days");
 
-const items = computed(() =>
+const items = computed<any[]>(() =>
     Array.from({ length: totalDays + 1 }, (_, i) => {
         const date = startDate.add({ days: i });
         return {
@@ -47,14 +84,28 @@ function scrollToDate(date: Temporal.PlainDate) {
         behavior: "auto",
     });
 }
+
+onMounted(() => {
+    nextTick(() => {
+        scrollToDate(Temporal.Now.plainDateISO());
+    });
+});
 </script>
 
 <template>
-    <UButton label="today" @click="scrollToDate(now)" />
     <div class="grid grid-cols-[20rem_1fr]">
         <div>
-            <div v-for="t in tasks">
-                {{ t.startDate }}
+            <div
+                class="flex h-8 items-center justify-center border border-muted"
+            >
+                Tasks
+            </div>
+            <div
+                v-for="t in tasks"
+                class="flex items-center justify-center border border-muted"
+                :style="{ height: `${pixelsHeight}px` }"
+            >
+                {{ t.label }}
             </div>
         </div>
         <UScrollArea
@@ -62,12 +113,68 @@ function scrollToDate(date: Temporal.PlainDate) {
             :items="items"
             ref="scrollArea"
             orientation="horizontal"
-            class="h-14"
-            :virtualize="{ estimateSize: 244 }"
+            class="h-full"
+            @scroll=""
+            :virtualize="{ estimateSize: pixelsWidth }"
         >
-            <div class="w-32 border flex justify-center border-muted">
-                {{ item.date.toLocaleString() }}
+            <div
+                class="flex items-center justify-center border border-muted h-8"
+                :style="{
+                    width: `${pixelsWidth}px`,
+                }"
+            >
+                {{ item.date.toPlainMonthDay() }} {{ index }}
+            </div>
+            <div v-for="(_, i) in tasks">
+                <div
+                    class="border-l border-muted relative"
+                    :style="{ height: `${pixelsHeight}px` }"
+                >
+                    <GanttBar
+                        v-if="
+                            taskBarMeta[i] !== undefined &&
+                            taskBarMeta[i].startDate == item.date
+                        "
+                        class="absolute top-0 bottom-0 right-0 my-1"
+                        :style="{
+                            width:
+                                (taskBarMeta[i].span + 1) * pixelsWidth + 'px',
+                        }"
+                    ></GanttBar>
+                    <!-- <div class="size-8 absolute bg-warning -left-4"> -->
+                </div>
             </div>
         </UScrollArea>
     </div>
+    <UCard>
+        <UButton
+            label="Scroll to today"
+            @click="scrollToDate(Temporal.Now.plainDateISO())"
+        />
+    </UCard>
 </template>
+
+<style>
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--ui-bg-inverted);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--ui-bg-inverted);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-bg-inverted) transparent;
+}
+</style>

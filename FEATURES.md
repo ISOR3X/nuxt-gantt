@@ -22,11 +22,9 @@ This document provides a comprehensive overview of all features demonstrated in 
 - **Editable** - Master toggle for all editing capabilities
   - When disabled, the entire chart becomes read-only
   - Automatically disables both date and progress editing
-  
 - **Progress Editable** - Control progress bar editing
   - When enabled, users can drag the progress indicator within tasks
   - When disabled, progress is view-only
-  
 - **Dates Editable** - Control task date/duration editing
   - When enabled, users can drag tasks to change dates
   - When enabled, users can drag task edges to resize duration
@@ -60,7 +58,6 @@ This document provides a comprehensive overview of all features demonstrated in 
 - **Scroll to Today** - Adds a "Today" button in the header
   - Automatically scrolls the timeline to show the current date
   - Useful for long-term projects spanning months or years
-  
 - **Change View Mode** - Adds a dropdown to switch between view modes
   - Options: Quarter Day, Half Day, Day, Week, Month, Year
   - Provides quick navigation between different time scales
@@ -93,7 +90,6 @@ This document provides a comprehensive overview of all features demonstrated in 
 - **Show Weekends** - Toggle weekend highlighting
   - Weekends are highlighted in light blue (#bfdbfe)
   - Makes it easy to distinguish work days from weekends
-  
 - **Custom Weekends** - Change which days are considered weekends
   - Default: Saturday and Sunday (standard Western calendar)
   - Alternative: Friday and Saturday (common in Middle East)
@@ -164,10 +160,12 @@ Unlike holiday marking (which only highlights dates), the `ignore` option comple
 ### Example
 
 If a task is scheduled for 5 days starting Monday:
+
 - **Without ignore**: Task spans Mon-Fri
 - **With ignore weekends**: Task still spans Mon-Fri (same result)
 
 But if scheduled for 10 days starting Monday:
+
 - **Without ignore**: Task ends Wednesday next week (includes Sat-Sun)
 - **With ignore weekends**: Task ends Friday next week (skips weekends)
 
@@ -175,7 +173,7 @@ But if scheduled for 10 days starting Monday:
 
 ```javascript
 {
-  ignore: ['weekend', ...HOLIDAYS.map(k => k.date)]
+  ignore: ["weekend", ...HOLIDAYS.map((k) => k.date)];
 }
 ```
 
@@ -231,6 +229,7 @@ But if scheduled for 10 days starting Monday:
 ### Real-time Updates
 
 All style changes take effect immediately without losing:
+
 - Current scroll position
 - Selected tasks
 - Expanded/collapsed states
@@ -268,12 +267,14 @@ All style changes take effect immediately without losing:
   - Year (y)
 
 **Examples**:
+
 - `1d` = Snap to 1-day increments (default)
 - `2h` = Snap to 2-hour increments
 - `30min` = Snap to 30-minute increments
 - `1m` = Snap to 1-month increments
 
 **Use Cases**:
+
 - **Hourly Planning**: Construction projects with hourly tasks
 - **Sprint Planning**: Snap to week boundaries
 - **Long-term Strategy**: Snap to quarters or months
@@ -287,6 +288,7 @@ Controls whether task labels automatically reposition:
 - **Disabled**: Labels stay in fixed position (may overlap or clip)
 
 **Use Cases**:
+
 - **Short Tasks**: Prevent labels from appearing outside bars
 - **Consistent Layout**: Keep labels in predictable positions
 - **Print Layouts**: Ensure labels don't break page boundaries
@@ -309,14 +311,15 @@ Controls whether task labels automatically reposition:
 All controls use Vue 3 `ref()` for reactive state:
 
 ```javascript
-const mutableGeneral = ref(true)
-const gridHeight = ref(300)
-const snapAtQty = ref(1)
+const mutableGeneral = ref(true);
+const gridHeight = ref(300);
+const snapAtQty = ref(1);
 ```
 
 ### Update Pattern
 
 Each section has an update function that:
+
 1. Preserves scroll position
 2. Updates options
 3. Restores scroll position
@@ -324,21 +327,22 @@ Each section has an update function that:
 ```javascript
 const updateStyling = () => {
   if (stylingGantt) {
-    const scrollLeft = stylingGantt.$container?.scrollLeft || 0
+    const scrollLeft = stylingGantt.$container?.scrollLeft || 0;
     stylingGantt.update_options({
       bar_height: barHeight.value,
-      scroll_to: null
-    })
+      scroll_to: null,
+    });
     if (stylingGantt.$container) {
-      stylingGantt.$container.scrollLeft = scrollLeft
+      stylingGantt.$container.scrollLeft = scrollLeft;
     }
   }
-}
+};
 ```
 
 ### Multiple Instances
 
 The demo uses 6 separate Gantt instances to showcase different features:
+
 - `mutabilityGantt` - Edit controls
 - `sideheaderGantt` - Built-in UI
 - `holidaysGantt` - Holiday marking
@@ -382,15 +386,19 @@ The demo uses 6 separate Gantt instances to showcase different features:
 ## Sample Data
 
 ### Simple Tasks (4 tasks)
+
 Used in mutability and ignore sections - basic workflow demonstration.
 
 ### Spread Tasks (4 tasks)
+
 Used in sideheader and holidays sections - tasks spread over longer timeline.
 
 ### Many Tasks (10 tasks)
+
 Used in styling section - shows how chart handles more data.
 
 ### Holidays (16 dates)
+
 Indian public holidays throughout 2024 - demonstrates holiday marking.
 
 ---
@@ -398,17 +406,20 @@ Indian public holidays throughout 2024 - demonstrates holiday marking.
 ## Browser Compatibility
 
 All features work in modern browsers:
+
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
 
 ### CSS Features Used
+
 - CSS Grid
 - CSS Custom Properties
 - Flexbox
 - Modern selectors
 
 ### JavaScript Features Used
+
 - ES6 Modules
 - Arrow Functions
 - Destructuring
