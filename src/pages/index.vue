@@ -3,12 +3,13 @@ import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { Temporal } from "temporal-polyfill";
 import { Task } from "../utils/types";
 import { daysBetween, isBetween } from "../utils/temporal";
+import {
+    saveTasks as saveTasksToFile,
+    loadTasksFromFile,
+} from "../utils/taskStorage";
 
 const scrollArea = useTemplateRef("scrollArea");
-
-const formatter = new Intl.DateTimeFormat("en", {
-    month: "short",
-});
+const fileInput = useTemplateRef("fileInput");
 
 const pixelsWidth = ref(20);
 const pixelsHeight = ref(20);
@@ -107,6 +108,45 @@ function addTask() {
         },
     ];
 }
+
+// Save tasks to JSON file
+function saveTasks() {
+    try {
+        saveTasksToFile(tasks.value);
+    } catch (error) {
+        console.error("Error saving tasks:", error);
+        alert("Failed to save tasks. Please try again.");
+    }
+}
+
+// Load tasks from JSON file
+function loadTasks() {
+    fileInput.value?.click();
+}
+
+// Handle file selection
+async function handleFileChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    try {
+        const loadedTasks = await loadTasksFromFile(file);
+        tasks.value = loadedTasks;
+
+        // Reset file input so the same file can be loaded again
+        target.value = "";
+    } catch (error) {
+        console.error("Error loading tasks:", error);
+        alert(
+            `Failed to load tasks: ${error instanceof Error ? error.message : "Invalid file format"}`,
+        );
+        target.value = "";
+    }
+}
 </script>
 
 <template>
@@ -126,12 +166,11 @@ function addTask() {
             </div>
         </div>
         <UScrollArea
-            v-slot="{ item, _ }"
+            v-slot="{ item }"
             :items="items"
             ref="scrollArea"
             orientation="horizontal"
             class="h-full"
-            @scroll=""
             :virtualize="{ estimateSize: pixelsWidth }"
         >
             <div
@@ -176,6 +215,16 @@ function addTask() {
     <div>
         <UButton label="Add task" class="ml-2 mt-2" @click="addTask()" />
     </div>
+
+    <!-- Hidden file input for loading tasks -->
+    <input
+        type="file"
+        ref="fileInput"
+        accept="application/json,.json"
+        @change="handleFileChange"
+        style="display: none"
+    />
+
     <UCard :ui="{ body: 'flex gap-4' }" class="fixed bottom-4 left-4">
         <UButton
             label="Scroll to today"
@@ -187,8 +236,8 @@ function addTask() {
         <UFormField label="Width" orientation="horizontal" class="w-32">
             <UInput v-model="pixelsWidth" type="number" />
         </UFormField>
-        <UButton title="load" icon="i-lucide-upload" />
-        <UButton title="save" icon="i-lucide-download" />
+        <UButton title="load" icon="i-lucide-upload" @click="loadTasks()" />
+        <UButton title="save" icon="i-lucide-download" @click="saveTasks()" />
     </UCard>
 </template>
 
