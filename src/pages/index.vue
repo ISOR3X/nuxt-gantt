@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { Temporal } from "temporal-polyfill";
 import { Task } from "../utils/types";
 import { daysBetween, isBetween } from "../utils/temporal";
@@ -7,7 +7,7 @@ import { daysBetween, isBetween } from "../utils/temporal";
 const scrollArea = useTemplateRef("scrollArea");
 
 const pixelsWidth = ref(120);
-const pixelsHeight = ref(20);
+const pixelsHeight = ref(40);
 
 const visibleDates = computed<Temporal.PlainDate[]>(() => {
     const indexes: number[] =
@@ -17,7 +17,7 @@ const visibleDates = computed<Temporal.PlainDate[]>(() => {
 
 const taskBarMeta = computed(() => {
     // We search in reverse so the ganttbar that uses this is draw latest, so if we have borders they are drawn under.
-    const meta = tasks.map((t) => {
+    const meta = tasks.value.map((t) => {
         const date = visibleDates.value.findLast((d) => {
             return isBetween(t.startDate, t.endDate, d);
         });
@@ -51,7 +51,7 @@ const _tasks: Task[] = [
         endDate: Temporal.Now.plainDateISO().subtract({ days: 3 }),
     },
 ];
-const tasks = Array.from({ length: 20 }, () => _tasks).flat();
+const tasks = ref(Array.from({ length: 1 }, () => _tasks).flat());
 
 const now = Temporal.Now.plainDateISO();
 const startDate = now.subtract({ years: 1 });
@@ -131,6 +131,7 @@ onMounted(() => {
                     :style="{ height: `${pixelsHeight}px` }"
                 >
                     <GanttBar
+                        v-model="tasks[i]"
                         v-if="
                             taskBarMeta[i] !== undefined &&
                             taskBarMeta[i].startDate == item.date
@@ -140,8 +141,7 @@ onMounted(() => {
                             width:
                                 (taskBarMeta[i].span + 1) * pixelsWidth + 'px',
                         }"
-                    ></GanttBar>
-                    <!-- <div class="size-8 absolute bg-warning -left-4"> -->
+                    />
                 </div>
             </div>
         </UScrollArea>
@@ -151,6 +151,7 @@ onMounted(() => {
             label="Scroll to today"
             @click="scrollToDate(Temporal.Now.plainDateISO())"
         />
+        {{tasks}}
     </UCard>
 </template>
 
