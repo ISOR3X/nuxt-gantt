@@ -11,7 +11,7 @@ const app = createApp(App);
 app.use(
   createRouter({
     routes: [{ path: "/", component: () => import("./pages/index.vue") }],
-    history: createWebHistory(),
+    history: createWebHistory(import.meta.env.BASE_URL),
   }),
 );
 
