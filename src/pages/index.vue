@@ -11,7 +11,7 @@ const headerHeight = 40; // Height of the header in pixels
 const headerWidth = 240; // Width of the header in pixels
 
 // Virtual grid dimensions (very large for "infinite" feel)
-const totalRows = 100 ;
+const totalRows = 100;
 const totalColumns = 300;
 const overscan = 5;
 
@@ -147,68 +147,63 @@ const visibleRows = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen flex-col bg-black p-4 gap-4">
+  <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
     <!-- Scroll Container -->
     <!-- TODO: Figure out a better way to add the corner fill/ label -->
-    <div
-      ref="scrollContainerRef"
-      class="relative flex-1 bg-default overflow-auto "
-    >
-     
-     <div class="sticky w-full h-full z-50 top-0 left-0 grid pointer-events-none"    :style="{
-       gridTemplateColumns: `${headerWidth}px 1fr`,
-       gridTemplateRows: `${headerHeight}px 1fr`,
-     }">
-         <div class="bg-muted z-10 flex items-center justify-center">
-             Tasks
-         </div>
-         
-             <div
-             class="h-full relative bg-muted"
-               :style="{
-                 width: `${totalWidth}px`,
-                 transform: `translateX(-${scrollLeft}px)`,
-               }"
-             >
-               <!-- Virtualized column headers -->
-               <div
-                 v-for="col in visibleColumns"
-                 class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
-                 :key="col.index"
-                 :style="{
-                   left: `${col.left}px`,
-                   width: `${cellWidth}px`,
-                   height: `${headerHeight}px`,
-                 }"
-               >
-                 {{ col.label }}
-               </div>
-             </div>
-         
-         
-             <div
-             class="relative w-full bg-muted"
-               :style="{
-                 height: `${totalHeight}px`,
-                 transform: `translateY(-${scrollTop}px)`,
-               }"
-             >
-               <!-- Virtualized column headers -->
-               <div
-                 v-for="row in visibleRows"
-                 class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
-                 :key="row.index"
-                 :style="{
-                   top: `${row.top}px`,
-                   width: `${headerWidth}px`,
-                   height: `${cellHeight}px`,
-                 }"
-               >
-                 {{ row.label }}
-               </div>
-             
-         </div>
-     </div>
+    <div ref="scrollContainerRef" class="relative flex-1 overflow-auto bg-default">
+      <div
+        class="pointer-events-none sticky top-0 left-0 z-50 grid h-full w-full"
+        :style="{
+          gridTemplateColumns: `${headerWidth}px 1fr`,
+          gridTemplateRows: `${headerHeight}px 1fr`,
+        }"
+      >
+        <div class="z-10 flex items-center justify-center bg-muted">Tasks</div>
+
+        <div
+          class="relative h-full bg-muted"
+          :style="{
+            width: `${totalWidth}px`,
+            transform: `translateX(-${scrollLeft}px)`,
+          }"
+        >
+          <!-- Virtualized column headers -->
+          <div
+            v-for="col in visibleColumns"
+            class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
+            :key="col.index"
+            :style="{
+              left: `${col.left}px`,
+              width: `${cellWidth}px`,
+              height: `${headerHeight}px`,
+            }"
+          >
+            {{ col.label }}
+          </div>
+        </div>
+
+        <div
+          class="relative w-full bg-muted"
+          :style="{
+            height: `${totalHeight}px`,
+            transform: `translateY(-${scrollTop}px)`,
+          }"
+        >
+          <!-- Virtualized column headers -->
+          <div
+            v-for="row in visibleRows"
+            class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
+            :key="row.index"
+            :style="{
+              top: `${row.top}px`,
+              width: `${headerWidth}px`,
+              height: `${cellHeight}px`,
+            }"
+          >
+            {{ row.label }}
+          </div>
+        </div>
+      </div>
       <!-- SVG Grid Background (offset by header height) -->
       <svg
         :width="totalWidth"
@@ -241,7 +236,7 @@ const visibleRows = computed(() => {
 
       <!-- HTML Div Container for Tasks/Squares -->
       <div
-      class="absolute"
+        class="absolute"
         :style="{
           top: `${headerHeight}px`,
           left: `${headerWidth}px`,
@@ -256,7 +251,7 @@ const visibleRows = computed(() => {
           :key="task.id"
           class="absolute overflow-hidden bg-primary"
           :style="{
-            left: `${task.col * cellWidth }px`,
+            left: `${task.col * cellWidth}px`,
             top: `${task.row * cellHeight}px`,
             width: `${task.width * cellWidth}px`,
             height: `${task.height * cellHeight}px`,
@@ -272,20 +267,10 @@ const visibleRows = computed(() => {
     </div>
     <div class="flex items-center gap-4 bg-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
-        <UInput
-          v-model.number="cellWidth"
-          type="number"
-          min="5"
-          max="200"
-        />
+        <UInput v-model.number="cellWidth" type="number" min="5" max="200" />
       </UFormField>
       <UFormField label="Cell height (px)" orientation="horizontal">
-        <UInput
-          v-model.number="cellHeight"
-          type="number"
-          min="5"
-          max="200"
-        />
+        <UInput v-model.number="cellHeight" type="number" min="5" max="200" />
       </UFormField>
       <div class="ml-auto flex gap-4 text-sm text-primary">
         <span>Total tasks: {{ allTasks.length }}</span>
