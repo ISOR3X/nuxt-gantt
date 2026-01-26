@@ -1,5 +1,6 @@
 <script lang="ts">
 import { Task } from "../utils/types.ts";
+import GanttLabel from "./GanttLabel.vue";
 
 export interface GanttChartProps {
   // tasks: Task[];
@@ -124,7 +125,7 @@ const visibleRows = computed(() => {
 </script>
 
 <template>
-  <div ref="scrollContainerRef" class="relative flex-1 overflow-auto bg-default">
+  <div ref="scrollContainerRef" class="relative flex-1 overflow-auto bg-default" v-if="allTasks">
     <div
       :style="{
         gridTemplateColumns: `${headerWidth}px 1fr`,
@@ -132,14 +133,14 @@ const visibleRows = computed(() => {
       }"
       class="pointer-events-none sticky top-0 left-0 z-50 grid h-full w-full"
     >
-      <div class="z-10 flex items-center justify-center bg-muted">Tasks</div>
+      <div class="z-10 flex items-center justify-center bg-default border-muted border-b border-r"><UIcon name="i-simple-icons:nuxt" class="size-5 text-[#00DC82]"/></div>
 
       <div
         :style="{
           width: `${totalWidth}px`,
           transform: `translateX(-${scrollLeft}px)`,
         }"
-        class="relative h-full bg-muted"
+        class="relative h-full bg-default border-b border-muted"
       >
         <!-- Virtualized column headers -->
         <div
@@ -150,7 +151,7 @@ const visibleRows = computed(() => {
             width: `${cellWidth}px`,
             height: `${headerHeight}px`,
           }"
-          class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
+          class="absolute top-0 flex items-center justify-center border-r border-default text-sm"
         >
           {{ col.label }}
         </div>
@@ -161,10 +162,10 @@ const visibleRows = computed(() => {
           height: `${totalHeight}px`,
           transform: `translateY(-${scrollTop}px)`,
         }"
-        class="relative w-full bg-muted"
+        class="relative w-full bg-default border-r border-muted"
       >
         <!-- Virtualized column headers -->
-        <div
+        <GanttLabel
           v-for="row in visibleRows"
           :key="row.index"
           :style="{
@@ -172,10 +173,9 @@ const visibleRows = computed(() => {
             width: `${headerWidth}px`,
             height: `${cellHeight}px`,
           }"
-          class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
-        >
-          {{ row.label }}
-        </div>
+          v-model="allTasks[row.index]"
+          class="absolute left-0"
+        />
       </div>
     </div>
     <!-- SVG Grid Background (offset by header height) -->
@@ -199,7 +199,7 @@ const visibleRows = computed(() => {
           <path
             :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
             fill="none"
-            stroke="var(--ui-bg-elevated)"
+            stroke="var(--ui-border)"
             stroke-width="1"
           />
         </pattern>
@@ -215,7 +215,6 @@ const visibleRows = computed(() => {
         left: `${headerWidth}px`,
         width: `${totalWidth}px`,
         height: `${totalHeight}px`,
-        zIndex: 1,
       }"
       class="absolute"
     >
@@ -230,7 +229,7 @@ const visibleRows = computed(() => {
           height: `${task.height * cellHeight}px`,
         }"
         v-model="visibleTasks[i]"
-        class="absolute bg-primary"
+        class="absolute"
         @click="() => console.log('Clicked:', task.label)"
         :pixels-width="cellWidth"
       />
