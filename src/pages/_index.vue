@@ -1,18 +1,10 @@
-<script lang="ts">
-import {Task} from "../utils/types.ts";
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { generateAllTasks } from "../utils/task";
 
-export interface GanttChartProps {
-  // tasks: Task[];
-  cellWidth: number;
-  cellHeight: number;
-}
-</script>
-
-<script lang="ts" setup>
-import {computed, onMounted, onUnmounted, ref} from "vue";
-import GanttBar from "./GanttBar.vue";
-
-const props = defineProps<GanttChartProps>();
+// Grid settings
+const cellWidth = ref(40);
+const cellHeight = ref(50);
 
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
@@ -25,10 +17,10 @@ const totalColumns = 300;
 const overscan = 5;
 
 // Total size in pixels
-const totalWidth = computed(() => totalColumns * props.cellWidth);
-const totalHeight = computed(() => totalRows * props.cellHeight);
+const totalWidth = computed(() => totalColumns * cellWidth.value);
+const totalHeight = computed(() => totalRows * cellHeight.value);
 
-const allTasks = defineModel<Task[]>()
+const allTasks = ref(generateAllTasks(totalRows));
 
 // Get current scroll position for horizontal virtualization
 const scrollLeft = ref(0);
@@ -59,14 +51,14 @@ onUnmounted(() => {
 });
 
 // Calculate visible column range
-const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / props.cellWidth));
+const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellWidth.value));
 const visibleColumnEnd = computed(() =>
-    Math.ceil((scrollLeft.value + viewportWidth.value) / props.cellWidth),
+  Math.ceil((scrollLeft.value + viewportWidth.value) / cellWidth.value),
 );
 
-const visibleRowStart = computed(() => Math.floor(scrollTop.value / props.cellHeight));
+const visibleRowStart = computed(() => Math.floor(scrollTop.value / cellHeight.value));
 const visibleRowEnd = computed(() =>
-    Math.ceil((scrollTop.value + viewportHeight.value) / props.cellHeight),
+  Math.ceil((scrollTop.value + viewportHeight.value) / cellHeight.value),
 );
 
 // Virtualized tasks - only render those in visible viewport
@@ -76,13 +68,13 @@ const visibleTasks = computed(() => {
   const colStart = visibleColumnStart.value - overscan;
   const colEnd = visibleColumnEnd.value + overscan;
 
-  return allTasks.value.filter((task: Task) => {
+  return allTasks.value.filter((task) => {
     const taskColEnd = task.col + task.width;
 
     // Check if a task intersects with visible area
     // Since each task is exactly on its row, we just check row range and column range
     return (
-        task.row >= rowStart && task.row <= rowEnd && !(task.col > colEnd || taskColEnd < colStart)
+      task.row >= rowStart && task.row <= rowEnd && !(task.col > colEnd || taskColEnd < colStart)
     );
   });
 });
@@ -100,7 +92,7 @@ const visibleColumns = computed(() => {
     columns.push({
       index: i,
       label: `C-${i}`,
-      left: i * props.cellWidth,
+      left: i * cellWidth.value,
     });
   }
 
@@ -116,7 +108,7 @@ const visibleRows = computed(() => {
     rows.push({
       index: i,
       label: `R-${i}`,
-      top: i * props.cellHeight,
+      top: i * cellHeight.value,
     });
   }
   return rows;
@@ -124,92 +116,95 @@ const visibleRows = computed(() => {
 </script>
 
 <template>
-  <div ref="scrollContainerRef" class="relative flex-1 overflow-auto bg-default">
-    <div
+  <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
+    <!-- Scroll Container -->
+    <div ref="scrollContainerRef" class="relative flex-1 overflow-auto bg-default">
+      <div
+        class="pointer-events-none sticky top-0 left-0 z-50 grid h-full w-full"
         :style="{
           gridTemplateColumns: `${headerWidth}px 1fr`,
           gridTemplateRows: `${headerHeight}px 1fr`,
         }"
-        class="pointer-events-none sticky top-0 left-0 z-50 grid h-full w-full"
-    >
-      <div class="z-10 flex items-center justify-center bg-muted">Tasks</div>
+      >
+        <div class="z-10 flex items-center justify-center bg-muted">Tasks</div>
 
-      <div
+        <div
+          class="relative h-full bg-muted"
           :style="{
             width: `${totalWidth}px`,
             transform: `translateX(-${scrollLeft}px)`,
           }"
-          class="relative h-full bg-muted"
-      >
-        <!-- Virtualized column headers -->
-        <div
+        >
+          <!-- Virtualized column headers -->
+          <div
             v-for="col in visibleColumns"
+            class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
             :key="col.index"
             :style="{
               left: `${col.left}px`,
               width: `${cellWidth}px`,
               height: `${headerHeight}px`,
             }"
-            class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
-        >
-          {{ col.label }}
+          >
+            {{ col.label }}
+          </div>
         </div>
-      </div>
 
-      <div
+        <div
+          class="relative w-full bg-muted"
           :style="{
             height: `${totalHeight}px`,
             transform: `translateY(-${scrollTop}px)`,
           }"
-          class="relative w-full bg-muted"
-      >
-        <!-- Virtualized column headers -->
-        <div
+        >
+          <!-- Virtualized column headers -->
+          <div
             v-for="row in visibleRows"
+            class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
             :key="row.index"
             :style="{
               top: `${row.top}px`,
               width: `${headerWidth}px`,
               height: `${cellHeight}px`,
             }"
-            class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
-        >
-          {{ row.label }}
+          >
+            {{ row.label }}
+          </div>
         </div>
       </div>
-    </div>
-    <!-- SVG Grid Background (offset by header height) -->
-    <svg
+      <!-- SVG Grid Background (offset by header height) -->
+      <svg
+        :width="totalWidth"
         :height="totalHeight"
+        class="pointer-events-none absolute z-0"
         :style="{
           top: `${headerHeight}px`,
           left: `${headerWidth}px`,
         }"
-        :width="totalWidth"
-        class="pointer-events-none absolute z-0"
-    >
-      <defs>
-        <pattern
+      >
+        <defs>
+          <pattern
             :id="gridPatternId"
-            :height="cellHeight"
             :width="cellWidth"
+            :height="cellHeight"
             patternUnits="userSpaceOnUse"
-        >
-          <rect :height="cellHeight" :width="cellWidth" fill="var(--ui-bg)"/>
-          <path
+          >
+            <rect :width="cellWidth" :height="cellHeight" fill="var(--ui-bg)" />
+            <path
               :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
               fill="none"
               stroke="var(--ui-bg-elevated)"
               stroke-width="1"
-          />
-        </pattern>
-      </defs>
+            />
+          </pattern>
+        </defs>
 
-      <rect :fill="`url(#${gridPatternId})`" :height="totalHeight" :width="totalWidth"/>
-    </svg>
+        <rect :width="totalWidth" :height="totalHeight" :fill="`url(#${gridPatternId})`" />
+      </svg>
 
-    <!-- HTML Div Container for Tasks/Squares -->
-    <div
+      <!-- HTML Div Container for Tasks/Squares -->
+      <div
+        class="absolute"
         :style="{
           top: `${headerHeight}px`,
           left: `${headerWidth}px`,
@@ -217,25 +212,63 @@ const visibleRows = computed(() => {
           height: `${totalHeight}px`,
           zIndex: 1,
         }"
-        class="absolute"
-    >
-      <!-- Virtualized HTML Div Tasks (one per row) -->
-      <GanttBar
-          v-for="(task, i) in visibleTasks"
+      >
+        <!-- Virtualized HTML Div Tasks (one per row) -->
+        <div
+          v-for="task in visibleTasks"
           :key="task.id"
+          class="absolute overflow-hidden bg-primary"
           :style="{
             left: `${task.col * cellWidth}px`,
             top: `${task.row * cellHeight}px`,
             width: `${task.width * cellWidth}px`,
             height: `${task.height * cellHeight}px`,
           }"
-          v-model="visibleTasks[i]"
-          class="absolute bg-primary"
-
           @click="() => console.log('Clicked:', task.label)"
-          :pixels-width="cellWidth"
-      />
+        >
+          <div>{{ task.label }}</div>
+          <div style="font-size: 10px; opacity: 0.8; margin-top: 2px">
+            Row {{ task.row }} | Col {{ task.col }}-{{ task.col + task.width }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 bg-muted p-4">
+      <UFormField label="Cell width (px)" orientation="horizontal">
+        <UInput v-model.number="cellWidth" type="number" min="5" max="200" />
+      </UFormField>
+      <UFormField label="Cell height (px)" orientation="horizontal">
+        <UInput v-model.number="cellHeight" type="number" min="5" max="200" />
+      </UFormField>
+      <div class="ml-auto flex gap-4 text-sm text-primary">
+        <span>Total tasks: {{ allTasks.length }}</span>
+        <span>Rendered in DOM: {{ visibleTasks.length }}</span>
+      </div>
     </div>
   </div>
-
 </template>
+
+<style scoped>
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ui-bg-elevated);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-bg-elevated);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-bg-elevated) transparent;
+}
+</style>

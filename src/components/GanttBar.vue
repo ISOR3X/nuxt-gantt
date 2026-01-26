@@ -1,21 +1,19 @@
-<script setup lang="ts">
-import { ref, computed } from "vue";
-import { Temporal } from "temporal-polyfill";
-import { Task } from "../utils/types";
+<script lang="ts" setup>
+import {computed, ref} from "vue";
+import {Task} from "../utils/types.ts";
 
 const model = defineModel<Task>();
 
-const { showHandles = false, pixelsWidth = 120 } = defineProps<{
+const {pixelsWidth = 120} = defineProps<{
   pixelsWidth?: number;
-  showHandles?: boolean;
 }>();
 
 const isDragging = ref(false);
 const isResizingLeft = ref(false);
 const isResizingRight = ref(false);
 const dragStartX = ref(0);
-const originalStartDate = ref<Temporal.PlainDate | null>(null);
-const originalEndDate = ref<Temporal.PlainDate | null>(null);
+const originalStartDate = ref<number | null>(null);
+const originalEndDate = ref<number | null>(null);
 
 function onMouseDownBar(e: MouseEvent) {
   if (isResizingLeft.value || isResizingRight.value) return;
@@ -25,8 +23,8 @@ function onMouseDownBar(e: MouseEvent) {
   dragStartX.value = e.clientX;
 
   if (model.value) {
-    originalStartDate.value = model.value.startDate;
-    originalEndDate.value = model.value.endDate;
+    originalStartDate.value = model.value.col;
+    originalEndDate.value = model.value.col + model.value.width;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -39,8 +37,8 @@ function onMouseDownLeft(e: MouseEvent) {
   dragStartX.value = e.clientX;
 
   if (model.value) {
-    originalStartDate.value = model.value.startDate;
-    originalEndDate.value = model.value.endDate;
+    originalStartDate.value = model.value.col;
+    originalEndDate.value = model.value.col + model.value.width;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -53,8 +51,8 @@ function onMouseDownRight(e: MouseEvent) {
   dragStartX.value = e.clientX;
 
   if (model.value) {
-    originalStartDate.value = model.value.startDate;
-    originalEndDate.value = model.value.endDate;
+    originalStartDate.value = model.value.col;
+    originalEndDate.value = model.value.col + model.value.width;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -65,29 +63,28 @@ function onMouseMove(e: MouseEvent) {
   if (!model.value) return;
   if (!originalStartDate.value || !originalEndDate.value) return;
 
-  const pixelWidth = pixelsWidth;
   const deltaX = e.clientX - dragStartX.value;
 
   // Calculate days moved with snapping
-  const daysMoved = Math.round(deltaX / pixelWidth);
+  const daysMoved = Math.round(deltaX / pixelsWidth);
 
   if (isDragging.value) {
-    // Move entire bar (always update, even when daysMoved is 0)
-    model.value.startDate = originalStartDate.value.add({ days: daysMoved });
-    model.value.endDate = originalEndDate.value.add({ days: daysMoved });
+    // Move the entire bar (always update, even when daysMoved is 0)
+    model.value.col = originalStartDate.value + daysMoved;
+    model.value.width = originalEndDate.value - originalStartDate.value;
   } else if (isResizingLeft.value) {
-    // Resize left edge (change start date)
-    const newStartDate = originalStartDate.value.add({ days: daysMoved });
-    // Ensure start date doesn't go past end date
-    if (Temporal.PlainDate.compare(newStartDate, originalEndDate.value) <= 0) {
-      model.value.startDate = newStartDate;
+    const newStartDate = originalStartDate.value + daysMoved;
+    // Ensure the start date doesn't go past the end date
+    if (newStartDate < originalEndDate.value) {
+      model.value.col = newStartDate;
+      model.value.width = originalEndDate.value - newStartDate;
     }
   } else if (isResizingRight.value) {
     // Resize right edge (change end date)
-    const newEndDate = originalEndDate.value.add({ days: daysMoved });
-    // Ensure end date doesn't go before start date
-    if (Temporal.PlainDate.compare(newEndDate, originalStartDate.value) >= 0) {
-      model.value.endDate = newEndDate;
+    const newEndDate = originalEndDate.value + daysMoved;
+    // Ensure the end date doesn't go before the start date
+    if (newEndDate > originalStartDate.value) {
+      model.value.width = newEndDate - originalStartDate.value;
     }
   }
 }
@@ -111,19 +108,17 @@ const cursorStyle = computed(() => {
 </script>
 
 <template>
-  <div class="rounded-md bg-primary select-none" :class="cursorStyle" @mousedown="onMouseDownBar">
+  <div :class="cursorStyle" class="rounded-md bg-primary select-none group" @mousedown="onMouseDownBar">
     <!-- Left resize handle -->
     <div
-      class="absolute top-0 bottom-0 -left-5 z-20 w-10 cursor-ew-resize"
-      :class="{ showHandles: 'bg-error/50' }"
-      @mousedown.stop="onMouseDownLeft"
+        class="absolute top-0 bottom-0 -left-2 z-20 w-4 group-hover:bg-inverted/20 rounded-full cursor-ew-resize"
+        @mousedown.stop="onMouseDownLeft"
     />
 
     <!-- Right resize handle -->
     <div
-      class="absolute top-0 -right-5 bottom-0 z-20 w-10 cursor-ew-resize"
-      :class="{ showHandles: 'bg-error/50' }"
-      @mousedown.stop="onMouseDownRight"
+        class="absolute top-0 bottom-0 -right-2 z-20 w-4 group-hover:bg-inverted/20 rounded-full cursor-ew-resize"
+        @mousedown.stop="onMouseDownRight"
     />
   </div>
 </template>
