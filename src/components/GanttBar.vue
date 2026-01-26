@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import {computed, ref} from "vue";
-import {Task} from "../utils/types.ts";
+import { computed, ref } from "vue";
+import { Task } from "../utils/types.ts";
 
 const model = defineModel<Task>();
 
-const {pixelsWidth = 120} = defineProps<{
+const { pixelsWidth = 120 } = defineProps<{
   pixelsWidth?: number;
 }>();
 
@@ -108,17 +108,21 @@ const cursorStyle = computed(() => {
 </script>
 
 <template>
-  <div :class="cursorStyle" class="rounded-md bg-primary select-none group" @mousedown="onMouseDownBar">
+  <div
+    :class="cursorStyle"
+    class="group rounded-md bg-primary select-none"
+    @mousedown="onMouseDownBar"
+  >
     <!-- Left resize handle -->
     <div
-        class="absolute top-0 bottom-0 -left-2 z-20 w-4 group-hover:bg-inverted/20 rounded-full cursor-ew-resize"
-        @mousedown.stop="onMouseDownLeft"
+      class="absolute top-0 bottom-0 -left-2 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/20"
+      @mousedown.stop="onMouseDownLeft"
     />
 
     <!-- Right resize handle -->
     <div
-        class="absolute top-0 bottom-0 -right-2 z-20 w-4 group-hover:bg-inverted/20 rounded-full cursor-ew-resize"
-        @mousedown.stop="onMouseDownRight"
+      class="absolute top-0 -right-2 bottom-0 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/20"
+      @mousedown.stop="onMouseDownRight"
     />
   </div>
 </template>

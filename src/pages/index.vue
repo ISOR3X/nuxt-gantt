@@ -1,23 +1,23 @@
 <script lang="ts" setup>
-import GanttChart from '../components/GanttChart.vue'
-import {generateAllTasks} from "../utils/task.ts";
-import {ref} from "vue";
+import GanttChart from "../components/GanttChart.vue";
+import { generateAllTasks } from "../utils/task.ts";
+import { ref } from "vue";
 
-const cellWidth = ref(40)
-const cellHeight = ref(50)
+const cellWidth = ref(40);
+const cellHeight = ref(50);
 
-const tasks = ref(generateAllTasks(100))
+const tasks = ref(generateAllTasks(100));
 </script>
 
 <template>
   <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
-    <GanttChart v-model="tasks" :cell-width="cellWidth" :cell-height="cellHeight"/>
+    <GanttChart v-model="tasks" :cell-width="cellWidth" :cell-height="cellHeight" />
     <div class="flex items-center gap-4 bg-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
-        <UInput v-model.number="cellWidth" max="200" min="5" type="number"/>
+        <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
       </UFormField>
       <UFormField label="Cell height (px)" orientation="horizontal">
-        <UInput v-model.number="cellHeight" max="200" min="5" type="number"/>
+        <UInput v-model.number="cellHeight" max="200" min="5" type="number" />
       </UFormField>
     </div>
   </div>

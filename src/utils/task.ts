@@ -1,10 +1,7 @@
 import { Task } from "./types";
 
 // Generate a random task for a specific row (one task per row)
-export function generateRandomTask(
-  rowIndex: number,
-  overscan: number = 5,
-): Task {
+export function generateRandomTask(rowIndex: number, overscan: number = 5): Task {
   return {
     id: rowIndex,
     row: rowIndex,
