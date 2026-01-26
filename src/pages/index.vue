@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 
 // Grid settings
-const cellWidth = ref(10)
-const cellHeight = ref(10)
+const cellWidth = ref(30)
+const cellHeight = ref(30)
 
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null)
+const headerHeight = 40 // Height of the header in pixels
 
 // Virtual grid dimensions (very large for "infinite" feel)
 const totalRows = 10000
@@ -17,38 +18,45 @@ const totalColumns = 10000
 const totalWidth = computed(() => totalColumns * cellWidth.value)
 const totalHeight = computed(() => totalRows * cellHeight.value)
 
-// Generate many squares spread across the grid to demonstrate virtualization
-const generateSquares = () => {
-  const squares = [
-    { id: 1, row: 5, col: 8, width: 3, height: 2, color: '#3b82f6', label: 'Blue Task' },
-    { id: 2, row: 12, col: 15, width: 4, height: 3, color: '#ef4444', label: 'Red Task' },
-    { id: 3, row: 20, col: 5, width: 2, height: 4, color: '#10b981', label: 'Green Task' },
-    { id: 4, row: 8, col: 25, width: 5, height: 2, color: '#f59e0b', label: 'Orange Task' },
-    { id: 5, row: 30, col: 30, width: 3, height: 3, color: '#8b5cf6', label: 'Purple Task' },
-    { id: 6, row: 15, col: 40, width: 2, height: 2, color: '#ec4899', label: 'Pink Task' },
-    { id: 7, row: 45, col: 20, width: 4, height: 2, color: '#14b8a6', label: 'Teal Task' },
-    { id: 8, row: 50, col: 50, width: 6, height: 4, color: '#f97316', label: 'Deep Orange' },
-    { id: 9, row: 100, col: 100, width: 8, height: 5, color: '#06b6d4', label: 'Cyan Task' },
-    { id: 10, row: 150, col: 75, width: 3, height: 3, color: '#84cc16', label: 'Lime Task' },
-  ]
-  
-  // Add more squares spread throughout the grid
-  for (let i = 0; i < 200; i++) {
-    squares.push({
-      id: 100 + i,
-      row: Math.floor(Math.random() * 1000) + 200,
-      col: Math.floor(Math.random() * 500) + 100,
-      width: Math.floor(Math.random() * 4) + 2,
-      height: Math.floor(Math.random() * 2) + 1,
-      color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-      label: `Task ${100 + i}`,
-    })
-  }
-  
-  return squares
+// Task interface
+interface Task {
+  id: number
+  row: number
+  col: number
+  width: number
+  height: number
+  color: string
+  label: string
 }
 
-const allSquares = ref(generateSquares())
+// Generate random task for a specific row (one task per row)
+const generateRandomTask = (rowIndex: number): Task => {
+  const colors = [
+    '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', 
+    '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'
+  ]
+  
+  return {
+    id: rowIndex,
+    row: rowIndex,
+    col: Math.floor(Math.random() * 50) + 5, // Start between columns 5-55
+    width: Math.floor(Math.random() * 15) + 5, // Width between 5-20 cells
+    height: 1, // One row height (standard Gantt task)
+    color: colors[rowIndex % colors.length],
+    label: `Task ${rowIndex}`,
+  }
+}
+
+// Generate tasks for all rows (one task per row)
+const generateAllTasks = (): Task[] => {
+  const tasks: Task[] = []
+  for (let i = 0; i < totalRows; i++) {
+    tasks.push(generateRandomTask(i))
+  }
+  return tasks
+}
+
+const allTasks = ref(generateAllTasks())
 
 // Row virtualizer - properly using TanStack Virtual
 const rowVirtualizer = useVirtualizer(
@@ -61,15 +69,36 @@ const rowVirtualizer = useVirtualizer(
 )
 
 // Get current scroll position for horizontal virtualization
-const scrollLeft = computed(() => scrollContainerRef.value?.scrollLeft || 0)
+const scrollLeft = ref(0)
 const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth || 1000)
+
+// Update scroll position on scroll event
+const handleScroll = () => {
+  if (scrollContainerRef.value) {
+    scrollLeft.value = scrollContainerRef.value.scrollLeft
+  }
+}
+
+// Setup and cleanup scroll listener
+onMounted(() => {
+  if (scrollContainerRef.value) {
+    scrollContainerRef.value.addEventListener('scroll', handleScroll)
+    handleScroll() // Initial update
+  }
+})
+
+onUnmounted(() => {
+  if (scrollContainerRef.value) {
+    scrollContainerRef.value.removeEventListener('scroll', handleScroll)
+  }
+})
 
 // Calculate visible column range
 const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellWidth.value))
 const visibleColumnEnd = computed(() => Math.ceil((scrollLeft.value + viewportWidth.value) / cellWidth.value))
 
-// Virtualized squares - only render those in visible viewport
-const visibleSquares = computed(() => {
+// Virtualized tasks - only render those in visible viewport
+const visibleTasks = computed(() => {
   const virtualRows = rowVirtualizer.value.getVirtualItems()
   if (!virtualRows.length) return []
   
@@ -78,22 +107,38 @@ const visibleSquares = computed(() => {
   const colStart = visibleColumnStart.value - 5 // overscan
   const colEnd = visibleColumnEnd.value + 5 // overscan
   
-  return allSquares.value.filter(square => {
-    const squareRowEnd = square.row + square.height
-    const squareColEnd = square.col + square.width
+  return allTasks.value.filter(task => {
+    const taskColEnd = task.col + task.width
     
-    // Check if square intersects with visible area
-    return !(
-      square.row > visibleRowEnd ||
-      squareRowEnd < visibleRowStart ||
-      square.col > colEnd ||
-      squareColEnd < colStart
+    // Check if task intersects with visible area
+    // Since each task is exactly on its row, we just check row range and column range
+    return (
+      task.row >= visibleRowStart &&
+      task.row <= visibleRowEnd &&
+      !(task.col > colEnd || taskColEnd < colStart)
     )
   })
 })
 
 // Grid pattern ID
 const gridPatternId = 'grid-pattern'
+
+// Generate column headers based on visible columns
+const visibleColumns = computed(() => {
+  const columns = []
+  const startCol = Math.max(0, visibleColumnStart.value - 5) // Add overscan
+  const endCol = Math.min(totalColumns, visibleColumnEnd.value + 5)
+  
+  for (let i = startCol; i < endCol; i++) {
+    columns.push({
+      index: i,
+      label: `Col ${i}`,
+      left: i * cellWidth.value,
+    })
+  }
+  
+  return columns
+})
 
 // Watch for cell size changes and remeasure
 watch([cellWidth, cellHeight], () => {
@@ -128,8 +173,8 @@ watch([cellWidth, cellHeight], () => {
         <span class="text-sm text-gray-600">px</span>
       </div>
       <div class="ml-auto flex gap-4 text-sm text-gray-600">
-        <span>Total squares: {{ allSquares.length }}</span>
-        <span class="font-semibold text-blue-600">Rendered in DOM: {{ visibleSquares.length }}</span>
+        <span>Total tasks: {{ allTasks.length }}</span>
+        <span class="font-semibold text-blue-600">Rendered in DOM: {{ visibleTasks.length }}</span>
       </div>
     </div>
 
@@ -138,13 +183,65 @@ watch([cellWidth, cellHeight], () => {
       ref="scrollContainerRef" 
       class="flex-1 overflow-auto border-2 border-gray-300 rounded-lg bg-white relative"
     >
-      <!-- SVG Grid Background (fixed, non-scrolling pattern definition) -->
+      <!-- Sticky Header Row -->
+      <div 
+        class="sticky-header"
+        :style="{
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          height: `${headerHeight}px`,
+          width: '100%',
+          zIndex: 100,
+          backgroundColor: '#f9fafb',
+          borderBottom: '2px solid #d1d5db',
+          overflow: 'hidden',
+        }"
+      >
+        <!-- Header content container (moves with scroll) -->
+        <div
+          :style="{
+            position: 'relative',
+            width: `${totalWidth}px`,
+            height: '100%',
+            transform: `translateX(-${scrollLeft}px)`,
+          }"
+        >
+          <!-- Virtualized column headers -->
+          <div
+            v-for="col in visibleColumns"
+            :key="col.index"
+            :style="{
+              position: 'absolute',
+              left: `${col.left}px`,
+              top: 0,
+              width: `${cellWidth}px`,
+              height: `${headerHeight}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#374151',
+              borderRight: '1px solid #e5e7eb',
+              userSelect: 'none',
+            }"
+          >
+            {{ col.label }}
+          </div>
+        </div>
+      </div>
+      <!-- SVG Grid Background (offset by header height) -->
       <svg
         :width="totalWidth"
         :height="totalHeight"
         xmlns="http://www.w3.org/2000/svg"
-        class="absolute top-0 left-0 pointer-events-none"
-        style="z-index: 0;"
+        class="absolute pointer-events-none"
+        :style="{
+          top: `${headerHeight}px`,
+          left: 0,
+          zIndex: 0,
+        }"
       >
         <defs>
           <pattern
@@ -174,26 +271,27 @@ watch([cellWidth, cellHeight], () => {
         />
       </svg>
 
-      <!-- HTML Div Container for Tasks/Squares -->
+      <!-- HTML Div Container for Tasks/Squares (offset by header height) -->
       <div
         :style="{
           position: 'relative',
           width: `${totalWidth}px`,
           height: `${totalHeight}px`,
           zIndex: 1,
+          marginTop: `${headerHeight}px`,
         }"
       >
-        <!-- Virtualized HTML Div Squares -->
+        <!-- Virtualized HTML Div Tasks (one per row) -->
         <div
-          v-for="square in visibleSquares"
-          :key="square.id"
+          v-for="task in visibleTasks"
+          :key="task.id"
           :style="{
             position: 'absolute',
-            left: `${square.col * cellWidth}px`,
-            top: `${square.row * cellHeight}px`,
-            width: `${square.width * cellWidth}px`,
-            height: `${square.height * cellHeight}px`,
-            backgroundColor: square.color,
+            left: `${task.col * cellWidth}px`,
+            top: `${task.row * cellHeight}px`,
+            width: `${task.width * cellWidth}px`,
+            height: `${task.height * cellHeight}px`,
+            backgroundColor: task.color,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             padding: '8px',
@@ -211,12 +309,12 @@ watch([cellWidth, cellHeight], () => {
             whiteSpace: 'nowrap',
           }"
           class="task-item"
-          @click="() => console.log('Clicked:', square.label)"
+          @click="() => console.log('Clicked:', task.label)"
         >
           <div class="task-content">
-            <div class="task-label">{{ square.label }}</div>
+            <div class="task-label">{{ task.label }}</div>
             <div class="task-info" style="font-size: 10px; opacity: 0.8; margin-top: 2px;">
-              Row {{ square.row }}, Col {{ square.col }}
+              Row {{ task.row }} | Col {{ task.col }}-{{ task.col + task.width }}
             </div>
           </div>
         </div>
