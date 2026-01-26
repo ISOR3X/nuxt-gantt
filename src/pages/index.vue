@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
 // Grid settings
-const cellWidth = ref(10);
+const cellWidth = ref(40);
 const cellHeight = ref(50);
 
 // Scroll container ref
@@ -26,32 +26,17 @@ interface Task {
   col: number;
   width: number;
   height: number;
-  color: string;
   label: string;
 }
 
 // Generate a random task for a specific row (one task per row)
 const generateRandomTask = (rowIndex: number): Task => {
-  const colors = [
-    "#3b82f6",
-    "#ef4444",
-    "#10b981",
-    "#f59e0b",
-    "#8b5cf6",
-    "#ec4899",
-    "#14b8a6",
-    "#f97316",
-    "#06b6d4",
-    "#84cc16",
-  ];
-
   return {
     id: rowIndex,
     row: rowIndex,
     col: Math.floor(Math.random() * 50) + overscan, // Start between columns 5-55
     width: Math.floor(Math.random() * 15) + overscan, // Width between 5-20 cells
     height: 1, // One row height (standard Gantt task)
-    color: colors[rowIndex % colors.length],
     label: `Task ${rowIndex}`,
   };
 };
@@ -169,79 +154,61 @@ const visibleRows = computed(() => {
       ref="scrollContainerRef"
       class="relative flex-1 bg-default overflow-auto "
     >
-      <div class="sticky top-0 left-0 z-50 h-0">
-        <div
-          class="flex items-center justify-center border-r border-b border-muted bg-muted"
-          :style="{
-            width: `${headerWidth}px`,
-            height: `${headerHeight}px`,
-          }"
-        >
-          TASKS
-        </div>
-      </div>
-      <div
-        class="sticky top-0 z-50 w-full overflow-hidden bg-muted"
-        :style="{
-          left: `${headerWidth}px`,
-          height: `${headerHeight}px`,
-        }"
-      >
-        <!-- Header content container (moves with scroll) -->
-        <div
-          :style="{
-            position: 'relative',
-            width: `${totalWidth}px`,
-            height: '100%',
-            transform: `translateX(-${scrollLeft}px)`,
-          }"
-        >
-          <!-- Virtualized column headers -->
-          <div
-            v-for="col in visibleColumns"
-            class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
-            :key="col.index"
-            :style="{
-              left: `${col.left}px`,
-              width: `${cellWidth}px`,
-              height: `${headerHeight}px`,
-            }"
-          >
-            {{ col.label }}
-          </div>
-        </div>
-      </div>
-      <div
-        class="sticky left-0 z-50 h-full overflow-hidden bg-muted"
-        :style="{
-          top: `${headerHeight}px`,
-          width: `${headerWidth}px`,
-        }"
-      >
-        <!-- Header content container (moves with scroll) -->
-        <div
-          :style="{
-            position: 'relative',
-            width: '100%',
-            height: `${totalHeight}px`,
-            transform: `translateY(-${scrollTop}px)`,
-          }"
-        >
-          <!-- Virtualized column headers -->
-          <div
-            v-for="row in visibleRows"
-            class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
-            :key="row.index"
-            :style="{
-              top: `${row.top}px`,
-              width: `${headerWidth}px`,
-              height: `${cellHeight}px`,
-            }"
-          >
-            {{ row.label }}
-          </div>
-        </div>
-      </div>
+     
+     <div class="sticky w-full h-full z-50 top-0 left-0 grid pointer-events-none"    :style="{
+       gridTemplateColumns: `${headerWidth}px 1fr`,
+       gridTemplateRows: `${headerHeight}px 1fr`,
+     }">
+         <div class="bg-muted z-10 flex items-center justify-center">
+             Tasks
+         </div>
+         
+             <div
+             class="h-full relative bg-muted"
+               :style="{
+                 width: `${totalWidth}px`,
+                 transform: `translateX(-${scrollLeft}px)`,
+               }"
+             >
+               <!-- Virtualized column headers -->
+               <div
+                 v-for="col in visibleColumns"
+                 class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
+                 :key="col.index"
+                 :style="{
+                   left: `${col.left}px`,
+                   width: `${cellWidth}px`,
+                   height: `${headerHeight}px`,
+                 }"
+               >
+                 {{ col.label }}
+               </div>
+             </div>
+         
+         
+             <div
+             class="relative w-full bg-muted"
+               :style="{
+                 height: `${totalHeight}px`,
+                 transform: `translateY(-${scrollTop}px)`,
+               }"
+             >
+               <!-- Virtualized column headers -->
+               <div
+                 v-for="row in visibleRows"
+                 class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
+                 :key="row.index"
+                 :style="{
+                   top: `${row.top}px`,
+                   width: `${headerWidth}px`,
+                   height: `${cellHeight}px`,
+                 }"
+               >
+                 {{ row.label }}
+               </div>
+             
+         </div>
+     </div>
       <!-- SVG Grid Background (offset by header height) -->
       <svg
         :width="totalWidth"
@@ -287,13 +254,12 @@ const visibleRows = computed(() => {
         <div
           v-for="task in visibleTasks"
           :key="task.id"
-          class="absolute overflow-hidden"
+          class="absolute overflow-hidden bg-primary"
           :style="{
             left: `${task.col * cellWidth }px`,
             top: `${task.row * cellHeight}px`,
             width: `${task.width * cellWidth}px`,
             height: `${task.height * cellHeight}px`,
-            backgroundColor: task.color,
           }"
           @click="() => console.log('Clicked:', task.label)"
         >
