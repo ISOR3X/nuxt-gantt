@@ -5,9 +5,9 @@ import { Task } from "../utils/types";
 
 const model = defineModel<Task>();
 
-const {showHandles = false, pixelsWidth = 120} = defineProps<{
+const { showHandles = false, pixelsWidth = 120 } = defineProps<{
   pixelsWidth?: number;
-  showHandles?: boolean
+  showHandles?: boolean;
 }>();
 
 const isDragging = ref(false);
@@ -115,14 +115,14 @@ const cursorStyle = computed(() => {
     <!-- Left resize handle -->
     <div
       class="absolute top-0 bottom-0 -left-5 z-20 w-10 cursor-ew-resize"
-      :class="{showHandles: 'bg-error/50'}"
+      :class="{ showHandles: 'bg-error/50' }"
       @mousedown.stop="onMouseDownLeft"
     />
 
     <!-- Right resize handle -->
     <div
       class="absolute top-0 -right-5 bottom-0 z-20 w-10 cursor-ew-resize"
-      :class="{showHandles: 'bg-error/50'}"
+      :class="{ showHandles: 'bg-error/50' }"
       @mousedown.stop="onMouseDownRight"
     />
   </div>
