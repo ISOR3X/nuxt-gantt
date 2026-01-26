@@ -162,14 +162,14 @@ const visibleRows = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen flex-col bg-inverted p-4 gap-4">
+  <div class="flex h-screen w-screen flex-col bg-black p-4 gap-4">
     <!-- Scroll Container -->
     <!-- TODO: Figure out a better way to add the corner fill/ label -->
     <div
       ref="scrollContainerRef"
       class="relative flex-1 bg-default overflow-auto "
     >
-      <div aria-label="sticky-corner" class="sticky top-0 left-0 z-50 h-0">
+      <div class="sticky top-0 left-0 z-50 h-0">
         <div
           class="flex items-center justify-center border-r border-b border-muted bg-muted"
           :style="{
@@ -181,7 +181,6 @@ const visibleRows = computed(() => {
         </div>
       </div>
       <div
-        aria-label="sticky-row"
         class="sticky top-0 z-50 w-full overflow-hidden bg-muted"
         :style="{
           left: `${headerWidth}px`,
@@ -213,7 +212,6 @@ const visibleRows = computed(() => {
         </div>
       </div>
       <div
-        aria-label="sticky-col"
         class="sticky left-0 z-50 h-full overflow-hidden bg-muted"
         :style="{
           top: `${headerHeight}px`,
@@ -306,8 +304,7 @@ const visibleRows = computed(() => {
         </div>
       </div>
     </div>
-    <!-- Controls -->
-    <div class="mb-4 flex items-center gap-4 rounded-lg bg-white p-4 shadow">
+    <div class="flex items-center gap-4 bg-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput
           v-model.number="cellWidth"
@@ -324,9 +321,9 @@ const visibleRows = computed(() => {
           max="200"
         />
       </UFormField>
-      <div class="ml-auto flex gap-4 text-sm text-gray-600">
+      <div class="ml-auto flex gap-4 text-sm text-primary">
         <span>Total tasks: {{ allTasks.length }}</span>
-        <span class="font-semibold text-blue-600">Rendered in DOM: {{ visibleTasks.length }}</span>
+        <span>Rendered in DOM: {{ visibleTasks.length }}</span>
       </div>
     </div>
   </div>
@@ -343,16 +340,16 @@ const visibleRows = computed(() => {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ui-bg-inverted);
+  background: var(--ui-bg-elevated);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ui-bg-inverted);
+  background: var(--ui-bg-elevated);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--ui-bg-inverted) transparent;
+  scrollbar-color: var(--ui-bg-elevated) transparent;
 }
 </style>
