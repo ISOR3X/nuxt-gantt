@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { useVirtualizer } from "@tanstack/vue-virtual";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 // Grid settings
-const cellWidth = ref(50);
+const cellWidth = ref(10);
 const cellHeight = ref(50);
 
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const headerHeight = 40; // Height of the header in pixels
-const headerWidth = 240; // Height of the header in pixels
+const headerWidth = 240; // Width of the header in pixels
 
 // Virtual grid dimensions (very large for "infinite" feel)
-const totalRows = 100;
-const totalColumns = 100;
+const totalRows = 100 ;
+const totalColumns = 300;
+const overscan = 5;
 
 // Total size in pixels
 const totalWidth = computed(() => totalColumns * cellWidth.value);
@@ -30,7 +30,7 @@ interface Task {
   label: string;
 }
 
-// Generate random task for a specific row (one task per row)
+// Generate a random task for a specific row (one task per row)
 const generateRandomTask = (rowIndex: number): Task => {
   const colors = [
     "#3b82f6",
@@ -48,8 +48,8 @@ const generateRandomTask = (rowIndex: number): Task => {
   return {
     id: rowIndex,
     row: rowIndex,
-    col: Math.floor(Math.random() * 50) + 5, // Start between columns 5-55
-    width: Math.floor(Math.random() * 15) + 5, // Width between 5-20 cells
+    col: Math.floor(Math.random() * 50) + overscan, // Start between columns 5-55
+    width: Math.floor(Math.random() * 15) + overscan, // Width between 5-20 cells
     height: 1, // One row height (standard Gantt task)
     color: colors[rowIndex % colors.length],
     label: `Task ${rowIndex}`,
@@ -67,16 +67,6 @@ const generateAllTasks = (): Task[] => {
 
 const allTasks = ref(generateAllTasks());
 
-// Row virtualizer - properly using TanStack Virtual
-const rowVirtualizer = useVirtualizer(
-  computed(() => ({
-    count: totalRows,
-    getScrollElement: () => scrollContainerRef.value,
-    estimateSize: () => cellHeight.value,
-    overscan: 3,
-  })),
-);
-
 // Get current scroll position for horizontal virtualization
 const scrollLeft = ref(0);
 const scrollTop = ref(0);
@@ -91,7 +81,7 @@ const handleScroll = () => {
   }
 };
 
-// Setup and cleanup scroll listener
+// Set up and cleanup scroll listener
 onMounted(() => {
   if (scrollContainerRef.value) {
     scrollContainerRef.value.addEventListener("scroll", handleScroll);
@@ -118,20 +108,15 @@ const visibleRowEnd = computed(() =>
 
 // Virtualized tasks - only render those in visible viewport
 const visibleTasks = computed(() => {
-  // const virtualRows = rowVirtualizer.value.getVirtualItems();
-  // if (!virtualRows.length) return [];
-
-  // const visibleRowStart = virtualRows[0].index;
-  const rowStart = visibleRowStart.value - 5;
-  // const visibleRowEnd = virtualRows[virtualRows.length - 1].index;
-  const rowEnd = visibleRowEnd.value + 5;
-  const colStart = visibleColumnStart.value - 5; // overscan
-  const colEnd = visibleColumnEnd.value + 5; // overscan
+  const rowStart = visibleRowStart.value - overscan;
+  const rowEnd = visibleRowEnd.value + overscan;
+  const colStart = visibleColumnStart.value - overscan;
+  const colEnd = visibleColumnEnd.value + overscan;
 
   return allTasks.value.filter((task) => {
     const taskColEnd = task.col + task.width;
 
-    // Check if task intersects with visible area
+    // Check if a task intersects with visible area
     // Since each task is exactly on its row, we just check row range and column range
     return (
       task.row >= rowStart && task.row <= rowEnd && !(task.col > colEnd || taskColEnd < colStart)
@@ -145,8 +130,8 @@ const gridPatternId = "grid-pattern";
 // Generate column headers based on visible columns
 const visibleColumns = computed(() => {
   const columns = [];
-  const startCol = Math.max(0, visibleColumnStart.value - 5); // Add overscan
-  const endCol = Math.min(totalColumns, visibleColumnEnd.value + 5);
+  const startCol = Math.max(0, visibleColumnStart.value - overscan); // Add overscan
+  const endCol = Math.min(totalColumns, visibleColumnEnd.value + overscan);
 
   for (let i = startCol; i < endCol; i++) {
     columns.push({
@@ -161,8 +146,8 @@ const visibleColumns = computed(() => {
 
 const visibleRows = computed(() => {
   const rows = [];
-  const startRow = Math.max(0, visibleRowStart.value - 5); // Add overscan
-  const endRow = Math.min(totalRows, visibleRowEnd.value + 5);
+  const startRow = Math.max(0, visibleRowStart.value - overscan); // Add overscan
+  const endRow = Math.min(totalRows, visibleRowEnd.value + overscan);
 
   for (let i = startRow; i < endRow; i++) {
     rows.push({
@@ -174,17 +159,12 @@ const visibleRows = computed(() => {
 
   return rows;
 });
-
-// Watch for cell size changes and remeasure
-watch([cellWidth, cellHeight], () => {
-  rowVirtualizer.value?.measure();
-});
 </script>
 
 <template>
   <div class="flex h-screen w-screen flex-col bg-inverted p-4 gap-4">
     <!-- Scroll Container -->
-    <!-- TODO: Figure out a better way to add the corner fill  -->
+    <!-- TODO: Figure out a better way to add the corner fill/ label -->
     <div
       ref="scrollContainerRef"
       class="relative flex-1 bg-default overflow-auto "
@@ -336,7 +316,7 @@ watch([cellWidth, cellHeight], () => {
           max="200"
         />
       </UFormField>
-      <UFormField label="Cell width (px)" orientation="horizontal">
+      <UFormField label="Cell height (px)" orientation="horizontal">
         <UInput
           v-model.number="cellHeight"
           type="number"
