@@ -12,8 +12,8 @@ const headerHeight = 40; // Height of the header in pixels
 const headerWidth = 240; // Height of the header in pixels
 
 // Virtual grid dimensions (very large for "infinite" feel)
-const totalRows = 10000;
-const totalColumns = 10000;
+const totalRows = 100;
+const totalColumns = 100;
 
 // Total size in pixels
 const totalWidth = computed(() => totalColumns * cellWidth.value);
@@ -182,42 +182,12 @@ watch([cellWidth, cellHeight], () => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen flex-col bg-gray-50 p-4">
-    <!-- Controls -->
-    <div class="mb-4 flex items-center gap-4 rounded-lg bg-white p-4 shadow">
-      <div class="flex items-center gap-2">
-        <label class="font-medium">Cell Width:</label>
-        <input
-          v-model.number="cellWidth"
-          type="number"
-          min="10"
-          max="200"
-          class="w-20 rounded border px-2 py-1"
-        />
-        <span class="text-sm text-gray-600">px</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="font-medium">Cell Height:</label>
-        <input
-          v-model.number="cellHeight"
-          type="number"
-          min="10"
-          max="200"
-          class="w-20 rounded border px-2 py-1"
-        />
-        <span class="text-sm text-gray-600">px</span>
-      </div>
-      <div class="ml-auto flex gap-4 text-sm text-gray-600">
-        <span>Total tasks: {{ allTasks.length }}</span>
-        <span class="font-semibold text-blue-600">Rendered in DOM: {{ visibleTasks.length }}</span>
-      </div>
-    </div>
-
+  <div class="flex h-screen w-screen flex-col bg-inverted p-4 gap-4">
     <!-- Scroll Container -->
     <!-- TODO: Figure out a better way to add the corner fill  -->
     <div
       ref="scrollContainerRef"
-      class="relative flex-1 overflow-auto rounded-lg border-2 border-gray-300 bg-white"
+      class="relative flex-1 bg-default overflow-auto "
     >
       <div aria-label="sticky-corner" class="sticky top-0 left-0 z-50 h-0">
         <div
@@ -326,8 +296,10 @@ watch([cellWidth, cellHeight], () => {
 
       <!-- HTML Div Container for Tasks/Squares -->
       <div
+      class="absolute"
         :style="{
-          position: 'relative',
+          top: `${headerHeight}px`,
+          left: `${headerWidth}px`,
           width: `${totalWidth}px`,
           height: `${totalHeight}px`,
           zIndex: 1,
@@ -339,8 +311,8 @@ watch([cellWidth, cellHeight], () => {
           :key="task.id"
           class="absolute overflow-hidden"
           :style="{
-            left: `${task.col * cellWidth + headerWidth}px`,
-            top: `${task.row * cellHeight - 804}px`,
+            left: `${task.col * cellWidth }px`,
+            top: `${task.row * cellHeight}px`,
             width: `${task.width * cellWidth}px`,
             height: `${task.height * cellHeight}px`,
             backgroundColor: task.color,
@@ -354,36 +326,53 @@ watch([cellWidth, cellHeight], () => {
         </div>
       </div>
     </div>
-
-    <!-- Info Panel -->
-    <div class="mt-4 rounded-lg bg-white p-3 text-sm text-gray-600 shadow">
-      <div class="flex gap-6">
-        <span>✓ SVG grid background for performance</span>
-        <span>✓ HTML divs for task customization</span>
-        <span>✓ TanStack Virtual row virtualization</span>
-        <span>✓ Manual column virtualization</span>
+    <!-- Controls -->
+    <div class="mb-4 flex items-center gap-4 rounded-lg bg-white p-4 shadow">
+      <UFormField label="Cell width (px)" orientation="horizontal">
+        <UInput
+          v-model.number="cellWidth"
+          type="number"
+          min="5"
+          max="200"
+        />
+      </UFormField>
+      <UFormField label="Cell width (px)" orientation="horizontal">
+        <UInput
+          v-model.number="cellHeight"
+          type="number"
+          min="5"
+          max="200"
+        />
+      </UFormField>
+      <div class="ml-auto flex gap-4 text-sm text-gray-600">
+        <span>Total tasks: {{ allTasks.length }}</span>
+        <span class="font-semibold text-blue-600">Rendered in DOM: {{ visibleTasks.length }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Custom scrollbar styling */
-div::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-div::-webkit-scrollbar-track {
-  background: #f1f1f1;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-div::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 6px;
+::-webkit-scrollbar-thumb {
+  background: var(--ui-bg-inverted);
+  border-radius: 3px;
 }
 
-div::-webkit-scrollbar-thumb:hover {
-  background: #555;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-bg-inverted);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-bg-inverted) transparent;
 }
 </style>
