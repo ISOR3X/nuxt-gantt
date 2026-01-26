@@ -271,14 +271,13 @@ watch([cellWidth, cellHeight], () => {
         />
       </svg>
 
-      <!-- HTML Div Container for Tasks/Squares (offset by header height) -->
+      <!-- HTML Div Container for Tasks/Squares -->
       <div
         :style="{
           position: 'relative',
           width: `${totalWidth}px`,
           height: `${totalHeight}px`,
           zIndex: 1,
-          marginTop: `${headerHeight}px`,
         }"
       >
         <!-- Virtualized HTML Div Tasks (one per row) -->
