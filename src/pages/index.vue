@@ -9,7 +9,7 @@ const cellHeight = ref(50);
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const headerHeight = 40; // Height of the header in pixels
-const headerWidth = 80; // Height of the header in pixels
+const headerWidth = 240; // Height of the header in pixels
 
 // Virtual grid dimensions (very large for "infinite" feel)
 const totalRows = 10000;
@@ -134,9 +134,7 @@ const visibleTasks = computed(() => {
     // Check if task intersects with visible area
     // Since each task is exactly on its row, we just check row range and column range
     return (
-      task.row >= rowStart &&
-      task.row <= rowEnd &&
-      !(task.col > colEnd || taskColEnd < colStart)
+      task.row >= rowStart && task.row <= rowEnd && !(task.col > colEnd || taskColEnd < colStart)
     );
   });
 });
@@ -216,20 +214,28 @@ watch([cellWidth, cellHeight], () => {
     </div>
 
     <!-- Scroll Container -->
+    <!-- TODO: Figure out a better way to add the corner fill  -->
     <div
       ref="scrollContainerRef"
       class="relative flex-1 overflow-auto rounded-lg border-2 border-gray-300 bg-white"
     >
-
-        
+      <div aria-label="sticky-corner" class="sticky top-0 left-0 z-50 h-0">
+        <div
+          class="flex items-center justify-center border-r border-b border-muted bg-muted"
+          :style="{
+            width: `${headerWidth}px`,
+            height: `${headerHeight}px`,
+          }"
+        >
+          TASKS
+        </div>
+      </div>
       <div
         aria-label="sticky-row"
-        class="sticky top-0 w-full z-50 overflow-hidden"
+        class="sticky top-0 z-50 w-full overflow-hidden bg-muted"
         :style="{
           left: `${headerWidth}px`,
           height: `${headerHeight}px`,
-          backgroundColor: '#f9fafb',
-          borderBottom: '2px solid #d1d5db',
         }"
       >
         <!-- Header content container (moves with scroll) -->
@@ -244,21 +250,12 @@ watch([cellWidth, cellHeight], () => {
           <!-- Virtualized column headers -->
           <div
             v-for="col in visibleColumns"
+            class="absolute top-0 flex items-center justify-center border-r border-b border-muted text-sm"
             :key="col.index"
             :style="{
-              position: 'absolute',
               left: `${col.left}px`,
-              top: 0,
               width: `${cellWidth}px`,
               height: `${headerHeight}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#374151',
-              borderRight: '1px solid #e5e7eb',
-              userSelect: 'none',
             }"
           >
             {{ col.label }}
@@ -267,12 +264,10 @@ watch([cellWidth, cellHeight], () => {
       </div>
       <div
         aria-label="sticky-col"
-        class="sticky left-0 h-full z-50 overflow-hidden"
+        class="sticky left-0 z-50 h-full overflow-hidden bg-muted"
         :style="{
           top: `${headerHeight}px`,
           width: `${headerWidth}px`,
-          backgroundColor: '#f9fafb',
-          borderBottom: '2px solid #d1d5db',
         }"
       >
         <!-- Header content container (moves with scroll) -->
@@ -287,21 +282,12 @@ watch([cellWidth, cellHeight], () => {
           <!-- Virtualized column headers -->
           <div
             v-for="row in visibleRows"
+            class="absolute left-0 flex items-center justify-center border-r border-b border-muted text-sm"
             :key="row.index"
             :style="{
-              position: 'absolute',
               top: `${row.top}px`,
-              left: 0,
               width: `${headerWidth}px`,
               height: `${cellHeight}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#374151',
-              borderRight: '1px solid #e5e7eb',
-              userSelect: 'none',
             }"
           >
             {{ row.label }}
@@ -312,12 +298,10 @@ watch([cellWidth, cellHeight], () => {
       <svg
         :width="totalWidth"
         :height="totalHeight"
-        xmlns="http://www.w3.org/2000/svg"
-        class="pointer-events-none absolute"
+        class="pointer-events-none absolute z-0"
         :style="{
           top: `${headerHeight}px`,
           left: `${headerWidth}px`,
-          zIndex: 0,
         }"
       >
         <defs>
@@ -327,11 +311,11 @@ watch([cellWidth, cellHeight], () => {
             :height="cellHeight"
             patternUnits="userSpaceOnUse"
           >
-            <rect :width="cellWidth" :height="cellHeight" fill="white" />
+            <rect :width="cellWidth" :height="cellHeight" fill="var(--ui-bg)" />
             <path
               :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
               fill="none"
-              stroke="#e5e7eb"
+              stroke="var(--ui-bg-elevated)"
               stroke-width="1"
             />
           </pattern>
@@ -353,44 +337,21 @@ watch([cellWidth, cellHeight], () => {
         <div
           v-for="task in visibleTasks"
           :key="task.id"
+          class="absolute overflow-hidden"
           :style="{
-            position: 'absolute',
             left: `${task.col * cellWidth + headerWidth}px`,
             top: `${task.row * cellHeight - 804}px`,
             width: `${task.width * cellWidth}px`,
             height: `${task.height * cellHeight}px`,
             backgroundColor: task.color,
-            borderRadius: '6px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            padding: '8px',
-            cursor: 'pointer',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: '12px',
-            border: '2px solid rgba(255,255,255,0.3)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
           }"
-          class="task-item"
           @click="() => console.log('Clicked:', task.label)"
         >
-          <div class="task-content">
-            <div class="task-label">{{ task.label }}</div>
-            <div class="task-info" style="font-size: 10px; opacity: 0.8; margin-top: 2px">
-              Row {{ task.row }} | Col {{ task.col }}-{{ task.col + task.width }}
-            </div>
+          <div>{{ task.label }}</div>
+          <div style="font-size: 10px; opacity: 0.8; margin-top: 2px">
+            Row {{ task.row }} | Col {{ task.col }}-{{ task.col + task.width }}
           </div>
         </div>
-      </div>
-      <div
-        class="sticky top-0 left-0 z-50 size-20 bg-error"
-      >
-          CONTENT
       </div>
     </div>
 
@@ -424,35 +385,5 @@ div::-webkit-scrollbar-thumb {
 
 div::-webkit-scrollbar-thumb:hover {
   background: #555;
-}
-
-input[type="number"] {
-  border: 1px solid #d1d5db;
-}
-
-input[type="number"]:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.task-item:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  z-index: 10;
-}
-
-.task-content {
-  text-align: center;
-  width: 100%;
-}
-
-.task-label {
-  font-weight: 600;
-}
-
-.task-info {
-  font-size: 10px;
-  opacity: 0.9;
 }
 </style>
