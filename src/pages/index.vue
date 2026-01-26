@@ -1,262 +1,198 @@
-<script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
-import { Temporal } from "temporal-polyfill";
-import { Task } from "../utils/types";
-import { daysBetween, isBetween } from "../utils/temporal";
-import {
-    saveTasks as saveTasksToFile,
-    loadTasksFromFile,
-} from "../utils/taskStorage";
-
-const scrollArea = useTemplateRef("scrollArea");
-const fileInput = useTemplateRef("fileInput");
-
-const pixelsWidth = ref(20);
-const pixelsHeight = ref(20);
-
-const visibleDates = computed<Temporal.PlainDate[]>(() => {
-    const indexes: number[] =
-        scrollArea.value?.virtualizer?.getVirtualIndexes() ?? [];
-    return indexes.map((i) => items.value[i].date);
-});
-
-const taskBarMeta = computed(() => {
-    // We search in reverse so the ganttbar that uses this is draw latest, so if we have borders they are drawn under.
-    // Additionally, we offset the end date by one so we can draw the drag handles a bit outside of the container.
-    const meta = tasks.value.map((t) => {
-        const date = visibleDates.value.findLast((d) => {
-            return isBetween(t.startDate, t.endDate.add({ days: 1 }), d);
-        });
-        if (date) {
-            return {
-                endDate: date,
-                span: daysBetween(date, t.startDate),
-            };
-        }
-    });
-    return meta;
-});
-
-const _tasks: Task[] = [
-    {
-        id: "0",
-        label: "Do task",
-        startDate: Temporal.Now.plainDateISO(),
-        endDate: Temporal.Now.plainDateISO(),
-    },
-    {
-        id: "1",
-        label: "Do other task",
-        startDate: Temporal.Now.plainDateISO().subtract({ days: 2 }),
-        endDate: Temporal.Now.plainDateISO().add({ days: 50 }),
-    },
-    {
-        id: "2",
-        label: "Do another task",
-        startDate: Temporal.Now.plainDateISO().subtract({ days: 5 }),
-        endDate: Temporal.Now.plainDateISO().subtract({ days: 3 }),
-    },
-];
-const tasks = ref(Array.from({ length: 10 }, () => _tasks).flat());
-
-const now = Temporal.Now.plainDateISO();
-const startDate = now.subtract({ years: 1 });
-const endDate = now.add({ years: 1 });
-const totalDays = startDate.until(endDate).total("days");
-
-const items = computed<any[]>(() =>
-    Array.from({ length: totalDays + 1 }, (_, i) => {
-        const date = startDate.add({ days: i });
-        return {
-            id: i + 1,
-            date: date,
-            title: date.toString(),
-            description: date.toLocaleString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            }),
-        };
-    }),
-);
-
-function scrollToDate(date: Temporal.PlainDate) {
-    const idx = items.value.findIndex(
-        (d) => d.date.toLocaleString() == date.toLocaleString(),
-    );
-    scrollArea.value?.virtualizer?.scrollToIndex(idx, {
-        align: "start",
-        behavior: "auto",
-    });
-}
-
-onMounted(() => {
-    nextTick(() => {
-        scrollToDate(Temporal.Now.plainDateISO());
-    });
-});
-
-function addTask() {
-    tasks.value = [
-        ...tasks.value,
-        {
-            id: "0",
-            label: "Do task",
-            startDate: Temporal.Now.plainDateISO(),
-            endDate: Temporal.Now.plainDateISO(),
-        },
-    ];
-}
-
-// Save tasks to JSON file
-function saveTasks() {
-    try {
-        saveTasksToFile(tasks.value);
-    } catch (error) {
-        console.error("Error saving tasks:", error);
-        alert("Failed to save tasks. Please try again.");
-    }
-}
-
-// Load tasks from JSON file
-function loadTasks() {
-    fileInput.value?.click();
-}
-
-// Handle file selection
-async function handleFileChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-
-    if (!file) {
-        return;
-    }
-
-    try {
-        const loadedTasks = await loadTasksFromFile(file);
-        tasks.value = loadedTasks;
-
-        // Reset file input so the same file can be loaded again
-        target.value = "";
-    } catch (error) {
-        console.error("Error loading tasks:", error);
-        alert(
-            `Failed to load tasks: ${error instanceof Error ? error.message : "Invalid file format"}`,
-        );
-        target.value = "";
-    }
-}
-</script>
-
 <template>
-    <div class="grid grid-cols-[20rem_1fr]">
-        <div class="sticky top-0">
-            <div
-                class="flex h-8 items-center justify-center border border-muted/50"
-            >
-                Tasks
-            </div>
-            <div
-                v-for="t in tasks"
-                class="flex items-center justify-center border-b border-r border-muted/50"
-                :style="{ height: `${pixelsHeight}px` }"
-            >
-                {{ t.label }}
-            </div>
-        </div>
-        <UScrollArea
-            v-slot="{ item }"
-            :items="items"
-            ref="scrollArea"
-            orientation="horizontal"
-            class="h-full"
-            :virtualize="{ estimateSize: pixelsWidth }"
-        >
-            <div
-                class="flex h-8 items-center justify-center border-b border-muted/50 text-sm text-nowrap text-right"
-                :style="{
-                    width: `${pixelsWidth}px`,
-                }"
-            >
-                {{
-                    item.date.dayOfWeek == 1
-                        ? item.date.toLocaleString("en", { month: "short", day: "numeric" })
-                        : ""
-                }}
-            </div>
-            <div v-for="(_, i) in tasks">
-                <div
-                    class="relative border-b border-muted/50"
-                    :style="{ height: `${pixelsHeight}px` }"
-                >
-                    <GanttBar
-                        v-model="tasks[i]"
-                        v-if="
-                            taskBarMeta[i] !== undefined &&
-                            taskBarMeta[i].endDate == item.date
-                        "
-                        class="absolute top-0 right-0 bottom-0 my-1"
-                        :style="{
-                            width: taskBarMeta[i].span * pixelsWidth + 'px',
-                            right: pixelsWidth + 'px',
-                        }"
-                        :pixels-width="pixelsWidth"
-                    />
-                </div>
-            </div>
-        </UScrollArea>
-    </div>
-    <div>
-        <UButton label="Add task" class="ml-2 mt-2" @click="addTask()" />
-    </div>
-
-    <!-- Hidden file input for loading tasks -->
-    <input
-        type="file"
-        ref="fileInput"
-        accept="application/json,.json"
-        @change="handleFileChange"
-        style="display: none"
-    />
-
-    <UCard :ui="{ body: 'flex gap-4' }" class="fixed bottom-4 left-4">
-        <UButton
-            label="Scroll to today"
-            @click="scrollToDate(Temporal.Now.plainDateISO())"
+  <div class="h-screen w-screen flex flex-col p-4 bg-gray-50">
+    <!-- Controls -->
+    <div class="mb-4 flex gap-4 items-center bg-white p-4 rounded-lg shadow">
+      <div class="flex items-center gap-2">
+        <label class="font-medium">Cell Width:</label>
+        <input 
+          v-model.number="cellWidth" 
+          type="number" 
+          min="20" 
+          max="200" 
+          class="border rounded px-2 py-1 w-20"
         />
-        <UFormField label="Height" orientation="horizontal" class="w-32">
-            <UInput v-model="pixelsHeight" type="number" />
-        </UFormField>
-        <UFormField label="Width" orientation="horizontal" class="w-32">
-            <UInput v-model="pixelsWidth" type="number" />
-        </UFormField>
-        <UButton title="load" icon="i-lucide-upload" @click="loadTasks()" />
-        <UButton title="save" icon="i-lucide-download" @click="saveTasks()" />
-    </UCard>
+        <span class="text-sm text-gray-600">px</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="font-medium">Cell Height:</label>
+        <input 
+          v-model.number="cellHeight" 
+          type="number" 
+          min="20" 
+          max="200" 
+          class="border rounded px-2 py-1 w-20"
+        />
+        <span class="text-sm text-gray-600">px</span>
+      </div>
+      <div class="ml-auto text-sm text-gray-600">
+        Scroll to see infinite grid with positioned squares
+      </div>
+    </div>
+
+    <!-- Virtual Grid Container -->
+    <div 
+      ref="scrollContainerRef" 
+      class="flex-1 overflow-auto border-2 border-gray-300 rounded-lg bg-white relative"
+      style="contain: strict;"
+    >
+      <div
+        :style="{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: `${columnVirtualizer.getTotalSize()}px`,
+          position: 'relative',
+        }"
+      >
+        <!-- Virtual Rows -->
+        <div
+          v-for="virtualRow in rowVirtualizer.getVirtualItems()"
+          :key="virtualRow.key"
+          :style="{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: `${virtualRow.size}px`,
+            transform: `translateY(${virtualRow.start}px)`,
+          }"
+        >
+          <!-- Virtual Columns -->
+          <div
+            v-for="virtualColumn in columnVirtualizer.getVirtualItems()"
+            :key="virtualColumn.key"
+            :style="{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: `${virtualColumn.size}px`,
+              height: '100%',
+              transform: `translateX(${virtualColumn.start}px)`,
+              border: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11px',
+              color: '#9ca3af',
+            }"
+          >
+            {{ virtualRow.index }}, {{ virtualColumn.index }}
+          </div>
+        </div>
+
+        <!-- Colored Squares -->
+        <div
+          v-for="square in squares"
+          :key="square.id"
+          :style="{
+            position: 'absolute',
+            left: `${square.col * cellWidth}px`,
+            top: `${square.row * cellHeight}px`,
+            width: `${square.width * cellWidth}px`,
+            height: `${square.height * cellHeight}px`,
+            backgroundColor: square.color,
+            border: '2px solid rgba(0,0,0,0.2)',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            zIndex: 10,
+            transition: 'all 0.3s ease',
+          }"
+        >
+          {{ square.label }}
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
-<style>
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+<script setup lang="ts">
+import { ref, computed, watchEffect } from 'vue'
+import { useVirtualizer } from '@tanstack/vue-virtual'
+
+// Grid settings
+const cellWidth = ref(80)
+const cellHeight = ref(60)
+
+// Scroll container ref
+const scrollContainerRef = ref<HTMLElement | null>(null)
+
+// Total grid size (virtually infinite)
+const totalRows = 10000
+const totalColumns = 10000
+
+// Colored squares to display on the grid
+const squares = ref([
+  { id: 1, row: 5, col: 8, width: 3, height: 2, color: '#3b82f6', label: 'Blue' },
+  { id: 2, row: 12, col: 15, width: 4, height: 3, color: '#ef4444', label: 'Red' },
+  { id: 3, row: 20, col: 5, width: 2, height: 4, color: '#10b981', label: 'Green' },
+  { id: 4, row: 8, col: 25, width: 5, height: 2, color: '#f59e0b', label: 'Orange' },
+  { id: 5, row: 30, col: 30, width: 3, height: 3, color: '#8b5cf6', label: 'Purple' },
+  { id: 6, row: 15, col: 40, width: 2, height: 2, color: '#ec4899', label: 'Pink' },
+  { id: 7, row: 45, col: 20, width: 4, height: 2, color: '#14b8a6', label: 'Teal' },
+  { id: 8, row: 50, col: 50, width: 6, height: 4, color: '#f97316', label: 'Deep Orange' },
+])
+
+// Row virtualizer
+const rowVirtualizer = useVirtualizer(
+  computed(() => ({
+    count: totalRows,
+    getScrollElement: () => scrollContainerRef.value,
+    estimateSize: () => cellHeight.value,
+    overscan: 5,
+  }))
+)
+
+// Column virtualizer
+const columnVirtualizer = useVirtualizer(
+  computed(() => ({
+    count: totalColumns,
+    getScrollElement: () => scrollContainerRef.value,
+    estimateSize: () => cellWidth.value,
+    horizontal: true,
+    overscan: 5,
+  }))
+)
+
+// Watch for cell size changes and remeasure
+watchEffect(() => {
+  cellWidth.value
+  cellHeight.value
+  rowVirtualizer.value?.measure()
+  columnVirtualizer.value?.measure()
+})
+</script>
+
+<style scoped>
+/* Custom scrollbar styling */
+div::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+div::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--ui-bg-inverted);
-    border-radius: 3px;
+div::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: var(--ui-bg-inverted);
+div::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--ui-bg-inverted) transparent;
+input[type="number"] {
+  border: 1px solid #d1d5db;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 </style>
