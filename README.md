@@ -11,5 +11,7 @@ A work in progress project for creating gantt charts.
 1. Tasks saving and loading (JSON)
 2. Task editing: dragging with handles, colors, renaming etc.
 3. Dependency arrows
+4. Turn it an actual shareable library
+5. Create a demo page
 
 This library was inspired by the Gantt chart found in MS Planner, [Umay Gantt Chart builder](https://github.com/aligundogdu/Umay-Gantt-Chart-Builder) and of course Nuxt UI itself for creating stylable components.
