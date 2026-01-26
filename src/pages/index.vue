@@ -153,13 +153,13 @@ async function handleFileChange(event: Event) {
     <div class="grid grid-cols-[20rem_1fr]">
         <div class="sticky top-0">
             <div
-                class="flex h-8 items-center justify-center border border-muted"
+                class="flex h-8 items-center justify-center border border-muted/50"
             >
                 Tasks
             </div>
             <div
                 v-for="t in tasks"
-                class="flex items-center justify-center border border-muted"
+                class="flex items-center justify-center border-b border-r border-muted/50"
                 :style="{ height: `${pixelsHeight}px` }"
             >
                 {{ t.label }}
@@ -174,25 +174,20 @@ async function handleFileChange(event: Event) {
             :virtualize="{ estimateSize: pixelsWidth }"
         >
             <div
-                class="flex h-8 items-center justify-center border-b border-muted text-sm"
+                class="flex h-8 items-center justify-center border-b border-muted/50 text-sm text-nowrap text-right"
                 :style="{
                     width: `${pixelsWidth}px`,
                 }"
             >
                 {{
-                    item.date.day == 1
-                        ? item.date.toLocaleString("en", { month: "short" })
-                        : ""
-                }}
-                {{
-                    item.date.day % 3 == 0 && item.date.day > 2
-                        ? item.date.day
+                    item.date.dayOfWeek == 1
+                        ? item.date.toLocaleString("en", { month: "short", day: "numeric" })
                         : ""
                 }}
             </div>
             <div v-for="(_, i) in tasks">
                 <div
-                    class="relative border-l border-muted"
+                    class="relative border-b border-muted/50"
                     :style="{ height: `${pixelsHeight}px` }"
                 >
                     <GanttBar

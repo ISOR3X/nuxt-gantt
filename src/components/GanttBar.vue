@@ -5,8 +5,9 @@ import { Task } from "../utils/types";
 
 const model = defineModel<Task>();
 
-const props = defineProps<{
+const {showHandles = false, pixelsWidth = 120} = defineProps<{
   pixelsWidth?: number;
+  showHandles?: boolean
 }>();
 
 const isDragging = ref(false);
@@ -64,7 +65,7 @@ function onMouseMove(e: MouseEvent) {
   if (!model.value) return;
   if (!originalStartDate.value || !originalEndDate.value) return;
 
-  const pixelWidth = props.pixelsWidth || 120;
+  const pixelWidth = pixelsWidth;
   const deltaX = e.clientX - dragStartX.value;
 
   // Calculate days moved with snapping
@@ -113,13 +114,15 @@ const cursorStyle = computed(() => {
   <div class="rounded-md bg-primary select-none" :class="cursorStyle" @mousedown="onMouseDownBar">
     <!-- Left resize handle -->
     <div
-      class="absolute top-0 bottom-0 -left-5 z-20 w-10 cursor-ew-resize bg-error/50"
+      class="absolute top-0 bottom-0 -left-5 z-20 w-10 cursor-ew-resize"
+      :class="{showHandles: 'bg-error/50'}"
       @mousedown.stop="onMouseDownLeft"
     />
 
     <!-- Right resize handle -->
     <div
-      class="absolute top-0 -right-5 bottom-0 z-20 w-10 cursor-ew-resize bg-error/50"
+      class="absolute top-0 -right-5 bottom-0 z-20 w-10 cursor-ew-resize"
+      :class="{showHandles: 'bg-error/50'}"
       @mousedown.stop="onMouseDownRight"
     />
   </div>
