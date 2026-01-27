@@ -8,7 +8,6 @@ export function generateRandomTask(rowIndex: number, overscan: number = 5): Task
     row: rowIndex,
     col: Math.floor(Math.random() * 50) + overscan, // Start between columns 5-55
     width: Math.floor(Math.random() * 15) + overscan, // Width between 5-20 cells
-    height: 1, // One row height (standard Gantt task)
     label: `Task ${rowIndex}`,
   };
 }

@@ -1,17 +1,11 @@
 import { Temporal } from "temporal-polyfill";
 
-export type _Task = {
-  id: string;
-  label: string;
-  startDate: Temporal.PlainDate;
-  endDate: Temporal.PlainDate;
-  progress?: number;
-};
 
 export interface Project {
   startDate: Temporal.PlainDate;
   endDate: Temporal.PlainDate;
   tasks: Task[];
+  deadlines: Deadline[];
 }
 
 export interface Task {
@@ -19,7 +13,6 @@ export interface Task {
   row: number;
   col: number;
   width: number;
-  height: number;
   label: string;
 }
 

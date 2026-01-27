@@ -352,7 +352,7 @@ defineExpose({
           left: `${task.col * cellWidth}px`,
           top: `${task.row * cellHeight}px`,
           width: `${task.width * cellWidth}px`,
-          height: `${task.height * cellHeight}px`,
+          height: `${cellHeight}px`,
         }"
         v-model="visibleTasks[i]"
         class="absolute"

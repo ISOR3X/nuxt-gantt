@@ -1,14 +1,13 @@
 <script lang="ts" setup>
 import GanttChart from "../components/GanttChart.vue";
 import {
-  generateRandomDeadline,
   generateRandomDeadlines,
   generateRandomTasks,
-} from "../utils/task.ts";
-import { onMounted, ref, useTemplateRef } from "vue";
-import { saveTasks as saveTasksToFile, loadTasksFromFile } from "../utils/taskStorage";
+} from "../utils/random.ts";
+import { reactive, ref, useTemplateRef } from "vue";
+import { saveTasks as saveTasksToFile, loadTasksFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
-import { Deadline } from "../utils/types.ts";
+import { Deadline, Project } from "../utils/types.ts";
 
 const cellWidth = ref(40);
 const cellHeight = ref(50);
@@ -16,10 +15,20 @@ const cellHeight = ref(50);
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
+const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
+const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
+
+const project = reactive<Project>({
+  startDate: startDate,
+  endDate: endDate,
+  tasks: generateRandomTasks(100),
+  deadlines: generateRandomDeadlines(50, startDate, endDate)
+})
+
 // Save tasks to JSON file
 function saveTasks() {
   try {
-    saveTasksToFile(tasks.value);
+    saveTasksToFile(project.tasks);
   } catch (error) {
     console.error("Error saving tasks:", error);
     alert("Failed to save tasks. Please try again.");
@@ -60,23 +69,18 @@ function testScrollTo() {
   ganttChart.value?.scrollTo(300, { behavior: "smooth", alignment: "start" });
 }
 
-const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
-const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
-
-const tasks = ref(generateRandomTasks(100));
-const deadlines = ref<Deadline[]>(generateRandomDeadlines(50, startDate, endDate));
 </script>
 
 <template>
   <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
     <GanttChart
       ref="ganttChart"
-      :start-date
-      :end-date
+      :start-date="project.startDate"
+      :end-date="project.endDate"
       :cell-width
       :cell-height
-      v-model:tasks="tasks"
-      v-model:deadlines="deadlines"
+      v-model:tasks="project.tasks"
+      v-model:deadlines="project.deadlines"
     />
     <div class="flex items-center gap-4 bg-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
