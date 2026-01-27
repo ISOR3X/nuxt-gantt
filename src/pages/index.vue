@@ -10,6 +10,7 @@ const cellHeight = ref(50);
 
 const tasks = ref(generateAllTasks(100));
 const fileInput = useTemplateRef("fileInput");
+const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
 // Save tasks to JSON file
 function saveTasks() {
@@ -49,11 +50,16 @@ async function handleFileChange(event: Event) {
     target.value = "";
   }
 }
+
+// Test scrollTo function
+function testScrollTo() {
+  ganttChart.value?.scrollTo(300, { behavior: "smooth", alignment: "start" });
+}
 </script>
 
 <template>
   <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
-    <GanttChart v-model="tasks" :cell-width="cellWidth" :cell-height="cellHeight" />
+    <GanttChart ref="ganttChart" v-model="tasks" :cell-width="cellWidth" :cell-height="cellHeight" />
     <div class="flex items-center gap-4 bg-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
@@ -63,6 +69,7 @@ async function handleFileChange(event: Event) {
       </UFormField>
       <UButton label="save" @click="saveTasks()" />
       <UButton label="load" @click="loadTasks()" />
+      <UButton label="scroll to column 300" @click="testScrollTo()" />
       <!-- Hidden file input for loading tasks -->
       <input
         type="file"

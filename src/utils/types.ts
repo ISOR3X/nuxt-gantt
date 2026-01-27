@@ -8,7 +8,12 @@ export type _Task = {
   progress?: number;
 };
 
-// Task interface
+export interface Project {
+  startDate: Temporal.PlainDate;
+  endDate: Temporal.PlainDate;
+  tasks: Task[];
+}
+
 export interface Task {
   id: number;
   row: number;

@@ -29,7 +29,7 @@ function getDate(idx: number): Temporal.PlainDate {
 }
 
 // Format the date for display in the header
-function formatDate(date: Temporal.PlainDate): string | undefined {
+function formatColumnHeader(date: Temporal.PlainDate, idx: number): string | undefined {
   if (date.dayOfWeek !== 1) return;
 
   const isFirstFullWeekOfYear =
@@ -136,7 +136,7 @@ const visibleColumns = computed(() => {
     const d = getDate(i);
     columns.push({
       index: i,
-      label: formatDate(d),
+      label: formatColumnHeader(d, i),
       left: i * cellWidth,
     });
   }
@@ -157,6 +157,45 @@ const visibleRows = computed(() => {
     });
   }
   return rows;
+});
+
+// Scroll to a specific column index
+function scrollTo(
+  idx: number,
+  options?: {
+    behavior?: ScrollBehavior;
+    alignment?: "start" | "center" | "end";
+  }
+) {
+  if (!scrollContainerRef.value) return;
+  if (idx > totalColumns) {
+    throw Error("scrollTo index larger than visible range.")
+  };
+
+  const { behavior = "auto", alignment = "start" } = options || {};
+
+  // Calculate the target scroll position
+  let targetScrollLeft = idx * cellWidth;
+
+  // Adjust for alignment
+  if (alignment === "center") {
+    targetScrollLeft -= (viewportWidth.value - cellWidth) / 2;
+  } else if (alignment === "end") {
+    targetScrollLeft -= viewportWidth.value - cellWidth;
+  }
+
+  // Ensure we don't scroll beyond bounds
+  targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, totalWidth.value - viewportWidth.value));
+
+  scrollContainerRef.value.scrollTo({
+    left: targetScrollLeft,
+    behavior,
+  });
+}
+
+// Expose scrollTo function for parent components
+defineExpose({
+  scrollTo,
 });
 </script>
 
