@@ -1,7 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 import { Task } from "./types";
 
-
 /**
  * Save tasks to a JSON file and trigger download
  */

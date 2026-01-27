@@ -18,6 +18,6 @@ export interface Task {
 
 export interface Deadline {
   id: number;
-  date: Temporal.PlainDate;
+  col: number;
   label?: string;
 }

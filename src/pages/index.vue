@@ -1,13 +1,10 @@
 <script lang="ts" setup>
 import GanttChart from "../components/GanttChart.vue";
-import {
-  generateRandomDeadlines,
-  generateRandomTasks,
-} from "../utils/random.ts";
+import { generateRandomDeadlines, generateRandomTasks } from "../utils/random.ts";
 import { reactive, ref, useTemplateRef } from "vue";
 import { saveTasks as saveTasksToFile, loadTasksFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
-import { Deadline, Project } from "../utils/types.ts";
+import { Project } from "../utils/types.ts";
 
 const cellWidth = ref(40);
 const cellHeight = ref(50);
@@ -21,9 +18,9 @@ const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
 const project = reactive<Project>({
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(100),
-  deadlines: generateRandomDeadlines(50, startDate, endDate)
-})
+  tasks: generateRandomTasks(100, [0, startDate.until(endDate).days]),
+  deadlines: generateRandomDeadlines(50, [0, startDate.until(endDate).days]),
+});
 
 // Save tasks to JSON file
 function saveTasks() {
@@ -68,7 +65,6 @@ async function handleFileChange(event: Event) {
 function testScrollTo() {
   ganttChart.value?.scrollTo(300, { behavior: "smooth", alignment: "start" });
 }
-
 </script>
 
 <template>

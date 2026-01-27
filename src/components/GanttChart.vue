@@ -130,12 +130,7 @@ const visibleDeadlines = computed(() => {
   const colStart = visibleColumnStart.value - overscan;
   const colEnd = visibleColumnEnd.value + overscan;
 
-  return allDeadlines.value
-    .map((deadline) => ({
-      ...deadline,
-      col: getColumnForDate(deadline.date),
-    }))
-    .filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
+  return allDeadlines.value.filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
 });
 
 // Generate column headers based on visible columns
@@ -262,7 +257,7 @@ defineExpose({
         >
           <UTooltip :text="deadline.label">
             <div
-              class="absolute -bottom-1 -left-1 flex size-2 cursor-pointer items-center justify-center rounded-full"
+              class="absolute -bottom-1 -left-1 flex size-2 cursor-pointer items-center justify-center rounded-full" 
               :class="[deadline.id == -1 ? 'bg-error' : 'bg-primary']"
             />
           </UTooltip>

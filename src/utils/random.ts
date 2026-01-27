@@ -1,59 +1,69 @@
 import { Temporal } from "temporal-polyfill";
 import { Deadline, Task } from "./types";
 
+type InBetween = number[] // [start, end]
+
+// Random day within a specified range
+export function randomDateBetween(
+  startDate: Temporal.PlainDate,
+  endDate: Temporal.PlainDate,
+): Temporal.PlainDate {
+  const totalDays = startDate.until(endDate).days;
+  const randomDays = Math.floor(Math.random() * totalDays);
+  return startDate.add({ days: randomDays });
+}
+
+function randomIntBetween(inBetween: InBetween) {
+  const diff = inBetween[1] - inBetween[0];
+  return inBetween[0] +  Math.floor(Math.random() * diff);
+}
+
 // Generate a random task for a specific row (one task per row)
-export function generateRandomTask(rowIndex: number, overscan: number = 5): Task {
+export function generateRandomTask(
+  rowIndex: number,
+  inBetween: InBetween,
+  maxWidth: number = 10
+): Task {
   return {
     id: rowIndex,
     row: rowIndex,
-    col: Math.floor(Math.random() * 50) + overscan, // Start between columns 5-55
-    width: Math.floor(Math.random() * 15) + overscan, // Width between 5-20 cells
+    col:randomIntBetween(inBetween),
+    width:Math.floor(Math.random() * maxWidth) + 1,
     label: `Task ${rowIndex}`,
   };
 }
 
 // Generate tasks for all rows (one task per row)
-export function generateRandomTasks(count: number): Task[] {
+export function generateRandomTasks(
+  count: number,
+  inBetween: InBetween
+): Task[] {
   const tasks: Task[] = [];
   for (let i = 0; i < count; i++) {
-    tasks.push(generateRandomTask(i));
+    tasks.push(generateRandomTask(i,inBetween));
   }
   return tasks;
 }
 
 // Helper function to create a random deadline line
-export function generateRandomDeadline(date: Temporal.PlainDate, id: number): Deadline {
+export function generateRandomDeadline(inBetween: InBetween, id: number): Deadline {
   return {
     id: id,
-    date,
-    label: `Deadline ${date.toLocaleString("en", { month: "short", day: "numeric" })}`,
+    col: randomIntBetween(inBetween),
+    label: "Deadline " + id,
   };
 }
 
 // Function to generate random deadlines spread throughout the chart
 export function generateRandomDeadlines(
   count: number = 20,
-  startDate: Temporal.PlainDate,
-  endDate: Temporal.PlainDate,
+  inBetween: InBetween,
 ): Deadline[] {
-  const totalDays = startDate.until(endDate).days;
   const newDeadlines: Deadline[] = [];
 
   for (let i = 0; i < count; i++) {
-    // Random day within the chart range
-    const randomDays = Math.floor(Math.random() * totalDays);
-    const randomDate = startDate.add({ days: randomDays });
-
-    const deadline = generateRandomDeadline(randomDate, i);
+    const deadline = generateRandomDeadline(inBetween, i);
     newDeadlines.push(deadline);
   }
-
-  const todayDeadline: Deadline = {
-    id: -1,
-    date: Temporal.Now.plainDateISO(),
-    label: "Today",
-  };
-  newDeadlines.push(todayDeadline);
-
   return newDeadlines;
 }
