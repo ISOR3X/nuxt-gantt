@@ -1,10 +1,9 @@
 <script lang="ts">
-import { Task } from "../utils/types.ts";
+import { Task, Deadline } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { Temporal } from "temporal-polyfill";
 
 export interface GanttChartProps {
-  // tasks: Task[];
   cellWidth?: number;
   cellHeight?: number;
   startDate?: Temporal.PlainDate;
@@ -28,13 +27,16 @@ function getDate(idx: number): Temporal.PlainDate {
   return startDate.add({ days: idx });
 }
 
+// Get the column index for a date
+function getColumnForDate(date: Temporal.PlainDate): number {
+  return startDate.until(date).days;
+}
+
 // Format the date for display in the header
 function formatColumnHeader(date: Temporal.PlainDate, idx: number): string | undefined {
   if (date.dayOfWeek !== 1) return;
 
-  const isFirstFullWeekOfYear =
-    date.day <= 7 &&
-    date.month === 1;
+  const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
 
   const formatted = date.toLocaleString("en", {
     month: "short",
@@ -42,9 +44,8 @@ function formatColumnHeader(date: Temporal.PlainDate, idx: number): string | und
     ...(isFirstFullWeekOfYear ? { year: "numeric" } : {}),
   });
 
-  return formatted
+  return formatted;
 }
-
 
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
@@ -60,7 +61,8 @@ const overscan = 5;
 const totalWidth = computed(() => totalColumns * cellWidth);
 const totalHeight = computed(() => totalRows * cellHeight);
 
-const allTasks = defineModel<Task[]>();
+const allTasks = defineModel<Task[]>("tasks", { default: [] });
+const allDeadlines = defineModel<Deadline[]>("deadlines", { default: [] });
 
 // Get current scroll position for horizontal virtualization
 const scrollLeft = ref(0);
@@ -123,8 +125,18 @@ const visibleTasks = computed(() => {
   });
 });
 
-// Grid pattern ID
-const gridPatternId = "grid-pattern";
+// Virtualized deadlines - only render those in visible viewport
+const visibleDeadlines = computed(() => {
+  const colStart = visibleColumnStart.value - overscan;
+  const colEnd = visibleColumnEnd.value + overscan;
+
+  return allDeadlines.value
+    .map((deadline) => ({
+      ...deadline,
+      col: getColumnForDate(deadline.date),
+    }))
+    .filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
+});
 
 // Generate column headers based on visible columns
 const visibleColumns = computed(() => {
@@ -165,12 +177,12 @@ function scrollTo(
   options?: {
     behavior?: ScrollBehavior;
     alignment?: "start" | "center" | "end";
-  }
+  },
 ) {
   if (!scrollContainerRef.value) return;
   if (idx > totalColumns) {
-    throw Error("scrollTo index larger than visible range.")
-  };
+    throw Error("scrollTo index larger than visible range.");
+  }
 
   const { behavior = "auto", alignment = "start" } = options || {};
 
@@ -185,7 +197,10 @@ function scrollTo(
   }
 
   // Ensure we don't scroll beyond bounds
-  targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, totalWidth.value - viewportWidth.value));
+  targetScrollLeft = Math.max(
+    0,
+    Math.min(targetScrollLeft, totalWidth.value - viewportWidth.value),
+  );
 
   scrollContainerRef.value.scrollTo({
     left: targetScrollLeft,
@@ -228,10 +243,29 @@ defineExpose({
             width: `${cellWidth}px`,
             height: `${headerHeight}px`,
           }"
-          class="absolute top-0 flex items-center border-default text-sm text-nowrap text-left"
-          :class="{'border-l-2 pl-2': col.label}"
+          class="absolute top-0 flex items-center border-default text-left text-sm text-nowrap"
+          :class="{ 'border-l-2 pl-2': col.label }"
         >
           {{ col.label }}
+        </div>
+
+        <!-- Deadline header markers -->
+        <div
+          v-for="deadline in visibleDeadlines"
+          :key="deadline.id"
+          :style="{
+            left: `${deadline.col * cellWidth}px`,
+            width: `${cellWidth}px`,
+            height: `${headerHeight}px`,
+          }"
+          class="pointer-events-auto absolute top-0"
+        >
+          <UTooltip :text="deadline.label">
+            <div
+              class="absolute -bottom-1 -left-1 flex size-2 cursor-pointer items-center justify-center rounded-full"
+              :class="[deadline.id == -1 ? 'bg-error' : 'bg-primary']"
+            />
+          </UTooltip>
         </div>
       </div>
 
@@ -268,7 +302,7 @@ defineExpose({
     >
       <defs>
         <pattern
-          :id="gridPatternId"
+          id="grid-pattern"
           :height="cellHeight"
           :width="cellWidth"
           patternUnits="userSpaceOnUse"
@@ -283,7 +317,21 @@ defineExpose({
         </pattern>
       </defs>
 
-      <rect :fill="`url(#${gridPatternId})`" :height="totalHeight" :width="totalWidth" />
+      <rect :fill="`url(#grid-pattern)`" :height="totalHeight" :width="totalWidth" />
+      <!-- Deadline vertical lines -->
+      <g
+        v-for="deadline in visibleDeadlines"
+        :key="`line-${deadline.id}`"
+        :transform="`translate(${deadline.col * cellWidth}, 0)`"
+      >
+        <line
+          :y1="0"
+          :y2="totalHeight"
+          stroke-width="1"
+          class="pointer-events-none"
+          :class="[deadline.id == -1 ? 'stroke-error' : 'stroke-primary']"
+        />
+      </g>
     </svg>
 
     <!-- HTML Div Container for Tasks/Squares -->

@@ -1,14 +1,18 @@
 <script lang="ts" setup>
 import GanttChart from "../components/GanttChart.vue";
-import { generateAllTasks } from "../utils/task.ts";
-import { ref, useTemplateRef } from "vue";
+import {
+  generateRandomDeadline,
+  generateRandomDeadlines,
+  generateRandomTasks,
+} from "../utils/task.ts";
+import { onMounted, ref, useTemplateRef } from "vue";
 import { saveTasks as saveTasksToFile, loadTasksFromFile } from "../utils/taskStorage";
 import { Temporal } from "temporal-polyfill";
+import { Deadline } from "../utils/types.ts";
 
 const cellWidth = ref(40);
 const cellHeight = ref(50);
 
-const tasks = ref(generateAllTasks(100));
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
@@ -55,11 +59,25 @@ async function handleFileChange(event: Event) {
 function testScrollTo() {
   ganttChart.value?.scrollTo(300, { behavior: "smooth", alignment: "start" });
 }
+
+const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
+const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
+
+const tasks = ref(generateRandomTasks(100));
+const deadlines = ref<Deadline[]>(generateRandomDeadlines(50, startDate, endDate));
 </script>
 
 <template>
   <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
-    <GanttChart ref="ganttChart" v-model="tasks" :cell-width="cellWidth" :cell-height="cellHeight" />
+    <GanttChart
+      ref="ganttChart"
+      :start-date
+      :end-date
+      :cell-width
+      :cell-height
+      v-model:tasks="tasks"
+      v-model:deadlines="deadlines"
+    />
     <div class="flex items-center gap-4 bg-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput v-model.number="cellWidth" max="200" min="5" type="number" />

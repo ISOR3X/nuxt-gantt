@@ -23,8 +23,8 @@ export interface Task {
   label: string;
 }
 
-export type Goal = {
-  id: string;
-  label: string;
+export interface Deadline {
+  id: number;
   date: Temporal.PlainDate;
-};
+  label?: string;
+}

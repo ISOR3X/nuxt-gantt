@@ -108,7 +108,7 @@ const cursorStyle = computed(() => {
 </script>
 
 <template>
-  <div class="group p-1">
+  <div class="group py-1">
     <!-- Left resize handle -->
     <div
       class="absolute top-0 bottom-0 -left-1 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
