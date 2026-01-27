@@ -17,3 +17,5 @@ A work in progress project for creating gantt charts.
 4. Create a demo page
 
 This library was inspired by the Gantt chart found in MS Planner, [Umay Gantt Chart builder](https://github.com/aligundogdu/Umay-Gantt-Chart-Builder) and of course Nuxt UI itself for creating stylable components.
+
+Not affiliated with Nuxt in any way.
