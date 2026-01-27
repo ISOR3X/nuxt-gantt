@@ -8,6 +8,7 @@ export interface GanttChartProps {
   cellWidth?: number;
   cellHeight?: number;
   startDate?: Temporal.PlainDate;
+  endDate?: Temporal.PlainDate;
 }
 </script>
 
@@ -19,6 +20,7 @@ const {
   cellWidth = 50,
   cellHeight = 50,
   startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
+  endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
 // Get the date for a column.
@@ -27,11 +29,22 @@ function getDate(idx: number): Temporal.PlainDate {
 }
 
 // Format the date for display in the header
-function formatDate(date: Temporal.PlainDate): string {
-  if (date.dayOfWeek != 1)
-    {return ""}
-  return date.toLocaleString("en", { month: "short", day: "numeric" });
+function formatDate(date: Temporal.PlainDate): string | undefined {
+  if (date.dayOfWeek !== 1) return;
+
+  const isFirstFullWeekOfYear =
+    date.day <= 7 &&
+    date.month === 1;
+
+  const formatted = date.toLocaleString("en", {
+    month: "short",
+    day: "numeric",
+    ...(isFirstFullWeekOfYear ? { year: "numeric" } : {}),
+  });
+
+  return formatted
 }
+
 
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
@@ -40,7 +53,7 @@ const headerWidth = 240; // Width of the header in pixels
 
 // Virtual grid dimensions (very large for "infinite" feel)
 const totalRows = 100;
-const totalColumns = 300;
+const totalColumns = startDate.until(endDate).days;
 const overscan = 5;
 
 // Total size in pixels
@@ -177,7 +190,7 @@ const visibleRows = computed(() => {
             height: `${headerHeight}px`,
           }"
           class="absolute top-0 flex items-center border-default text-sm text-nowrap text-left"
-          :class="{'border-l-2 pl-2': col.label !== ''}"
+          :class="{'border-l-2 pl-2': col.label}"
         >
           {{ col.label }}
         </div>
@@ -190,7 +203,7 @@ const visibleRows = computed(() => {
         }"
         class="relative w-full border-r border-muted bg-default"
       >
-        <!-- Virtualized column headers -->
+        <!-- Virtualized row headers (task names) -->
         <GanttLabel
           v-for="row in visibleRows"
           :key="row.index"
