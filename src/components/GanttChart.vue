@@ -23,12 +23,6 @@ const {
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
-
-// Get the column index for a date
-function getColumnForDate(date: Temporal.PlainDate): number {
-  return startDate.until(date).days;
-}
-
 // Format the date for display in the header
 function formatColumnHeader(date: Temporal.PlainDate, idx: number): string | undefined {
   if (date.dayOfWeek !== 1) return;
