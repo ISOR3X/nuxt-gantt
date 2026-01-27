@@ -2,7 +2,7 @@ import { Temporal } from "temporal-polyfill";
 import { Task } from "./types";
 
 // Serializable task type for JSON export
-type SerializedTask = Omit<Task, "">
+type SerializedTask = Omit<Task, "">;
 
 /**
  * Serialize tasks to JSON-compatible format
@@ -14,7 +14,7 @@ export function serializeTasks(tasks: Task[]): SerializedTask[] {
     row: task.row,
     col: task.col,
     width: task.width,
-    height: task.height
+    height: task.height,
   }));
 }
 
@@ -28,7 +28,7 @@ export function deserializeTasks(data: any[]): Task[] {
     row: task.row,
     col: task.col,
     width: task.width,
-    height: task.height
+    height: task.height,
   }));
 }
 

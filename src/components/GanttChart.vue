@@ -1,11 +1,13 @@
 <script lang="ts">
 import { Task } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
+import { Temporal } from "temporal-polyfill";
 
 export interface GanttChartProps {
   // tasks: Task[];
-  cellWidth: number;
-  cellHeight: number;
+  cellWidth?: number;
+  cellHeight?: number;
+  startDate?: Temporal.PlainDate;
 }
 </script>
 
@@ -13,7 +15,23 @@ export interface GanttChartProps {
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import GanttBar from "./GanttBar.vue";
 
-const props = defineProps<GanttChartProps>();
+const {
+  cellWidth = 50,
+  cellHeight = 50,
+  startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
+} = defineProps<GanttChartProps>();
+
+// Get the date for a column.
+function getDate(idx: number): Temporal.PlainDate {
+  return startDate.add({ days: idx });
+}
+
+// Format the date for display in the header
+function formatDate(date: Temporal.PlainDate): string {
+  if (date.dayOfWeek != 1)
+    {return ""}
+  return date.toLocaleString("en", { month: "short", day: "numeric" });
+}
 
 // Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
@@ -26,8 +44,8 @@ const totalColumns = 300;
 const overscan = 5;
 
 // Total size in pixels
-const totalWidth = computed(() => totalColumns * props.cellWidth);
-const totalHeight = computed(() => totalRows * props.cellHeight);
+const totalWidth = computed(() => totalColumns * cellWidth);
+const totalHeight = computed(() => totalRows * cellHeight);
 
 const allTasks = defineModel<Task[]>();
 
@@ -60,14 +78,14 @@ onUnmounted(() => {
 });
 
 // Calculate visible column range
-const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / props.cellWidth));
+const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellWidth));
 const visibleColumnEnd = computed(() =>
-  Math.ceil((scrollLeft.value + viewportWidth.value) / props.cellWidth),
+  Math.ceil((scrollLeft.value + viewportWidth.value) / cellWidth),
 );
 
-const visibleRowStart = computed(() => Math.floor(scrollTop.value / props.cellHeight));
+const visibleRowStart = computed(() => Math.floor(scrollTop.value / cellHeight));
 const visibleRowEnd = computed(() =>
-  Math.ceil((scrollTop.value + viewportHeight.value) / props.cellHeight),
+  Math.ceil((scrollTop.value + viewportHeight.value) / cellHeight),
 );
 
 // Virtualized tasks - only render those in visible viewport
@@ -76,6 +94,10 @@ const visibleTasks = computed(() => {
   const rowEnd = visibleRowEnd.value + overscan;
   const colStart = visibleColumnStart.value - overscan;
   const colEnd = visibleColumnEnd.value + overscan;
+
+  if (allTasks.value == undefined) {
+    throw Error("No tasks found");
+  }
 
   return allTasks.value.filter((task: Task) => {
     const taskColEnd = task.col + task.width;
@@ -98,10 +120,11 @@ const visibleColumns = computed(() => {
   const endCol = Math.min(totalColumns, visibleColumnEnd.value + overscan);
 
   for (let i = startCol; i < endCol; i++) {
+    const d = getDate(i);
     columns.push({
       index: i,
-      label: `C-${i}`,
-      left: i * props.cellWidth,
+      label: formatDate(d),
+      left: i * cellWidth,
     });
   }
 
@@ -117,7 +140,7 @@ const visibleRows = computed(() => {
     rows.push({
       index: i,
       label: `R-${i}`,
-      top: i * props.cellHeight,
+      top: i * cellHeight,
     });
   }
   return rows;
@@ -133,14 +156,16 @@ const visibleRows = computed(() => {
       }"
       class="pointer-events-none sticky top-0 left-0 z-50 grid h-full w-full"
     >
-      <div class="z-10 flex items-center justify-center bg-default border-muted border-b border-r"><UIcon name="i-simple-icons:nuxt" class="size-5 text-[#00DC82]"/></div>
+      <div class="z-10 flex items-center justify-center border-r border-b border-muted bg-default">
+        <UIcon name="i-simple-icons:nuxt" class="size-5 text-[#00DC82]" />
+      </div>
 
       <div
         :style="{
           width: `${totalWidth}px`,
           transform: `translateX(-${scrollLeft}px)`,
         }"
-        class="relative h-full bg-default border-b border-muted"
+        class="relative h-full border-b border-muted bg-default"
       >
         <!-- Virtualized column headers -->
         <div
@@ -151,7 +176,8 @@ const visibleRows = computed(() => {
             width: `${cellWidth}px`,
             height: `${headerHeight}px`,
           }"
-          class="absolute top-0 flex items-center justify-center border-r border-default text-sm"
+          class="absolute top-0 flex items-center border-default text-sm text-nowrap text-left"
+          :class="{'border-l-2 pl-2': col.label !== ''}"
         >
           {{ col.label }}
         </div>
@@ -162,7 +188,7 @@ const visibleRows = computed(() => {
           height: `${totalHeight}px`,
           transform: `translateY(-${scrollTop}px)`,
         }"
-        class="relative w-full bg-default border-r border-muted"
+        class="relative w-full border-r border-muted bg-default"
       >
         <!-- Virtualized column headers -->
         <GanttLabel
