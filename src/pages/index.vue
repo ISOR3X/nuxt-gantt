@@ -15,11 +15,24 @@ const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart")
 const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
 const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
 
+function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
+  const deadlines = generateRandomDeadlines(count, inBetween)
+
+  deadlines.push({
+    col: startDate.until(Temporal.Now.plainDateISO()).days,
+    id: -1,
+    label: "today"
+  })
+  
+  return deadlines
+  
+}
+
 const project = reactive<Project>({
   startDate: startDate,
   endDate: endDate,
   tasks: generateRandomTasks(100, [0, startDate.until(endDate).days]),
-  deadlines: generateRandomDeadlines(50, [0, startDate.until(endDate).days]),
+  deadlines: generateRandomDeadlinesWithToday(100, [0, startDate.until(endDate).days])
 });
 
 // Save tasks to JSON file

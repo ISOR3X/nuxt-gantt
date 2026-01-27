@@ -12,7 +12,7 @@ A work in progress project for creating gantt charts.
 
 ## To do
 
-- [ ] Investigate if using `PlainDate` for column indexing is too computationally expensive and if we should use numbers instead.
+- [ ] Convert col index to `Temporal.PlainDate` during serialization and vice versa.
 - [ ] Dependency arrows.
 - [ ] Task editing GUI.
 - [ ] Make the project into a library and publish on NPM.
