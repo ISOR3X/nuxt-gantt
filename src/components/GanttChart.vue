@@ -2,6 +2,7 @@
 import { Task, Deadline } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { Temporal } from "temporal-polyfill";
+import { colToDate } from "../utils/temporal.ts";
 
 export interface GanttChartProps {
   cellWidth?: number;
@@ -22,10 +23,6 @@ const {
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
-// Get the date for a column.
-function getDate(idx: number): Temporal.PlainDate {
-  return startDate.add({ days: idx });
-}
 
 // Get the column index for a date
 function getColumnForDate(date: Temporal.PlainDate): number {
@@ -140,7 +137,7 @@ const visibleColumns = computed(() => {
   const endCol = Math.min(totalColumns, visibleColumnEnd.value + overscan);
 
   for (let i = startCol; i < endCol; i++) {
-    const d = getDate(i);
+    const d = colToDate(startDate, i);
     columns.push({
       index: i,
       label: formatColumnHeader(d, i),
