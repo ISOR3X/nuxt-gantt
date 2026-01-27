@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import GanttChart from "../components/GanttChart.vue";
 import { generateRandomDeadlines, generateRandomTasks } from "../utils/random.ts";
-import { reactive, ref, useTemplateRef } from "vue";
-import { saveTasks as saveTasksToFile, loadTasksFromFile } from "../utils/storage.ts";
+import { ref, useTemplateRef } from "vue";
+import { saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
 import { Project } from "../utils/types.ts";
 
@@ -16,29 +16,28 @@ const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
 const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
 
 function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
-  const deadlines = generateRandomDeadlines(count, inBetween)
+  const deadlines = generateRandomDeadlines(count, inBetween);
 
   deadlines.push({
     col: startDate.until(Temporal.Now.plainDateISO()).days,
     id: -1,
-    label: "today"
-  })
-  
-  return deadlines
-  
+    label: "today",
+  });
+
+  return deadlines;
 }
 
-const project = reactive<Project>({
+const project = ref<Project>({
   startDate: startDate,
   endDate: endDate,
   tasks: generateRandomTasks(100, [0, startDate.until(endDate).days]),
-  deadlines: generateRandomDeadlinesWithToday(100, [0, startDate.until(endDate).days])
+  deadlines: generateRandomDeadlinesWithToday(100, [0, startDate.until(endDate).days]),
 });
 
 // Save tasks to JSON file
 function saveTasks() {
   try {
-    saveTasksToFile(project.tasks);
+    saveProject(project.value);
   } catch (error) {
     console.error("Error saving tasks:", error);
     alert("Failed to save tasks. Please try again.");
@@ -60,8 +59,8 @@ async function handleFileChange(event: Event) {
   }
 
   try {
-    const loadedTasks = await loadTasksFromFile(file);
-    tasks.value = loadedTasks;
+    const loadedProject = await loadProjectFromFile(file);
+    project.value = loadedProject;
 
     // Reset file input so the same file can be loaded again
     target.value = "";

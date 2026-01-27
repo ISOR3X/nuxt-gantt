@@ -14,6 +14,10 @@ export function daysBetween(date1: Temporal.PlainDate, date2: Temporal.PlainDate
   return Math.abs(date1.until(date2).days);
 }
 
-export function colToDate(startDate: Temporal.PlainDate, col: number): Temporal.PlainDate{
-  return startDate.add({days: col})
+export function colToDate(startDate: Temporal.PlainDate, col: number): Temporal.PlainDate {
+  return startDate.add({ days: col });
+}
+
+export function dateToCol(startDate: Temporal.PlainDate, date: Temporal.PlainDate): number {
+  return startDate.until(date).days;
 }
