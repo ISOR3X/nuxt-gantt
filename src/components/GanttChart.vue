@@ -210,12 +210,15 @@ defineExpose({
       gridTemplateRows: `${headerHeight}px 1fr`,
     }"
   >
-    <div class="col-start-2 row-start-1 overflow-hidden border-b border-muted bg-default">
+      <div class="col-start-1 row-start-1 flex items-center justify-center">
+          <UIcon name="simple-icons:nuxt" class="text-[#00DC82]"/>
+      </div>
+    <div class="col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
         :style="{
           transform: `translateX(-${scrollLeft}px)`,
         }"
-        class="right-0 z-50 h-full"
+        class="right-0 h-full"
       >
         <!-- Virtualized column headers -->
         <div
@@ -224,9 +227,8 @@ defineExpose({
           :style="{
             left: `${col.left}px`,
             width: `${cellWidth}px`,
-            height: `${headerHeight}px`,
           }"
-          class="absolute top-0 flex items-center border-default text-left text-sm text-nowrap"
+          class="absolute top-0 flex items-center border-default text-left text-sm text-nowrap h-full"
           :class="{ 'border-l-2 pl-2': col.label }"
         >
           {{ col.label }}
@@ -239,9 +241,8 @@ defineExpose({
           :style="{
             left: `${deadline.col * cellWidth}px`,
             width: `${cellWidth}px`,
-            height: `${headerHeight}px`,
           }"
-          class="pointer-events-auto absolute top-0"
+          class="absolute h-full"
         >
           <UTooltip :text="deadline.label">
             <div
@@ -253,7 +254,7 @@ defineExpose({
       </div>
     </div>
 
-    <div class="row-start-2 overflow-hidden border-r border-muted bg-default">
+    <div class="row-start-2 overflow-hidden border-r border-muted">
       <div
         :style="{
           height: `${totalHeight}px`,
@@ -290,7 +291,7 @@ defineExpose({
             :width="cellWidth"
             patternUnits="userSpaceOnUse"
           >
-            <rect :height="cellHeight" :width="cellWidth" fill="var(--ui-bg)" />
+            <rect :height="cellHeight" :width="cellWidth" fill="transparent" />
             <path
               :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
               fill="none"

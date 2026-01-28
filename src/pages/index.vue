@@ -80,7 +80,7 @@ function testScrollTo() {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen flex-col gap-4 bg-black p-4">
+  <div class="flex h-screen w-screen flex-col gap-4 p-4">
     <GanttChart
       ref="ganttChart"
       :start-date="project.startDate"
