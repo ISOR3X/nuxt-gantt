@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import GanttChart from "../components/GanttChart.vue";
-import { generateRandomDeadlines, generateRandomTasks } from "../utils/random.ts";
+import { generateRandomDeadlines, generateRandomTask, generateRandomTasks } from "../utils/random.ts";
 import { ref, useTemplateRef } from "vue";
 import { saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
@@ -13,7 +13,7 @@ const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
 const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
-const endDate = Temporal.Now.plainDateISO().add({ years: 1 });
+const endDate = Temporal.Now.plainDateISO().add({ months: 6 });
 
 function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
   const deadlines = generateRandomDeadlines(count, inBetween);
@@ -30,8 +30,8 @@ function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
 const project = ref<Project>({
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(100, [0, startDate.until(endDate).days]),
-  deadlines: generateRandomDeadlinesWithToday(100, [0, startDate.until(endDate).days]),
+  tasks: generateRandomTasks(10, [0, startDate.until(endDate).days]),
+  deadlines: generateRandomDeadlinesWithToday(10, [0, startDate.until(endDate).days]),
 });
 
 // Save tasks to JSON file
@@ -75,7 +75,11 @@ async function handleFileChange(event: Event) {
 
 // Test scrollTo function
 function testScrollTo() {
-  ganttChart.value?.scrollTo(300, { behavior: "smooth", alignment: "start" });
+  ganttChart.value?.scrollTo(startDate.until(Temporal.PlainDate.from("2026-06-18")).days, { behavior: "smooth", alignment: "start" });
+}
+
+function addTask() {
+  project.value.tasks.push(generateRandomTask(project.value.tasks.length, [0, startDate.until(endDate).days]))
 }
 </script>
 
@@ -100,6 +104,7 @@ function testScrollTo() {
       <UButton label="save" @click="saveTasks()" />
       <UButton label="load" @click="loadTasks()" />
       <UButton label="scroll to column 300" @click="testScrollTo()" />
+      <UButton label="add task" @click="addTask()" />
       <!-- Hidden file input for loading tasks -->
       <input
         type="file"
@@ -111,28 +116,3 @@ function testScrollTo() {
     </div>
   </div>
 </template>
-
-<style scoped>
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--ui-bg-elevated);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ui-bg-elevated);
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--ui-bg-elevated) transparent;
-}
-</style>

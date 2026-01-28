@@ -23,16 +23,19 @@ const {
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
+const allTasks = defineModel<Task[]>("tasks", { default: [] });
+const allDeadlines = defineModel<Deadline[]>("deadlines", { default: [] });
+
 // Format the date for display in the header
-function formatColumnHeader(date: Temporal.PlainDate, idx: number): string | undefined {
-  if (date.dayOfWeek !== 1) return;
+function formatColumnHeader(date: Temporal.PlainDate, force: boolean = false): string | undefined {
+  if (date.dayOfWeek !== 1 && !force) return;
 
   const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
 
   const formatted = date.toLocaleString("en", {
     month: "short",
     day: "numeric",
-    ...(isFirstFullWeekOfYear ? { year: "numeric" } : {}),
+    ...(isFirstFullWeekOfYear && date.dayOfWeek == 1 ? { year: "numeric" } : {}),
   });
 
   return formatted;
@@ -43,23 +46,23 @@ const scrollContainerRef = ref<HTMLElement | null>(null);
 const headerHeight = 40; // Height of the header in pixels
 const headerWidth = 240; // Width of the header in pixels
 
-// Virtual grid dimensions (very large for "infinite" feel)
-const totalRows = 100;
-const totalColumns = startDate.until(endDate).days;
-const overscan = 5;
-
-// Total size in pixels
-const totalWidth = computed(() => totalColumns * cellWidth);
-const totalHeight = computed(() => totalRows * cellHeight);
-
-const allTasks = defineModel<Task[]>("tasks", { default: [] });
-const allDeadlines = defineModel<Deadline[]>("deadlines", { default: [] });
-
 // Get current scroll position for horizontal virtualization
 const scrollLeft = ref(0);
 const scrollTop = ref(0);
 const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth || 1000);
 const viewportHeight = computed(() => scrollContainerRef.value?.clientHeight || 1000);
+const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellHeight) - 1)
+
+// Virtual grid dimensions
+const totalRows = computed(() => {
+  return Math.max(maxRowsOnScreen.value, allTasks.value.length);
+})
+const totalColumns = startDate.until(endDate).days;
+const overscan = 5;
+
+// Total size in pixels
+const totalWidth = computed(() => totalColumns * cellWidth);
+const totalHeight = computed(() => totalRows.value * cellHeight);
 
 // Update scroll position on scroll event
 const handleScroll = () => {
@@ -89,6 +92,7 @@ const visibleColumnEnd = computed(() =>
   Math.ceil((scrollLeft.value + viewportWidth.value) / cellWidth),
 );
 
+// Calculate visible row range
 const visibleRowStart = computed(() => Math.floor(scrollTop.value / cellHeight));
 const visibleRowEnd = computed(() =>
   Math.ceil((scrollTop.value + viewportHeight.value) / cellHeight),
@@ -136,8 +140,9 @@ const visibleColumns = computed(() => {
     const d = colToDate(startDate, i);
     columns.push({
       index: i,
-      label: formatColumnHeader(d, i),
+      date: d,
       left: i * cellWidth,
+      label: formatColumnHeader(d),
     });
   }
 
@@ -147,7 +152,7 @@ const visibleColumns = computed(() => {
 const visibleRows = computed(() => {
   const rows = [];
   const startRow = Math.max(0, visibleRowStart.value - overscan); // Add overscan
-  const endRow = Math.min(totalRows, visibleRowEnd.value + overscan);
+  const endRow = Math.min(totalRows.value, visibleRowEnd.value + overscan);
 
   for (let i = startRow; i < endRow; i++) {
     rows.push({
@@ -204,13 +209,13 @@ defineExpose({
 
 <template>
   <div
-    class="grid min-h-0"
+    class="grid min-h-0 border-muted border rounded-md"
     :style="{
       gridTemplateColumns: `${headerWidth}px 1fr`,
       gridTemplateRows: `${headerHeight}px 1fr`,
     }"
   >
-      <div class="col-start-1 row-start-1 flex items-center justify-center">
+      <div class="col-start-1 row-start-1 border-muted border-b border-r flex items-center justify-center">
           <UIcon name="simple-icons:nuxt" class="text-[#00DC82]"/>
       </div>
     <div class="col-start-2 row-start-1 overflow-x-clip border-b border-muted">
@@ -228,10 +233,15 @@ defineExpose({
             left: `${col.left}px`,
             width: `${cellWidth}px`,
           }"
-          class="absolute top-0 flex items-center border-default text-left text-sm text-nowrap h-full"
+          class="absolute top-0 flex items-center border-default group text-left text-sm text-nowrap h-full"
           :class="{ 'border-l-2 pl-2': col.label }"
         >
-          {{ col.label }}
+            <span class="pointer-events-none">
+                {{ col.label }}
+            </span>
+          <div class="absolute bg-default opacity-0 group-hover:opacity-100 pointer-events-none">
+              {{ formatColumnHeader(col.date, true) }}
+          </div>
         </div>
 
         <!-- Deadline header markers -->
@@ -242,7 +252,7 @@ defineExpose({
             left: `${deadline.col * cellWidth}px`,
             width: `${cellWidth}px`,
           }"
-          class="absolute h-full"
+          class="absolute h-full pointer-events-none"
         >
           <UTooltip :text="deadline.label">
             <div
@@ -254,7 +264,8 @@ defineExpose({
       </div>
     </div>
 
-    <div class="row-start-2 overflow-hidden border-r border-muted">
+    <!-- Padding for scrollbar -->
+    <div class="row-start-2 overflow-hidden border-r border-muted pb-4">
       <div
         :style="{
           height: `${totalHeight}px`,
@@ -268,11 +279,10 @@ defineExpose({
           :key="row.index"
           :style="{
             top: `${row.top}px`,
-            width: `${headerWidth}px`,
             height: `${cellHeight}px`,
           }"
           v-model="allTasks[row.index]"
-          class="absolute left-0"
+          class="absolute left-0 w-full"
         />
       </div>
     </div>
