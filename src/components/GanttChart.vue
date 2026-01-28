@@ -203,24 +203,19 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="scrollContainerRef" class="relative flex-1 overflow-auto bg-default" v-if="allTasks">
-    <div
-      :style="{
-        gridTemplateColumns: `${headerWidth}px 1fr`,
-        gridTemplateRows: `${headerHeight}px 1fr`,
-      }"
-      class="pointer-events-none sticky top-0 left-0 z-50 grid h-full w-full"
-    >
-      <div class="z-10 flex items-center justify-center border-r border-b border-muted bg-default">
-        <UIcon name="i-simple-icons:nuxt" class="size-5 text-[#00DC82]" />
-      </div>
-
+  <div
+    class="grid min-h-0"
+    :style="{
+      gridTemplateColumns: `${headerWidth}px 1fr`,
+      gridTemplateRows: `${headerHeight}px 1fr`,
+    }"
+  >
+    <div class="col-start-2 row-start-1 overflow-hidden border-b border-muted bg-default">
       <div
         :style="{
-          width: `${totalWidth}px`,
           transform: `translateX(-${scrollLeft}px)`,
         }"
-        class="relative h-full border-b border-muted bg-default"
+        class="right-0 z-50 h-full"
       >
         <!-- Virtualized column headers -->
         <div
@@ -256,13 +251,15 @@ defineExpose({
           </UTooltip>
         </div>
       </div>
+    </div>
 
+    <div class="row-start-2 overflow-hidden border-r border-muted bg-default">
       <div
         :style="{
           height: `${totalHeight}px`,
           transform: `translateY(-${scrollTop}px)`,
         }"
-        class="relative w-full border-r border-muted bg-default"
+        class="relative w-full"
       >
         <!-- Virtualized row headers (task names) -->
         <GanttLabel
@@ -278,75 +275,72 @@ defineExpose({
         />
       </div>
     </div>
-    <!-- SVG Grid Background (offset by header height) -->
-    <svg
-      :height="totalHeight"
-      :style="{
-        top: `${headerHeight}px`,
-        left: `${headerWidth}px`,
-      }"
-      :width="totalWidth"
-      class="pointer-events-none absolute z-0"
-    >
-      <defs>
-        <pattern
-          id="grid-pattern"
-          :height="cellHeight"
-          :width="cellWidth"
-          patternUnits="userSpaceOnUse"
-        >
-          <rect :height="cellHeight" :width="cellWidth" fill="var(--ui-bg)" />
-          <path
-            :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
-            fill="none"
-            stroke="var(--ui-border)"
-            stroke-width="1"
-          />
-        </pattern>
-      </defs>
 
-      <rect :fill="`url(#grid-pattern)`" :height="totalHeight" :width="totalWidth" />
-      <!-- Deadline vertical lines -->
-      <g
-        v-for="deadline in visibleDeadlines"
-        :key="`line-${deadline.id}`"
-        :transform="`translate(${deadline.col * cellWidth}, 0)`"
-      >
-        <line
-          :y1="0"
-          :y2="totalHeight"
-          stroke-width="1"
-          class="pointer-events-none"
-          :class="[deadline.id == -1 ? 'stroke-error' : 'stroke-primary']"
-        />
-      </g>
-    </svg>
-
-    <!-- HTML Div Container for Tasks/Squares -->
     <div
-      :style="{
-        top: `${headerHeight}px`,
-        left: `${headerWidth}px`,
-        width: `${totalWidth}px`,
-        height: `${totalHeight}px`,
-      }"
-      class="absolute"
+      ref="scrollContainerRef"
+      class="relative col-start-2 row-start-2 flex-1 overflow-auto"
+      v-if="allTasks"
     >
-      <!-- Virtualized HTML Div Tasks (one per row) -->
-      <GanttBar
-        v-for="(task, i) in visibleTasks"
-        :key="task.id"
+      <!-- SVG Grid Background (offset by header height) -->
+      <svg :height="totalHeight" :width="totalWidth" class="pointer-events-none absolute z-0">
+        <defs>
+          <pattern
+            id="grid-pattern"
+            :height="cellHeight"
+            :width="cellWidth"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect :height="cellHeight" :width="cellWidth" fill="var(--ui-bg)" />
+            <path
+              :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
+              fill="none"
+              stroke="var(--ui-border)"
+              stroke-width="1"
+            />
+          </pattern>
+        </defs>
+
+        <rect :fill="`url(#grid-pattern)`" :height="totalHeight" :width="totalWidth" />
+        <!-- Deadline vertical lines -->
+        <g
+          v-for="deadline in visibleDeadlines"
+          :key="`line-${deadline.id}`"
+          :transform="`translate(${deadline.col * cellWidth}, 0)`"
+        >
+          <line
+            :y1="0"
+            :y2="totalHeight"
+            stroke-width="1"
+            class="pointer-events-none"
+            :class="[deadline.id == -1 ? 'stroke-error' : 'stroke-primary']"
+          />
+        </g>
+      </svg>
+
+      <!-- HTML Div Container for Tasks/Squares -->
+      <div
         :style="{
-          left: `${task.col * cellWidth}px`,
-          top: `${task.row * cellHeight}px`,
-          width: `${task.width * cellWidth}px`,
-          height: `${cellHeight}px`,
+          width: `${totalWidth}px`,
+          height: `${totalHeight}px`,
         }"
-        v-model="visibleTasks[i]"
         class="absolute"
-        @click="() => console.log('Clicked:', task.label)"
-        :pixels-width="cellWidth"
-      />
+      >
+        <!-- Virtualized HTML Div Tasks (one per row) -->
+        <GanttBar
+          v-for="(task, i) in visibleTasks"
+          :key="task.id"
+          :style="{
+            left: `${task.col * cellWidth}px`,
+            top: `${task.row * cellHeight}px`,
+            width: `${task.width * cellWidth}px`,
+            height: `${cellHeight}px`,
+          }"
+          v-model="visibleTasks[i]"
+          class="absolute"
+          @click="() => console.log('Clicked:', task.label)"
+          :pixels-width="cellWidth"
+        />
+      </div>
     </div>
   </div>
 </template>
