@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
 import { Task } from "../utils/types.ts";
+import { colToDate } from "../utils/temporal.ts";
+import { Temporal } from "temporal-polyfill";
 
 const model = defineModel<Task>();
 
@@ -118,7 +120,9 @@ const cursorStyle = computed(() => {
       :class="cursorStyle"
       class="group h-full rounded-md border-2 border-primary bg-primary/10 select-none"
       @mousedown="onMouseDownBar"
-    ></div>
+    >
+        <slot/>
+    </div>
     <!-- Right resize handle -->
     <div
       class="absolute top-0 -right-1 bottom-0 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"

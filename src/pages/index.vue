@@ -75,7 +75,7 @@ async function handleFileChange(event: Event) {
 
 // Test scrollTo function
 function testScrollTo() {
-  ganttChart.value?.scrollTo(startDate.until(Temporal.PlainDate.from("2026-06-18")).days, { behavior: "smooth", alignment: "start" });
+  ganttChart.value?.scrollTo(startDate.until(Temporal.PlainDate.from("2026-06-15")).days, { behavior: "smooth", alignment: "start" });
 }
 
 function addTask() {
@@ -95,7 +95,7 @@ function addTask() {
       v-model:tasks="project.tasks"
       v-model:deadlines="project.deadlines"
     />
-    <div class="flex items-center gap-4 bg-muted p-4">
+    <div class="flex items-center gap-4 border-muted rounded-md border p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
       </UFormField>
@@ -104,8 +104,9 @@ function addTask() {
       </UFormField>
       <UButton label="save" @click="saveTasks()" />
       <UButton label="load" @click="loadTasks()" />
-      <UButton label="scroll to column 300" @click="testScrollTo()" />
+      <UButton label="scroll to date" @click="testScrollTo()" />
       <UButton label="add task" @click="addTask()" />
+      <UButton  icon="simple-icons:github" color="neutral" variant="subtle" to="https://github.com/ISOR3X/nuxt-gantt" target="_blank"/>
       <!-- Hidden file input for loading tasks -->
       <input
         type="file"
