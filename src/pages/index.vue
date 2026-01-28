@@ -87,6 +87,7 @@ function addTask() {
   <div class="flex h-screen w-screen flex-col gap-4 p-4">
     <GanttChart
       ref="ganttChart"
+      class="grow"
       :start-date="project.startDate"
       :end-date="project.endDate"
       :cell-width

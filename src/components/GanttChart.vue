@@ -62,7 +62,7 @@ const overscan = 5;
 
 // Total size in pixels
 const totalWidth = computed(() => totalColumns * cellWidth);
-const totalHeight = computed(() => totalRows.value * cellHeight);
+const totalHeight = computed(() => Math.max(totalRows.value * cellHeight, viewportHeight.value));
 
 // Update scroll position on scroll event
 const handleScroll = () => {
@@ -218,7 +218,7 @@ defineExpose({
       <div class="col-start-1 row-start-1 border-muted border-b border-r flex items-center justify-center">
           <UIcon name="simple-icons:nuxt" class="text-[#00DC82]"/>
       </div>
-    <div class="col-start-2 row-start-1 overflow-x-clip border-b border-muted">
+    <div class="col-start-2 row-start-1 overflow-x-clip border-b border-muted z-10">
       <div
         :style="{
           transform: `translateX(-${scrollLeft}px)`,
@@ -239,8 +239,8 @@ defineExpose({
             <span class="pointer-events-none">
                 {{ col.label }}
             </span>
-          <div class="absolute bg-default opacity-0 group-hover:opacity-100 pointer-events-none">
-              {{ formatColumnHeader(col.date, true) }}
+          <div class="absolute bg-default z-20 opacity-0 group-hover:opacity-100 pointer-events-none px-2 border-default border left-1/2 -translate-x-1/2 rounded-md py-0.5">
+                {{ formatColumnHeader(col.date, true) }}
           </div>
         </div>
 
@@ -256,7 +256,7 @@ defineExpose({
         >
           <UTooltip :text="deadline.label">
             <div
-              class="absolute -bottom-1 -left-1 flex size-2 cursor-pointer items-center justify-center rounded-full"
+              class="absolute -bottom-1 -left-1 flex size-2 pointer-events-auto cursor-pointer items-center justify-center rounded-full"
               :class="[deadline.id == -1 ? 'bg-error' : 'bg-primary']"
             />
           </UTooltip>
@@ -264,7 +264,7 @@ defineExpose({
       </div>
     </div>
 
-    <!-- Padding for scrollbar -->
+    <!-- pb-4: Padding for scrollbar -->
     <div class="row-start-2 overflow-hidden border-r border-muted pb-4">
       <div
         :style="{

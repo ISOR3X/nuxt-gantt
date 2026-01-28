@@ -27,7 +27,7 @@ export function generateRandomTask(
   return {
     id: rowIndex,
     row: rowIndex,
-    col: randomIntBetween(inBetween),
+    col: randomIntBetween(inBetween) - maxWidth,
     width: Math.floor(Math.random() * maxWidth) + 1,
     label: `Task ${rowIndex}`,
   };
