@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
 import { Task } from "../utils/types.ts";
-import { colToDate } from "../utils/temporal.ts";
-import { Temporal } from "temporal-polyfill";
 
 const model = defineModel<Task>();
 
@@ -118,9 +116,12 @@ const cursorStyle = computed(() => {
     />
     <div
       :class="cursorStyle"
-      class="group h-full rounded-md border-2 border-primary bg-primary/10 select-none"
+      class="group h-full relative rounded-md border-2 border-primary bg-primary/10 select-none"
       @mousedown="onMouseDownBar"
     >
+        <div v-if="model?.progress" class="absolute left-0 top-0 bottom-0 bg-primary" :style="{right: `${100 - model?.progress * 100}%`}">
+            
+        </div>
         <slot/>
     </div>
     <!-- Right resize handle -->

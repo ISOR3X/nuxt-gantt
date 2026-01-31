@@ -7,7 +7,7 @@ import { Temporal } from "temporal-polyfill";
 import { Project } from "../utils/types.ts";
 
 const cellWidth = ref(40);
-const cellHeight = ref(50);
+const cellHeight = ref(30);
 
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");

@@ -254,9 +254,9 @@ defineExpose({
           }"
           class="absolute h-full pointer-events-none"
         >
-          <UTooltip :text="deadline.label">
+          <UTooltip :text="deadline.label" :content="{side: 'top'}" :ui="{content: 'text-sm'}" :delayDuration="0">
             <div
-              class="absolute -bottom-1 -left-1 flex size-2 pointer-events-auto cursor-pointer items-center justify-center rounded-full"
+              class="absolute -bottom-1.5 -left-1.5 flex size-3 pointer-events-auto cursor-pointer items-center justify-center rounded-full"
               :class="[deadline.id == -1 ? 'bg-error' : 'bg-primary']"
             />
           </UTooltip>

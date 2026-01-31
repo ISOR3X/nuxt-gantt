@@ -9,16 +9,17 @@ export interface Project {
 
 export interface Task {
   id: number;
-  row: number;
-  col: number;
-  width: number;
   label: string;
+  row: number; // What row 
+  col: number; // Start column
+  width: number; // Width
+  progress: number;
 }
 
 export interface Deadline {
   id: number;
-  col: number;
   label?: string;
+  col: number; // Column
 }
 
 export interface SerializedProject {
@@ -30,10 +31,11 @@ export interface SerializedProject {
 
 export interface SerializedTask {
   id: number;
+  label: string;
   row: number;
   startDate: string;
   endDate: string;
-  label: string;
+  progress: number;
 }
 
 export interface SerializedDeadline {
