@@ -116,13 +116,15 @@ const cursorStyle = computed(() => {
     />
     <div
       :class="cursorStyle"
-      class="group h-full relative rounded-md border-2 border-primary bg-primary/10 select-none"
+      class="group relative h-full rounded-md border-2 border-primary bg-primary/10 select-none"
       @mousedown="onMouseDownBar"
     >
-        <div v-if="model?.progress" class="absolute left-0 top-0 bottom-0 bg-primary" :style="{right: `${100 - model?.progress * 100}%`}">
-            
-        </div>
-        <slot/>
+      <div
+        v-if="model?.progress"
+        class="absolute top-0 bottom-0 left-0 bg-primary"
+        :style="{ right: `${100 - model?.progress * 100}%` }"
+      />
+      <slot />
     </div>
     <!-- Right resize handle -->
     <div

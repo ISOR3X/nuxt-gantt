@@ -13,8 +13,8 @@ A work in progress project for creating gantt charts.
 ## To do
 
 - [x] Convert col index to `Temporal.PlainDate` during serialization and vice versa.
-- [ ] Change date format on small cell sizes 
-- [ ] Dependency arrows.
+- [ ] Change date format on small cell sizes
+- [ ] Task dependencie with dependency arrows.
 - [ ] Task editing GUI.
 - [ ] Make the project into a library and publish on NPM.
 - [ ] Export to pdf (scale to fit page)

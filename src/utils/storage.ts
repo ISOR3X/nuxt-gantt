@@ -12,7 +12,7 @@ export function serializeProject(project: Project): SerializedProject {
       startDate: colToDate(project.startDate, task.col).toString(),
       endDate: colToDate(project.startDate, task.col + task.width).toString(),
       label: task.label,
-      progress: task.progress
+      progress: task.progress,
     })),
     deadlines: project.deadlines.map((deadline) => ({
       id: deadline.id,
@@ -39,7 +39,7 @@ export function deserializeProject(serialized: SerializedProject): Project {
         col: dateToCol(startDate, taskStartDate),
         width: taskStartDate.until(taskEndDate).days,
         label: task.label,
-        progress: task.progress
+        progress: task.progress,
       };
     }),
     deadlines: serialized.deadlines.map((deadline) => ({

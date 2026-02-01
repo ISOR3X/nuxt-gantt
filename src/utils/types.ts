@@ -10,7 +10,7 @@ export interface Project {
 export interface Task {
   id: number;
   label: string;
-  row: number; // What row 
+  row: number; // What row
   col: number; // Start column
   width: number; // Width
   progress: number;

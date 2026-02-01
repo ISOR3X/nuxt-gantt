@@ -51,12 +51,12 @@ const scrollLeft = ref(0);
 const scrollTop = ref(0);
 const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth || 1000);
 const viewportHeight = computed(() => scrollContainerRef.value?.clientHeight || 1000);
-const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellHeight) - 1)
+const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellHeight) - 1);
 
 // Virtual grid dimensions
 const totalRows = computed(() => {
   return Math.max(maxRowsOnScreen.value, allTasks.value.length);
-})
+});
 const totalColumns = startDate.until(endDate).days;
 const overscan = 5;
 
@@ -209,16 +209,18 @@ defineExpose({
 
 <template>
   <div
-    class="grid min-h-0 border-muted border rounded-md"
+    class="grid min-h-0 rounded-md border border-muted"
     :style="{
       gridTemplateColumns: `${headerWidth}px 1fr`,
       gridTemplateRows: `${headerHeight}px 1fr`,
     }"
   >
-      <div class="col-start-1 row-start-1 border-muted border-b border-r flex items-center justify-center">
-          <UIcon name="simple-icons:nuxt" class="text-[#00DC82]"/>
-      </div>
-    <div class="col-start-2 row-start-1 overflow-x-clip border-b border-muted z-10">
+    <div
+      class="col-start-1 row-start-1 flex items-center justify-center border-r border-b border-muted"
+    >
+      <UIcon name="simple-icons:nuxt" class="text-[#00DC82]" />
+    </div>
+    <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
         :style="{
           transform: `translateX(-${scrollLeft}px)`,
@@ -233,14 +235,16 @@ defineExpose({
             left: `${col.left}px`,
             width: `${cellWidth}px`,
           }"
-          class="absolute top-0 flex items-center border-default group text-left text-sm text-nowrap h-full"
+          class="group absolute top-0 flex h-full items-center border-default text-left text-sm text-nowrap"
           :class="{ 'border-l-2 pl-2': col.label }"
         >
-            <span class="pointer-events-none">
-                {{ col.label }}
-            </span>
-          <div class="absolute bg-default z-20 opacity-0 group-hover:opacity-100 pointer-events-none px-2 border-default border left-1/2 -translate-x-1/2 rounded-md py-0.5">
-                {{ formatColumnHeader(col.date, true) }}
+          <span class="pointer-events-none">
+            {{ col.label }}
+          </span>
+          <div
+            class="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 rounded-md border border-default bg-default px-2 py-0.5 opacity-0 group-hover:opacity-100"
+          >
+            {{ formatColumnHeader(col.date, true) }}
           </div>
         </div>
 
@@ -252,11 +256,16 @@ defineExpose({
             left: `${deadline.col * cellWidth}px`,
             width: `${cellWidth}px`,
           }"
-          class="absolute h-full pointer-events-none"
+          class="pointer-events-none absolute h-full"
         >
-          <UTooltip :text="deadline.label" :content="{side: 'top'}" :ui="{content: 'text-sm'}" :delayDuration="0">
+          <UTooltip
+            :text="deadline.label"
+            :content="{ side: 'top' }"
+            :ui="{ content: 'text-sm' }"
+            :delayDuration="0"
+          >
             <div
-              class="absolute -bottom-1.5 -left-1.5 flex size-3 pointer-events-auto cursor-pointer items-center justify-center rounded-full"
+              class="pointer-events-auto absolute -bottom-1.5 -left-1.5 flex size-3 cursor-pointer items-center justify-center rounded-full"
               :class="[deadline.id == -1 ? 'bg-error' : 'bg-primary']"
             />
           </UTooltip>
@@ -274,16 +283,26 @@ defineExpose({
         class="relative w-full"
       >
         <!-- Virtualized row headers (task names) -->
-        <GanttLabel
-          v-for="row in visibleRows"
-          :key="row.index"
-          :style="{
-            top: `${row.top}px`,
-            height: `${cellHeight}px`,
-          }"
-          v-model="allTasks[row.index]"
-          class="absolute left-0 w-full"
-        />
+        <template v-for="row in visibleRows" :key="row.index">
+          <!-- TODO: Remove style duplication -->
+          <GanttLabel
+            :style="{
+              top: `${row.top}px`,
+              height: `${cellHeight}px`,
+            }"
+            v-if="row.index < allTasks.length"
+            v-model="allTasks[row.index]"
+            class="absolute left-0 w-full"
+          />
+          <div
+            v-else
+            :style="{
+              top: `${row.top}px`,
+              height: `${cellHeight}px`,
+            }"
+            class="absolute left-0 w-full border-b border-default"
+          />
+        </template>
       </div>
     </div>
 

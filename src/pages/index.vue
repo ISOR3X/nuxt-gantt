@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import GanttChart from "../components/GanttChart.vue";
-import { generateRandomDeadlines, generateRandomTask, generateRandomTasks } from "../utils/random.ts";
+import {
+  generateRandomDeadlines,
+  generateRandomTask,
+  generateRandomTasks,
+} from "../utils/random.ts";
 import { ref, useTemplateRef } from "vue";
 import { saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
@@ -75,11 +79,16 @@ async function handleFileChange(event: Event) {
 
 // Test scrollTo function
 function testScrollTo() {
-  ganttChart.value?.scrollTo(startDate.until(Temporal.PlainDate.from("2026-06-15")).days, { behavior: "smooth", alignment: "start" });
+  ganttChart.value?.scrollTo(startDate.until(Temporal.PlainDate.from("2026-06-15")).days, {
+    behavior: "smooth",
+    alignment: "start",
+  });
 }
 
 function addTask() {
-  project.value.tasks.push(generateRandomTask(project.value.tasks.length, [0, startDate.until(endDate).days]))
+  project.value.tasks.push(
+    generateRandomTask(project.value.tasks.length, [0, startDate.until(endDate).days]),
+  );
 }
 </script>
 
@@ -95,7 +104,7 @@ function addTask() {
       v-model:tasks="project.tasks"
       v-model:deadlines="project.deadlines"
     />
-    <div class="flex items-center gap-4 border-muted rounded-md border p-4">
+    <div class="flex items-center gap-4 rounded-md border border-muted p-4">
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
       </UFormField>
@@ -106,7 +115,13 @@ function addTask() {
       <UButton label="load" @click="loadTasks()" />
       <UButton label="scroll to date" @click="testScrollTo()" />
       <UButton label="add task" @click="addTask()" />
-      <UButton  icon="simple-icons:github" color="neutral" variant="subtle" to="https://github.com/ISOR3X/nuxt-gantt" target="_blank"/>
+      <UButton
+        icon="simple-icons:github"
+        color="neutral"
+        variant="subtle"
+        to="https://github.com/ISOR3X/nuxt-gantt"
+        target="_blank"
+      />
       <!-- Hidden file input for loading tasks -->
       <input
         type="file"
