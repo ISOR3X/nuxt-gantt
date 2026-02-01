@@ -13,6 +13,8 @@ const { pixelsWidth = 120 } = defineProps<{
 
 type DragMode = "none" | "dragging" | "resizing-left" | "resizing-right";
 
+const OFFSET = 2;
+
 const dragMode = ref<DragMode>("none");
 const isDragging = computed(() => dragMode.value === "dragging");
 const isResizingLeft = computed(() => dragMode.value === "resizing-left");
@@ -109,11 +111,13 @@ function onMouseUp() {
 <template>
   <UPopover :ui="{ content: 'grid grid-cols-2 gap-x-4 text-sm p-2' }" mode="hover">
     <div class="group py-1" :style="attrs.style as StyleValue" :class="attrs.class">
-      <!-- Left resize handle -->
+      <!-- Left resize handle. Our hitbox is larger than what is visually shown. -->
       <div
-        class="absolute top-0 bottom-0 -left-1 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
+        class="absolute bottom-0 -left-4 z-20 aspect-square h-full -translate-x-1/2 cursor-ew-resize p-2"
         @mousedown.stop="onMouseDownLeft"
-      />
+      >
+        <div class="h-full rounded-full border-accented group-hover:border-2" />
+      </div>
       <div
         :class="cursorStyle"
         class="group relative h-full rounded-md border-2 border-primary bg-primary/10 select-none"
@@ -128,9 +132,11 @@ function onMouseUp() {
       </div>
       <!-- Right resize handle -->
       <div
-        class="absolute top-0 -right-1 bottom-0 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
+        class="absolute -right-4 bottom-0 z-20 aspect-square h-full translate-x-1/2 cursor-ew-resize p-2"
         @mousedown.stop="onMouseDownRight"
-      />
+      >
+        <div class="h-full rounded-full border-accented group-hover:border-2" />
+      </div>
     </div>
     <template #content>
       <b>Label</b>
