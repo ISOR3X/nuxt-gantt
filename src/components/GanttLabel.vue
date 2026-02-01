@@ -15,7 +15,7 @@ async function openModal() {
   const updatedTask = await instance.result;
 
   if (updatedTask != null) {
-    model.value = updatedTask
+    model.value = updatedTask;
   }
 }
 </script>

@@ -27,6 +27,7 @@ export function deserializeProject(serialized: SerializedProject): Project {
   const endDate = Temporal.PlainDate.from(serialized.endDate);
 
   return {
+    label: serialized.label,
     startDate,
     endDate,
     tasks: serialized.tasks.map((task) => {
@@ -61,7 +62,7 @@ export function saveProject(project: Project): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `gantt-project-${Temporal.Now.plainDateISO().toString()}.json`;
+    a.download = `${project.label}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

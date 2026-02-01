@@ -1,15 +1,17 @@
 <script lang="ts">
-import { Task, Deadline } from "../utils/types.ts";
+import { Task, Deadline, Project } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { Temporal } from "temporal-polyfill";
 import { colToDate } from "../utils/temporal.ts";
 import { useResizeObserver } from "@vueuse/core";
+import { DropdownMenuItem } from "@nuxt/ui";
 
 export interface GanttChartProps {
   cellWidth?: number;
   cellHeight?: number;
   startDate?: Temporal.PlainDate;
   endDate?: Temporal.PlainDate;
+  dropdownItems?: DropdownMenuItem[];
 }
 </script>
 
@@ -24,8 +26,7 @@ const {
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
-const allTasks = defineModel<Task[]>("tasks", { default: [] });
-const allDeadlines = defineModel<Deadline[]>("deadlines", { default: [] });
+const project = defineModel<Project>({ required: true });
 
 const HEADERHEIGHT = 40; // Height of the header in pixels
 const HEADERWIDTH = 240; // Width of the header in pixels
@@ -44,16 +45,15 @@ const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellWidth
 
 // Virtual grid dimensions
 const totalRows = computed(() => {
-  return Math.max(maxRowsOnScreen.value, allTasks.value.length);
+  return Math.max(maxRowsOnScreen.value, project.value.tasks.length);
 });
 const totalColumns = computed(() => {
-  return Math.max(maxColsOnScreen.value,  startDate.until(endDate).days + 1);
+  return Math.max(maxColsOnScreen.value, startDate.until(endDate).days + 1);
 });
 
 // Total size in pixels
-const totalWidth = computed(() => totalColumns.value * cellWidth); 
+const totalWidth = computed(() => totalColumns.value * cellWidth);
 const totalHeight = computed(() => totalRows.value * cellHeight);
-
 
 // Calculate visible column range
 const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellWidth));
@@ -74,12 +74,11 @@ const visibleTasks = computed(() => {
   const colStart = Math.max(0, visibleColumnStart.value - OVERSCAN);
   const colEnd = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
 
-
-  if (allTasks.value == undefined) {
+  if (project.value.tasks == undefined) {
     throw Error("No tasks found");
   }
 
-  return allTasks.value.filter((task: Task) => {
+  return project.value.tasks.filter((task: Task) => {
     const taskColEnd = task.col + task.width;
 
     // Check if a task intersects with visible area
@@ -95,7 +94,7 @@ const visibleDeadlines = computed(() => {
   const colStart = visibleColumnStart.value - OVERSCAN;
   const colEnd = visibleColumnEnd.value + OVERSCAN;
 
-  return allDeadlines.value.filter(
+  return project.value.deadlines.filter(
     (deadline) => deadline.col >= colStart && deadline.col <= colEnd,
   );
 });
@@ -103,7 +102,7 @@ const visibleDeadlines = computed(() => {
 // Generate column headers based on visible columns
 const visibleColumns = computed(() => {
   const columns = [];
-  const startCol = Math.max(0, visibleColumnStart.value - OVERSCAN); 
+  const startCol = Math.max(0, visibleColumnStart.value - OVERSCAN);
   const endCol = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
 
   for (let i = startCol; i < endCol; i++) {
@@ -157,6 +156,43 @@ function handleScroll() {
   }
 }
 
+// Scroll to a specific column index
+function scrollTo(
+  idx: number,
+  options?: {
+    behavior?: ScrollBehavior;
+    alignment?: "start" | "center" | "end";
+  },
+) {
+  if (!scrollContainerRef.value) return;
+  if (idx > totalColumns.value) {
+    throw Error("scrollTo index larger than visible range.");
+  }
+
+  const { behavior = "auto", alignment = "start" } = options || {};
+
+  // Calculate the target scroll position
+  let targetScrollLeft = idx * cellWidth;
+
+  // Adjust for alignment
+  if (alignment === "center") {
+    targetScrollLeft -= (viewportWidth.value - cellWidth) / 2;
+  } else if (alignment === "end") {
+    targetScrollLeft -= viewportWidth.value - cellWidth;
+  }
+
+  // Ensure we don't scroll beyond bounds
+  targetScrollLeft = Math.max(
+    0,
+    Math.min(targetScrollLeft, totalWidth.value - viewportWidth.value),
+  );
+
+  scrollContainerRef.value.scrollTo({
+    left: targetScrollLeft,
+    behavior,
+  });
+}
+
 // Set up and cleanup scroll listener
 onMounted(() => {
   if (scrollContainerRef.value) {
@@ -171,16 +207,14 @@ onUnmounted(() => {
   }
 });
 
+useResizeObserver(scrollContainerRef, () => {
+  handleScroll();
+});
 
 // Expose scrollTo function for parent components
 defineExpose({
   scrollTo,
 });
-
-useResizeObserver(scrollContainerRef, () => {
-  handleScroll();
-})
-
 </script>
 
 <template>
@@ -191,10 +225,10 @@ useResizeObserver(scrollContainerRef, () => {
       gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
     }"
   >
-    <div
-      class="col-start-1 row-start-1 flex items-center justify-center border-r border-b border-muted"
-    >
-      <UIcon name="simple-icons:nuxt" class="text-[#00DC82]" />
+    <div class="col-start-1 row-start-1 flex items-center border-r border-b border-muted px-2">
+      <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">
+        <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
+      </UDropdownMenu>
     </div>
     <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
@@ -265,8 +299,8 @@ useResizeObserver(scrollContainerRef, () => {
               top: `${row.top}px`,
               height: `${cellHeight}px`,
             }"
-            v-if="row.index < allTasks.length"
-            v-model="allTasks[row.index]"
+            v-if="row.index < project.tasks.length"
+            v-model="project.tasks[row.index]"
             class="absolute left-0 w-full"
           />
           <div
@@ -284,11 +318,11 @@ useResizeObserver(scrollContainerRef, () => {
     <div
       ref="scrollContainerRef"
       class="relative col-start-2 row-start-2 flex-1 overflow-auto"
-      v-if="allTasks"
+      v-if="project.tasks"
     >
       <!-- SVG Grid Background -->
-      <svg 
-        class="pointer-events-none absolute z-0 inset-0 h-full w-full"
+      <svg
+        class="pointer-events-none absolute inset-0 z-0 h-full w-full"
         :style="{
           minHeight: `${totalHeight}px`,
           minWidth: `${totalWidth}px`,

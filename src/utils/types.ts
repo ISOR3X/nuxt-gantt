@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 
 export interface Project {
+  label: string;
   startDate: Temporal.PlainDate;
   endDate: Temporal.PlainDate;
   tasks: Task[];
@@ -23,6 +24,7 @@ export interface Deadline {
 }
 
 export interface SerializedProject {
+  label: string;
   startDate: string;
   endDate: string;
   tasks: SerializedTask[];

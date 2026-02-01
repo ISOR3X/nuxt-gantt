@@ -11,11 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <UModal
-    title="Task configuration"
-    description="Edit the task configuration."
-    :close="false"
-  >
+  <UModal title="Task configuration" description="Edit the task configuration." :close="false">
     <template #body>
       <UForm v-if="task">
         <UFormField label="Label">
