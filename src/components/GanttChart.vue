@@ -3,6 +3,7 @@ import { Task, Deadline } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { Temporal } from "temporal-polyfill";
 import { colToDate } from "../utils/temporal.ts";
+import { useResizeObserver } from "@vueuse/core";
 
 export interface GanttChartProps {
   cellWidth?: number;
@@ -26,65 +27,33 @@ const {
 const allTasks = defineModel<Task[]>("tasks", { default: [] });
 const allDeadlines = defineModel<Deadline[]>("deadlines", { default: [] });
 
-// Format the date for display in the header
-function formatColumnHeader(date: Temporal.PlainDate, force: boolean = false): string | undefined {
-  if (date.dayOfWeek !== 1 && !force) return;
+const HEADERHEIGHT = 40; // Height of the header in pixels
+const HEADERWIDTH = 240; // Width of the header in pixels
+const OVERSCAN = 5;
 
-  const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
-
-  const formatted = date.toLocaleString("en", {
-    month: "short",
-    day: "numeric",
-    ...(isFirstFullWeekOfYear && date.dayOfWeek == 1 ? { year: "numeric" } : {}),
-  });
-
-  return formatted;
-}
-
-// Scroll container ref
 const scrollContainerRef = ref<HTMLElement | null>(null);
-const headerHeight = 40; // Height of the header in pixels
-const headerWidth = 240; // Width of the header in pixels
 
-// Get current scroll position for horizontal virtualization
+// Get current scroll position for virtualization
 const scrollLeft = ref(0);
 const scrollTop = ref(0);
-const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth || 1000);
-const viewportHeight = computed(() => scrollContainerRef.value?.clientHeight || 1000);
+
+const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth ?? 0);
+const viewportHeight = computed(() => scrollContainerRef.value?.clientHeight ?? 0);
 const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellHeight) - 1);
+const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellWidth) - 1);
 
 // Virtual grid dimensions
 const totalRows = computed(() => {
   return Math.max(maxRowsOnScreen.value, allTasks.value.length);
 });
-const totalColumns = startDate.until(endDate).days;
-const overscan = 5;
+const totalColumns = computed(() => {
+  return Math.max(maxColsOnScreen.value,  startDate.until(endDate).days + 1);
+});
 
 // Total size in pixels
-const totalWidth = computed(() => totalColumns * cellWidth);
-const totalHeight = computed(() => Math.max(totalRows.value * cellHeight, viewportHeight.value));
+const totalWidth = computed(() => totalColumns.value * cellWidth); 
+const totalHeight = computed(() => totalRows.value * cellHeight);
 
-// Update scroll position on scroll event
-const handleScroll = () => {
-  if (scrollContainerRef.value) {
-    scrollLeft.value = scrollContainerRef.value.scrollLeft;
-    scrollTop.value = scrollContainerRef.value.scrollTop;
-  }
-};
-
-// Set up and cleanup scroll listener
-onMounted(() => {
-  if (scrollContainerRef.value) {
-    scrollContainerRef.value.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial update
-  }
-});
-
-onUnmounted(() => {
-  if (scrollContainerRef.value) {
-    scrollContainerRef.value.removeEventListener("scroll", handleScroll);
-  }
-});
 
 // Calculate visible column range
 const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellWidth));
@@ -100,10 +69,11 @@ const visibleRowEnd = computed(() =>
 
 // Virtualized tasks - only render those in visible viewport
 const visibleTasks = computed(() => {
-  const rowStart = visibleRowStart.value - overscan;
-  const rowEnd = visibleRowEnd.value + overscan;
-  const colStart = visibleColumnStart.value - overscan;
-  const colEnd = visibleColumnEnd.value + overscan;
+  const rowStart = Math.max(0, visibleRowStart.value - OVERSCAN);
+  const rowEnd = Math.min(totalRows.value, visibleRowEnd.value + OVERSCAN);
+  const colStart = Math.max(0, visibleColumnStart.value - OVERSCAN);
+  const colEnd = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
+
 
   if (allTasks.value == undefined) {
     throw Error("No tasks found");
@@ -122,8 +92,8 @@ const visibleTasks = computed(() => {
 
 // Virtualized deadlines - only render those in visible viewport
 const visibleDeadlines = computed(() => {
-  const colStart = visibleColumnStart.value - overscan;
-  const colEnd = visibleColumnEnd.value + overscan;
+  const colStart = visibleColumnStart.value - OVERSCAN;
+  const colEnd = visibleColumnEnd.value + OVERSCAN;
 
   return allDeadlines.value.filter(
     (deadline) => deadline.col >= colStart && deadline.col <= colEnd,
@@ -133,8 +103,8 @@ const visibleDeadlines = computed(() => {
 // Generate column headers based on visible columns
 const visibleColumns = computed(() => {
   const columns = [];
-  const startCol = Math.max(0, visibleColumnStart.value - overscan); // Add overscan
-  const endCol = Math.min(totalColumns, visibleColumnEnd.value + overscan);
+  const startCol = Math.max(0, visibleColumnStart.value - OVERSCAN); 
+  const endCol = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
 
   for (let i = startCol; i < endCol; i++) {
     const d = colToDate(startDate, i);
@@ -151,8 +121,8 @@ const visibleColumns = computed(() => {
 
 const visibleRows = computed(() => {
   const rows = [];
-  const startRow = Math.max(0, visibleRowStart.value - overscan); // Add overscan
-  const endRow = Math.min(totalRows.value, visibleRowEnd.value + overscan);
+  const startRow = Math.max(0, visibleRowStart.value - OVERSCAN);
+  const endRow = Math.min(totalRows.value, visibleRowEnd.value + OVERSCAN);
 
   for (let i = startRow; i < endRow; i++) {
     rows.push({
@@ -164,55 +134,61 @@ const visibleRows = computed(() => {
   return rows;
 });
 
-// Scroll to a specific column index
-function scrollTo(
-  idx: number,
-  options?: {
-    behavior?: ScrollBehavior;
-    alignment?: "start" | "center" | "end";
-  },
-) {
-  if (!scrollContainerRef.value) return;
-  if (idx > totalColumns) {
-    throw Error("scrollTo index larger than visible range.");
-  }
+// Format the date for display in the header
+function formatColumnHeader(date: Temporal.PlainDate, force: boolean = false): string | undefined {
+  if (date.dayOfWeek !== 1 && !force) return;
 
-  const { behavior = "auto", alignment = "start" } = options || {};
+  const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
 
-  // Calculate the target scroll position
-  let targetScrollLeft = idx * cellWidth;
-
-  // Adjust for alignment
-  if (alignment === "center") {
-    targetScrollLeft -= (viewportWidth.value - cellWidth) / 2;
-  } else if (alignment === "end") {
-    targetScrollLeft -= viewportWidth.value - cellWidth;
-  }
-
-  // Ensure we don't scroll beyond bounds
-  targetScrollLeft = Math.max(
-    0,
-    Math.min(targetScrollLeft, totalWidth.value - viewportWidth.value),
-  );
-
-  scrollContainerRef.value.scrollTo({
-    left: targetScrollLeft,
-    behavior,
+  const formatted = date.toLocaleString("en", {
+    month: "short",
+    day: "numeric",
+    ...(isFirstFullWeekOfYear && date.dayOfWeek == 1 ? { year: "numeric" } : {}),
   });
+
+  return formatted;
 }
+
+// Update scroll position on scroll event
+function handleScroll() {
+  if (scrollContainerRef.value) {
+    scrollLeft.value = scrollContainerRef.value.scrollLeft;
+    scrollTop.value = scrollContainerRef.value.scrollTop;
+  }
+}
+
+// Set up and cleanup scroll listener
+onMounted(() => {
+  if (scrollContainerRef.value) {
+    scrollContainerRef.value.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initial update
+  }
+});
+
+onUnmounted(() => {
+  if (scrollContainerRef.value) {
+    scrollContainerRef.value.removeEventListener("scroll", handleScroll);
+  }
+});
+
 
 // Expose scrollTo function for parent components
 defineExpose({
   scrollTo,
 });
+
+useResizeObserver(scrollContainerRef, () => {
+  handleScroll();
+})
+
 </script>
 
 <template>
   <div
     class="grid min-h-0 rounded-md border border-muted"
     :style="{
-      gridTemplateColumns: `${headerWidth}px 1fr`,
-      gridTemplateRows: `${headerHeight}px 1fr`,
+      gridTemplateColumns: `${HEADERWIDTH}px 1fr`,
+      gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
     }"
   >
     <div
@@ -273,8 +249,7 @@ defineExpose({
       </div>
     </div>
 
-    <!-- pb-4: Padding for scrollbar -->
-    <div class="row-start-2 overflow-hidden border-r border-muted pb-4">
+    <div class="row-start-2 overflow-hidden border-r border-muted">
       <div
         :style="{
           height: `${totalHeight}px`,
@@ -311,8 +286,14 @@ defineExpose({
       class="relative col-start-2 row-start-2 flex-1 overflow-auto"
       v-if="allTasks"
     >
-      <!-- SVG Grid Background (offset by header height) -->
-      <svg :height="totalHeight" :width="totalWidth" class="pointer-events-none absolute z-0">
+      <!-- SVG Grid Background -->
+      <svg 
+        class="pointer-events-none absolute z-0 inset-0 h-full w-full"
+        :style="{
+          minHeight: `${totalHeight}px`,
+          minWidth: `${totalWidth}px`,
+        }"
+      >
         <defs>
           <pattern
             id="grid-pattern"
@@ -329,8 +310,7 @@ defineExpose({
             />
           </pattern>
         </defs>
-
-        <rect :fill="`url(#grid-pattern)`" :height="totalHeight" :width="totalWidth" />
+        <rect fill="url(#grid-pattern)" height="100%" width="100%" />
         <!-- Deadline vertical lines -->
         <g
           v-for="deadline in visibleDeadlines"
@@ -338,8 +318,8 @@ defineExpose({
           :transform="`translate(${deadline.col * cellWidth}, 0)`"
         >
           <line
-            :y1="0"
-            :y2="totalHeight"
+            y1="0"
+            y2="100%"
             stroke-width="1"
             class="pointer-events-none"
             :class="[deadline.id == -1 ? 'stroke-error' : 'stroke-primary']"
@@ -357,7 +337,7 @@ defineExpose({
       >
         <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
-          v-for="(task, i) in visibleTasks"
+          v-for="task in visibleTasks"
           :key="task.id"
           :style="{
             left: `${task.col * cellWidth}px`,
@@ -365,7 +345,7 @@ defineExpose({
             width: `${task.width * cellWidth}px`,
             height: `${cellHeight}px`,
           }"
-          v-model="visibleTasks[i]"
+          v-model="visibleTasks[task.row]"
           class="absolute"
           @click="() => console.log('Clicked:', task.label)"
           :pixels-width="cellWidth"

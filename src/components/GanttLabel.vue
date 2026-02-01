@@ -29,6 +29,7 @@ async function openModal() {
         size="xs"
         variant="ghost"
         class="hidden group-hover:block"
+        title="Open task configuration"
         @click="openModal"
       />
     </slot>

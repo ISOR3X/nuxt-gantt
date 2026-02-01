@@ -14,7 +14,7 @@ const emit = defineEmits<{
   <UModal
     title="Task configuration"
     description="Edit the task configuration."
-    :close="{ onClick: () => emit('close', null) }"
+    :close="false"
   >
     <template #body>
       <UForm v-if="task">

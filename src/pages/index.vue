@@ -10,14 +10,14 @@ import { saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
 import { Project } from "../utils/types.ts";
 
-const cellWidth = ref(40);
+const cellWidth = ref(30);
 const cellHeight = ref(30);
 
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
 const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
-const endDate = Temporal.Now.plainDateISO().add({ months: 6 });
+const endDate = Temporal.Now.plainDateISO().add({ months: 1 });
 
 function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
   const deadlines = generateRandomDeadlines(count, inBetween);
