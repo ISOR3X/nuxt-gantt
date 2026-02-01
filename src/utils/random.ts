@@ -1,7 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 import { Deadline, Task } from "./types";
 
-type InBetween = number[]; // [start, end]
+type DateRange = [Temporal.PlainDate, Temporal.PlainDate]; // [start, end]
 
 // Random day within a specified range
 export function randomDateBetween(
@@ -13,52 +13,79 @@ export function randomDateBetween(
   return startDate.add({ days: randomDays });
 }
 
-function randomIntBetween(inBetween: InBetween) {
-  const diff = inBetween[1] - inBetween[0];
-  return inBetween[0] + Math.floor(Math.random() * diff);
+function randomIntBetween(min: number, max: number): number {
+  return min + Math.floor(Math.random() * (max - min));
 }
 
 // Generate a random task for a specific row (one task per row)
 export function generateRandomTask(
   rowIndex: number,
-  inBetween: InBetween,
-  maxWidth: number = 10,
+  dateRange: DateRange,
+  chartStartDate: Temporal.PlainDate,
+  maxDurationDays: number = 10,
 ): Task {
+  const [rangeStart, rangeEnd] = dateRange;
+
+  // Generate random start date within the range
+  const startDate = randomDateBetween(rangeStart, rangeEnd);
+
+  // Generate random duration (1 to maxDurationDays)
+  const duration = randomIntBetween(1, maxDurationDays + 1);
+  const endDate = startDate.add({ days: duration });
+
+  // Calculate col and width based on chart start date
+  const col = chartStartDate.until(startDate).days;
+  const width = startDate.until(endDate).days;
+
   return {
     id: rowIndex,
     row: rowIndex,
-    col: randomIntBetween(inBetween) - maxWidth,
-    width: Math.floor(Math.random() * maxWidth) + 1,
+    col,
+    width,
     label: `Task ${rowIndex}`,
     progress: Math.random(),
+    startDate,
+    endDate,
   };
 }
 
-// Generate tasks for all rows (one task per row)
-export function generateRandomTasks(count: number, inBetween: InBetween): Task[] {
+export function generateRandomTasks(
+  count: number,
+  dateRange: DateRange,
+  chartStartDate: Temporal.PlainDate,
+  maxDurationDays: number = 10,
+): Task[] {
   const tasks: Task[] = [];
   for (let i = 0; i < count; i++) {
-    tasks.push(generateRandomTask(i, inBetween));
+    tasks.push(generateRandomTask(i, dateRange, chartStartDate, maxDurationDays));
   }
   return tasks;
 }
 
-// Helper function to create a random deadline line
-export function generateRandomDeadline(inBetween: InBetween, id: number): Deadline {
+export function generateRandomDeadline(
+  dateRange: DateRange,
+  chartStartDate: Temporal.PlainDate,
+  id: number,
+): Deadline {
+  const [rangeStart, rangeEnd] = dateRange;
+  const deadlineDate = randomDateBetween(rangeStart, rangeEnd);
+
   return {
-    id: id,
-    col: randomIntBetween(inBetween),
-    label: "Deadline " + id,
+    id,
+    col: chartStartDate.until(deadlineDate).days,
+    date: deadlineDate,
+    label: `Deadline ${id}`,
   };
 }
 
-// Function to generate random deadlines spread throughout the chart
-export function generateRandomDeadlines(count: number = 20, inBetween: InBetween): Deadline[] {
-  const newDeadlines: Deadline[] = [];
-
+export function generateRandomDeadlines(
+  count: number,
+  dateRange: DateRange,
+  chartStartDate: Temporal.PlainDate,
+): Deadline[] {
+  const deadlines: Deadline[] = [];
   for (let i = 0; i < count; i++) {
-    const deadline = generateRandomDeadline(inBetween, i);
-    newDeadlines.push(deadline);
+    deadlines.push(generateRandomDeadline(dateRange, chartStartDate, i));
   }
-  return newDeadlines;
+  return deadlines;
 }

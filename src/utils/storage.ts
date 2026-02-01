@@ -1,54 +1,60 @@
-import { Project, SerializedProject } from "./types";
-import { colToDate, dateToCol } from "./temporal";
+import { Project, PersistedProject } from "./types";
+import { dateToCol } from "./temporal";
 import { Temporal } from "temporal-polyfill";
 
-export function serializeProject(project: Project): SerializedProject {
+export function serializeProject(project: Project): PersistedProject {
   return {
     label: project.label,
     startDate: project.startDate.toString(),
     endDate: project.endDate.toString(),
     tasks: project.tasks.map((task) => ({
       id: task.id,
-      row: task.row,
-      startDate: colToDate(project.startDate, task.col).toString(),
-      endDate: colToDate(project.startDate, task.col + task.width).toString(),
       label: task.label,
       progress: task.progress,
+      startDate: task.startDate.toString(),
+      endDate: task.endDate.toString(),
     })),
     deadlines: project.deadlines.map((deadline) => ({
       id: deadline.id,
-      date: colToDate(project.startDate, deadline.col).toString(),
+      date: deadline.date.toString(),
       label: deadline.label,
     })),
   };
 }
 
-export function deserializeProject(serialized: SerializedProject): Project {
-  const startDate = Temporal.PlainDate.from(serialized.startDate);
-  const endDate = Temporal.PlainDate.from(serialized.endDate);
+export function deserializeProject(persisted: PersistedProject): Project {
+  const startDate = Temporal.PlainDate.from(persisted.startDate);
+  const endDate = Temporal.PlainDate.from(persisted.endDate);
 
   return {
-    label: serialized.label,
+    label: persisted.label,
     startDate,
     endDate,
-    tasks: serialized.tasks.map((task) => {
-      const taskStartDate = Temporal.PlainDate.from(task.startDate);
-      const taskEndDate = Temporal.PlainDate.from(task.endDate);
-
+    tasks: persisted.tasks.map((s_task, index) => {
+      const _startDate = Temporal.PlainDate.from(s_task.startDate);
+      const _endDate = Temporal.PlainDate.from(s_task.endDate);
       return {
-        id: task.id,
-        row: task.row,
-        col: dateToCol(startDate, taskStartDate),
-        width: taskStartDate.until(taskEndDate).days,
-        label: task.label,
-        progress: task.progress,
+        id: s_task.id,
+        label: s_task.label,
+        progress: s_task.progress,
+        startDate: _startDate,
+        endDate: _endDate,
+        // Computed fields
+        row: index,
+        col: dateToCol(startDate, _startDate),
+        width: _startDate.until(_endDate).days,
       };
     }),
-    deadlines: serialized.deadlines.map((deadline) => ({
-      id: deadline.id,
-      col: dateToCol(startDate, Temporal.PlainDate.from(deadline.date)),
-      label: deadline.label,
-    })),
+    deadlines: persisted.deadlines.map((deadline) => {
+      const deadlineDate = Temporal.PlainDate.from(deadline.date);
+      return {
+        id: deadline.id,
+        label: deadline.label,
+        date: deadlineDate,
+        // Computed fields
+        col: dateToCol(startDate, deadlineDate),
+      };
+    }),
   };
 }
 
@@ -57,8 +63,8 @@ export function deserializeProject(serialized: SerializedProject): Project {
  */
 export function saveProject(project: Project): void {
   try {
-    const serialized = serializeProject(project);
-    const json = JSON.stringify(serialized, null, 2);
+    const persisted = serializeProject(project);
+    const json = JSON.stringify(persisted, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -91,7 +97,6 @@ export function loadProjectFromFile(file: File): Promise<Project> {
         if (!data || typeof data !== "object") {
           throw new Error("Invalid file format: expected a project object");
         }
-
         if (
           !data.startDate ||
           !data.endDate ||

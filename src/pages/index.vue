@@ -8,7 +8,7 @@ import {
 import { ref, useTemplateRef } from "vue";
 import { saveProject as _saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
-import { Project } from "../utils/types.ts";
+import { Deadline, Project } from "../utils/types.ts";
 import { DropdownMenuItem } from "@nuxt/ui";
 
 const cellWidth = ref(30);
@@ -19,14 +19,19 @@ const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart")
 
 const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
 const endDate = Temporal.Now.plainDateISO().add({ months: 3 });
-
-function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
-  const deadlines = generateRandomDeadlines(count, inBetween);
+function generateRandomDeadlinesWithToday(
+  count: number,
+  dateRange: [Temporal.PlainDate, Temporal.PlainDate],
+  chartStartDate: Temporal.PlainDate,
+): Deadline[] {
+  const deadlines = generateRandomDeadlines(count, dateRange, chartStartDate);
+  const today = Temporal.Now.plainDateISO();
 
   deadlines.push({
-    col: startDate.until(Temporal.Now.plainDateISO()).days,
     id: -1,
-    label: "today",
+    col: chartStartDate.until(today).days,
+    date: today,
+    label: "Today",
   });
 
   return deadlines;
@@ -36,10 +41,9 @@ const project = ref<Project>({
   label: "sample-project",
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(10, [0, startDate.until(endDate).days]),
-  deadlines: generateRandomDeadlinesWithToday(10, [0, startDate.until(endDate).days]),
+  tasks: generateRandomTasks(10, [startDate, endDate], startDate),
+  deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate], startDate),
 });
-
 // Save tasks to JSON file
 function saveProject() {
   try {
@@ -91,7 +95,11 @@ function testScrollTo() {
 
 function addTask() {
   project.value.tasks.push(
-    generateRandomTask(project.value.tasks.length, [0, startDate.until(endDate).days]),
+    generateRandomTask(
+      project.value.tasks.length,
+      [project.value.startDate, project.value.endDate],
+      project.value.startDate,
+    ),
   );
 }
 
