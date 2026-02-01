@@ -23,7 +23,7 @@ import AppLogo from "./components/AppLogo.vue";
           />
         </template>
       </UHeader>
-      <UMain class="flex flex-col">
+      <UMain class="h-[calc(100vh-var(--ui-header-height))]">
         <RouterView />
       </UMain>
     </UApp>

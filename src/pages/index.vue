@@ -149,10 +149,10 @@ const items = ref<DropdownMenuItem[][]>([
 </script>
 
 <template>
-  <div class="flex h-full flex-1 flex-col gap-4 p-4">
+  <div class="h-full p-4">
     <GanttChart
       ref="ganttChart"
-      class="grow"
+      class="h-full"
       :start-date="project.startDate"
       :end-date="project.endDate"
       :cell-width
@@ -160,25 +160,25 @@ const items = ref<DropdownMenuItem[][]>([
       :dropdown-items="items"
       v-model="project"
     />
-    <div
-      class="absolute right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
-    >
-      <UFormField label="Cell width (px)" orientation="horizontal">
-        <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
-      </UFormField>
-      <UFormField label="Cell height (px)" orientation="horizontal">
-        <UInput v-model.number="cellHeight" max="200" min="5" type="number" />
-      </UFormField>
-      <UButton label="scroll to date" @click="testScrollTo()" />
-      <UButton label="add task" @click="addTask()" />
-      <!-- Hidden file input for loading tasks -->
-      <input
-        type="file"
-        ref="fileInput"
-        accept="application/json,.json"
-        @change="handleFileChange"
-        style="display: none"
-      />
-    </div>
+  </div>
+  <div
+    class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
+  >
+    <UFormField label="Cell width (px)" orientation="horizontal">
+      <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
+    </UFormField>
+    <UFormField label="Cell height (px)" orientation="horizontal">
+      <UInput v-model.number="cellHeight" max="200" min="5" type="number" />
+    </UFormField>
+    <UButton label="scroll to date" @click="testScrollTo()" />
+    <UButton label="add task" @click="addTask()" />
+    <!-- Hidden file input for loading tasks -->
+    <input
+      type="file"
+      ref="fileInput"
+      accept="application/json,.json"
+      @change="handleFileChange"
+      style="display: none"
+    />
   </div>
 </template>
