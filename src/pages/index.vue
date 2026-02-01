@@ -41,7 +41,7 @@ const project = ref<Project>({
   label: "sample-project",
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(10, [startDate, endDate], startDate),
+  tasks: generateRandomTasks(20, [startDate, endDate], startDate),
   deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate], startDate),
 });
 // Save tasks to JSON file
@@ -160,7 +160,7 @@ const items = ref<DropdownMenuItem[][]>([
       :dropdown-items="items"
       v-model="project"
     />
-    <div class="flex items-center gap-4 rounded-md border border-muted p-4">
+    <div class="flex items-center gap-4 rounded-md border border-muted p-4 absolute bg-muted z-50 right-12 bottom-12">
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
       </UFormField>
@@ -169,13 +169,6 @@ const items = ref<DropdownMenuItem[][]>([
       </UFormField>
       <UButton label="scroll to date" @click="testScrollTo()" />
       <UButton label="add task" @click="addTask()" />
-      <UButton
-        icon="simple-icons:github"
-        color="neutral"
-        variant="subtle"
-        to="https://github.com/ISOR3X/nuxt-gantt"
-        target="_blank"
-      />
       <!-- Hidden file input for loading tasks -->
       <input
         type="file"

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Task, Deadline, Project } from "../utils/types.ts";
+import { Task, Project } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { Temporal } from "temporal-polyfill";
 import { colToDate } from "../utils/temporal.ts";
