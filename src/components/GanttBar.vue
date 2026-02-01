@@ -13,8 +13,6 @@ const { pixelsWidth = 120 } = defineProps<{
 
 type DragMode = "none" | "dragging" | "resizing-left" | "resizing-right";
 
-const OFFSET = 2;
-
 const dragMode = ref<DragMode>("none");
 const isDragging = computed(() => dragMode.value === "dragging");
 const isResizingLeft = computed(() => dragMode.value === "resizing-left");
