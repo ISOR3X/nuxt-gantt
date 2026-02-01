@@ -18,7 +18,7 @@ const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
 const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
-const endDate = Temporal.Now.plainDateISO().add({ months: 1 });
+const endDate = Temporal.Now.plainDateISO().add({ months: 3 });
 
 function generateRandomDeadlinesWithToday(count: number, inBetween: number[]) {
   const deadlines = generateRandomDeadlines(count, inBetween);
@@ -81,7 +81,9 @@ async function handleFileChange(event: Event) {
 
 // Test scrollTo function
 function testScrollTo() {
-  ganttChart.value?.scrollTo(startDate.until(Temporal.PlainDate.from("2026-06-15")).days, {
+  const d = startDate.add({ months: 1 });
+  console.log("Scrolling to", d.toString());
+  ganttChart.value?.scrollTo(startDate.until(d).days, {
     behavior: "smooth",
     alignment: "start",
   });

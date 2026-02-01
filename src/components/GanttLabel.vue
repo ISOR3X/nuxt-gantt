@@ -25,7 +25,7 @@ async function openModal() {
     <slot>
       {{ model?.label }}
       <UButton
-        icon="i-lucide-cog"
+        icon="i-lucide-settings-2"
         size="xs"
         variant="ghost"
         class="hidden group-hover:block"

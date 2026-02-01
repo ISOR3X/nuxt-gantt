@@ -2,10 +2,12 @@
 import { computed, ref } from "vue";
 import { Task } from "../utils/types.ts";
 
-const model = defineModel<Task>();
+const task = defineModel<Task>();
 
 const { pixelsWidth = 120 } = defineProps<{
   pixelsWidth?: number;
+  class?: string
+  style?: object
 }>();
 
 const isDragging = ref(false);
@@ -22,9 +24,9 @@ function onMouseDownBar(e: MouseEvent) {
   isDragging.value = true;
   dragStartX.value = e.clientX;
 
-  if (model.value) {
-    originalStartDate.value = model.value.col;
-    originalEndDate.value = model.value.col + model.value.width;
+  if (task.value) {
+    originalStartDate.value = task.value.col;
+    originalEndDate.value = task.value.col + task.value.width;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -36,9 +38,9 @@ function onMouseDownLeft(e: MouseEvent) {
   isResizingLeft.value = true;
   dragStartX.value = e.clientX;
 
-  if (model.value) {
-    originalStartDate.value = model.value.col;
-    originalEndDate.value = model.value.col + model.value.width;
+  if (task.value) {
+    originalStartDate.value = task.value.col;
+    originalEndDate.value = task.value.col + task.value.width;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -50,9 +52,9 @@ function onMouseDownRight(e: MouseEvent) {
   isResizingRight.value = true;
   dragStartX.value = e.clientX;
 
-  if (model.value) {
-    originalStartDate.value = model.value.col;
-    originalEndDate.value = model.value.col + model.value.width;
+  if (task.value) {
+    originalStartDate.value = task.value.col;
+    originalEndDate.value = task.value.col + task.value.width;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -60,7 +62,7 @@ function onMouseDownRight(e: MouseEvent) {
 }
 
 function onMouseMove(e: MouseEvent) {
-  if (!model.value) return;
+  if (!task.value) return;
   if (!originalStartDate.value || !originalEndDate.value) return;
 
   const deltaX = e.clientX - dragStartX.value;
@@ -70,21 +72,21 @@ function onMouseMove(e: MouseEvent) {
 
   if (isDragging.value) {
     // Move the entire bar (always update, even when daysMoved is 0)
-    model.value.col = originalStartDate.value + daysMoved;
-    model.value.width = originalEndDate.value - originalStartDate.value;
+    task.value.col = originalStartDate.value + daysMoved;
+    task.value.width = originalEndDate.value - originalStartDate.value;
   } else if (isResizingLeft.value) {
     const newStartDate = originalStartDate.value + daysMoved;
     // Ensure the start date doesn't go past the end date
     if (newStartDate < originalEndDate.value) {
-      model.value.col = newStartDate;
-      model.value.width = originalEndDate.value - newStartDate;
+      task.value.col = newStartDate;
+      task.value.width = originalEndDate.value - newStartDate;
     }
   } else if (isResizingRight.value) {
     // Resize right edge (change end date)
     const newEndDate = originalEndDate.value + daysMoved;
     // Ensure the end date doesn't go before the start date
     if (newEndDate > originalStartDate.value) {
-      model.value.width = newEndDate - originalStartDate.value;
+      task.value.width = newEndDate - originalStartDate.value;
     }
   }
 }
@@ -108,28 +110,40 @@ const cursorStyle = computed(() => {
 </script>
 
 <template>
-  <div class="group py-1">
-    <!-- Left resize handle -->
-    <div
-      class="absolute top-0 bottom-0 -left-1 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
-      @mousedown.stop="onMouseDownLeft"
-    />
-    <div
-      :class="cursorStyle"
-      class="group relative h-full rounded-md border-2 border-primary bg-primary/10 select-none"
-      @mousedown="onMouseDownBar"
-    >
+  <UPopover :ui="{ content: 'grid grid-cols-2 gap-x-4 text-sm'}" mode="hover">
+    <div class="group py-1" :style="$props.style"  :class="$props.class" >
+      <!-- Left resize handle -->
       <div
-        v-if="model?.progress"
-        class="absolute top-0 bottom-0 left-0 bg-primary"
-        :style="{ right: `${100 - model?.progress * 100}%` }"
+        class="absolute top-0 bottom-0 -left-1 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
+        @mousedown.stop="onMouseDownLeft"
       />
-      <slot />
+      <div
+        :class="cursorStyle"
+        class="group relative h-full rounded-md border-2 border-primary bg-primary/10 select-none"
+        @mousedown="onMouseDownBar"
+      >
+        <div
+          v-if="task?.progress"
+          class="absolute top-0 bottom-0 left-0 bg-primary"
+          :style="{ right: `${100 - task?.progress * 100}%` }"
+        />
+        <slot />
+      </div>
+      <!-- Right resize handle -->
+      <div
+        class="absolute top-0 -right-1 bottom-0 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
+        @mousedown.stop="onMouseDownRight"
+      />
     </div>
-    <!-- Right resize handle -->
-    <div
-      class="absolute top-0 -right-1 bottom-0 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
-      @mousedown.stop="onMouseDownRight"
-    />
-  </div>
+    <template #content>
+        <b>Label</b>
+        <p>{{task?.label}}</p>
+        <b>Start date</b>
+        <p>{{task?.label}}</p>
+        <b>End date</b>
+        <p>{{task!.label}}</p>
+        <b>Progress</b>
+        <p>{{(task!.progress * 100).toFixed() }}%</p>
+      </template>
+  </UPopover>
 </template>

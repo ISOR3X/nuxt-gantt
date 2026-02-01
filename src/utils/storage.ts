@@ -4,6 +4,7 @@ import { Temporal } from "temporal-polyfill";
 
 export function serializeProject(project: Project): SerializedProject {
   return {
+    label: project.label,
     startDate: project.startDate.toString(),
     endDate: project.endDate.toString(),
     tasks: project.tasks.map((task) => ({

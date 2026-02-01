@@ -371,7 +371,7 @@ defineExpose({
       >
         <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
-          v-for="task in visibleTasks"
+          v-for="(task, idx) in visibleTasks"
           :key="task.id"
           :style="{
             left: `${task.col * cellWidth}px`,
@@ -379,9 +379,8 @@ defineExpose({
             width: `${task.width * cellWidth}px`,
             height: `${cellHeight}px`,
           }"
-          v-model="visibleTasks[task.row]"
+          v-model="visibleTasks[idx]"
           class="absolute"
-          @click="() => console.log('Clicked:', task.label)"
           :pixels-width="cellWidth"
         />
       </div>
