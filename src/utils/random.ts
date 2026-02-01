@@ -32,11 +32,11 @@ export function generateRandomTask(
   // Generate random duration (1 to maxDurationDays)
   const duration = randomIntBetween(1, maxDurationDays + 1);
   let endDate = startDate.add({ days: duration });
-  
+
   if (Temporal.PlainDate.compare(endDate, rangeEnd) > 0) {
-    endDate = rangeEnd
+    endDate = rangeEnd;
   }
-  
+
   // Calculate col and width based on chart start date
   const col = chartStartDate.until(startDate).days;
   const width = startDate.until(endDate).days;

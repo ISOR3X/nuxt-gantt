@@ -160,7 +160,9 @@ const items = ref<DropdownMenuItem[][]>([
       :dropdown-items="items"
       v-model="project"
     />
-    <div class="flex items-center gap-4 rounded-md border border-muted p-4 absolute bg-muted z-50 right-12 bottom-12">
+    <div
+      class="absolute right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
+    >
       <UFormField label="Cell width (px)" orientation="horizontal">
         <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
       </UFormField>

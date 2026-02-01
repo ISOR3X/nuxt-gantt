@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, StyleValue, useAttrs } from "vue";
 import { Task } from "../utils/types.ts";
 import { Temporal } from "temporal-polyfill";
 
 const task = defineModel<Task>({ required: true });
 
+const attrs = useAttrs();
+
 const { pixelsWidth = 120 } = defineProps<{
   pixelsWidth?: number;
-  class?: string;
-  style?: object;
 }>();
 
 type DragMode = "none" | "dragging" | "resizing-left" | "resizing-right";
@@ -108,7 +108,7 @@ function onMouseUp() {
 
 <template>
   <UPopover :ui="{ content: 'grid grid-cols-2 gap-x-4 text-sm p-2' }" mode="hover">
-    <div class="group py-1" :style="$props.style" :class="$props.class">
+    <div class="group py-1" :style="attrs.style as StyleValue" :class="attrs.class">
       <!-- Left resize handle -->
       <div
         class="absolute top-0 bottom-0 -left-1 z-20 w-4 cursor-ew-resize rounded-full group-hover:bg-inverted/10"
