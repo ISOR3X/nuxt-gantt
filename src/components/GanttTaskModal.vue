@@ -37,53 +37,27 @@ const endDate = computed({
     :close="false"
   >
     <template #body>
-      <UForm
-        v-if="task"
-        class="space-y-2"
-      >
+      <UForm v-if="task" class="space-y-2">
         <UFormField label="Label">
           <UInput v-model="clonedTask.label" />
         </UFormField>
-        <UFormField
-          label="Progress"
-          :hint="`${(task.progress * 100).toFixed(0)}%`"
-        >
-          <USlider
-            v-model="clonedTask.progress"
-            :max="1"
-            :step="0.01"
-          />
+        <UFormField label="Progress" :hint="`${(task.progress * 100).toFixed(0)}%`">
+          <USlider v-model="clonedTask.progress" :max="1" :step="0.01" />
         </UFormField>
         <div class="flex gap-4">
           <UFormField label="Start date">
-            <UDatePicker
-              v-model="startDate"
-              :max-value="endDate"
-            />
+            <UDatePicker v-model="startDate" :max-value="endDate" />
           </UFormField>
           <UFormField label="End date">
-            <UDatePicker
-              v-model="endDate"
-              :min-value="startDate"
-            />
+            <UDatePicker v-model="endDate" :min-value="startDate" />
           </UFormField>
         </div>
       </UForm>
-      <p v-else>
-        No task found
-      </p>
+      <p v-else>No task found</p>
     </template>
     <template #footer>
-      <UButton
-        label="Cancel"
-        class="ml-auto"
-        variant="outline"
-        @click="emit('close', null)"
-      />
-      <UButton
-        label="Submit"
-        @click="emit('close', clonedTask)"
-      />
+      <UButton label="Cancel" class="ml-auto" variant="outline" @click="emit('close', null)" />
+      <UButton label="Submit" @click="emit('close', clonedTask)" />
     </template>
   </UModal>
 </template>

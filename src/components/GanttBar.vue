@@ -104,15 +104,8 @@ function onMouseUp() {
 </script>
 
 <template>
-  <UPopover
-    mode="hover"
-    :ui="{ content: 'p-2' }"
-  >
-    <div
-      class="group py-1"
-      :style="attrs.style as StyleValue"
-      :class="attrs.class"
-    >
+  <UPopover mode="hover" :ui="{ content: 'p-2' }">
+    <div class="group py-1" :style="attrs.style as StyleValue" :class="attrs.class">
       <!-- Left resize handle. Our hitbox is larger than what is visually shown. -->
       <div
         class="absolute bottom-0 -left-4 z-20 aspect-square h-full -translate-x-1/2 cursor-ew-resize p-2"

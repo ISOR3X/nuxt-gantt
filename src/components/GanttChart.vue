@@ -272,16 +272,8 @@ async function handleClick(id: number) {
     }"
   >
     <div class="col-start-1 row-start-1 flex items-center border-r border-b border-muted px-2">
-      <UDropdownMenu
-        v-if="dropdownItems"
-        :items="dropdownItems"
-        :content="{ align: 'start' }"
-      >
-        <UButton
-          icon="i-lucide-menu"
-          color="neutral"
-          variant="ghost"
-        />
+      <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">
+        <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
       </UDropdownMenu>
     </div>
     <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
@@ -346,10 +338,7 @@ async function handleClick(id: number) {
         class="relative w-full"
       >
         <!-- Virtualized row headers (task names) -->
-        <template
-          v-for="row in visibleRows"
-          :key="row.index"
-        >
+        <template v-for="row in visibleRows" :key="row.index">
           <!-- TODO: Remove style duplication -->
           <GanttLabel
             v-if="row.index < tasks.length"
@@ -393,11 +382,7 @@ async function handleClick(id: number) {
             :width="cellWidth"
             patternUnits="userSpaceOnUse"
           >
-            <rect
-              :height="cellHeight"
-              :width="cellWidth"
-              fill="transparent"
-            />
+            <rect :height="cellHeight" :width="cellWidth" fill="transparent" />
             <path
               :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
               fill="none"
@@ -406,11 +391,7 @@ async function handleClick(id: number) {
             />
           </pattern>
         </defs>
-        <rect
-          fill="url(#grid-pattern)"
-          height="100%"
-          width="100%"
-        />
+        <rect fill="url(#grid-pattern)" height="100%" width="100%" />
         <!-- Deadline vertical lines -->
         <g
           v-for="deadline in visibleDeadlines"

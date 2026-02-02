@@ -164,36 +164,14 @@ const items = ref<DropdownMenuItem[][]>([
   <div
     class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
   >
-    <UFormField
-      label="Cell width (px)"
-      orientation="horizontal"
-    >
-      <UInput
-        v-model.number="cellWidth"
-        max="200"
-        min="20"
-        type="number"
-      />
+    <UFormField label="Cell width (px)" orientation="horizontal">
+      <UInput v-model.number="cellWidth" max="200" min="20" type="number" />
     </UFormField>
-    <UFormField
-      label="Cell height (px)"
-      orientation="horizontal"
-    >
-      <UInput
-        v-model.number="cellHeight"
-        max="200"
-        min="20"
-        type="number"
-      />
+    <UFormField label="Cell height (px)" orientation="horizontal">
+      <UInput v-model.number="cellHeight" max="200" min="20" type="number" />
     </UFormField>
-    <UButton
-      label="scroll to date"
-      @click="testScrollTo()"
-    />
-    <UButton
-      label="add task"
-      @click="addTask()"
-    />
+    <UButton label="scroll to date" @click="testScrollTo()" />
+    <UButton label="add task" @click="addTask()" />
     <!-- Hidden file input for loading tasks -->
     <input
       ref="fileInput"
@@ -201,6 +179,6 @@ const items = ref<DropdownMenuItem[][]>([
       accept="application/json,.json"
       style="display: none"
       @change="handleFileChange"
-    >
+    />
   </div>
 </template>

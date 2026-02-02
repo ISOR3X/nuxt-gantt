@@ -47,20 +47,11 @@ watch(model, (newValue) => {
 
 <template>
   <UPopover>
-    <UButton
-      color="neutral"
-      variant="subtle"
-      icon="i-lucide-calendar"
-    >
+    <UButton color="neutral" variant="subtle" icon="i-lucide-calendar">
       {{ intDate ? intDate.toString() : "Select a date" }}
     </UButton>
     <template #content>
-      <UCalendar
-        v-model="intDate"
-        class="p-2"
-        :min-value="minDate"
-        :max-value="maxDate"
-      />
+      <UCalendar v-model="intDate" class="p-2" :min-value="minDate" :max-value="maxDate" />
     </template>
   </UPopover>
 </template>
