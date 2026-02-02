@@ -22,7 +22,6 @@ function randomIntBetween(min: number, max: number): number {
 export function generateRandomTask(
   rowIndex: number,
   dateRange: DateRange,
-  chartStartDate: Temporal.PlainDate,
   maxDurationDays: number = 10,
 ): Task {
   const [rangeStart, rangeEnd] = dateRange;
@@ -38,15 +37,9 @@ export function generateRandomTask(
     endDate = rangeEnd;
   }
 
-  // Calculate col and width based on chart start date
-  const col = chartStartDate.until(startDate).days;
-  const width = startDate.until(endDate).days;
-
   return {
     id: rowIndex,
     row: rowIndex,
-    col,
-    width,
     label: `Task ${rowIndex}`,
     progress: Math.random(),
     startDate,
@@ -57,12 +50,11 @@ export function generateRandomTask(
 export function generateRandomTasks(
   count: number,
   dateRange: DateRange,
-  chartStartDate: Temporal.PlainDate,
   maxDurationDays: number = 10,
 ): Task[] {
   const tasks: Task[] = [];
   for (let i = 0; i < count; i++) {
-    tasks.push(generateRandomTask(i, dateRange, chartStartDate, maxDurationDays));
+    tasks.push(generateRandomTask(i, dateRange, maxDurationDays));
   }
   return tasks;
 }

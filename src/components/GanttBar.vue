@@ -3,12 +3,16 @@ import { computed, ref, StyleValue, useAttrs } from "vue";
 import { Task } from "../utils/types.ts";
 import { Temporal } from "temporal-polyfill";
 
-const task = defineModel<Task>({ required: true });
+
+const { task, pixelsWidth = 120 } = defineProps<{
+  task: Task;
+  pixelsWidth?: number;
+  chartStartDate?: Temporal.PlainDate;
+}>();
 
 const attrs = useAttrs();
-
-const { pixelsWidth = 120 } = defineProps<{
-  pixelsWidth?: number;
+const emit = defineEmits<{
+  updateDates: [{ startDate: Temporal.PlainDate; endDate: Temporal.PlainDate }];
 }>();
 
 type DragMode = "none" | "dragging" | "resizing-left" | "resizing-right";
@@ -19,11 +23,8 @@ const isResizingLeft = computed(() => dragMode.value === "resizing-left");
 const isResizingRight = computed(() => dragMode.value === "resizing-right");
 const dragStartX = ref(0);
 
-const originalCol = ref<number | null>(null);
-const originalWidth = ref<number | null>(null);
 const originalStartDate = ref<Temporal.PlainDate | null>(null);
-
-const originalEndCol = computed(() => originalCol.value! + originalWidth.value!);
+const originalEndDate = ref<Temporal.PlainDate | null>(null);
 
 const cursorStyle = computed(() => {
   if (isDragging.value) return "cursor-grabbing";
@@ -36,10 +37,9 @@ function startDrag(e: MouseEvent, mode: DragMode) {
   dragMode.value = mode;
   dragStartX.value = e.clientX;
 
-  if (task.value) {
-    originalCol.value = task.value.col;
-    originalWidth.value = task.value.width;
-    originalStartDate.value = task.value.startDate;
+  if (task) {
+    originalStartDate.value = task.startDate;
+    originalEndDate.value = task.endDate;
   }
 
   document.addEventListener("mousemove", onMouseMove);
@@ -60,46 +60,43 @@ function onMouseDownRight(e: MouseEvent) {
 }
 
 function onMouseMove(e: MouseEvent) {
-  if (!task.value) return;
-  if (!originalCol.value || !originalWidth.value || !originalStartDate.value) return;
+  if (!originalStartDate.value || !originalEndDate.value) return;
 
   const deltaX = e.clientX - dragStartX.value;
-
-  // Calculate days moved with snapping
   const daysMoved = Math.round(deltaX / pixelsWidth);
 
-  if (isDragging.value) {
-    task.value.col = originalCol.value + daysMoved;
-  } else if (isResizingLeft.value) {
-    const newStartCol = originalCol.value + daysMoved;
+  let newStartDate = originalStartDate.value;
+  let newEndDate = originalEndDate.value;
 
-    // Ensure the start date doesn't go past the end date
-    if (newStartCol < originalEndCol.value) {
-      task.value.col = newStartCol;
-      task.value.width = originalCol.value - newStartCol + originalWidth.value;
-      task.value.startDate = originalStartDate.value.add({ days: daysMoved });
+  if (isDragging.value) {
+    newStartDate = originalStartDate.value.add({ days: daysMoved });
+    newEndDate = originalEndDate.value.add({ days: daysMoved });
+  } else if (isResizingLeft.value) {
+    newStartDate = originalStartDate.value.add({ days: daysMoved });
+    if (Temporal.PlainDate.compare(newStartDate, originalEndDate.value) >= 0) {
+      return; // Don't update if invalid
     }
   } else if (isResizingRight.value) {
-    const newWidth = originalWidth.value + daysMoved;
-
-    // Ensure the end date doesn't go before the start date
-    if (originalCol.value < originalCol.value + newWidth) {
-      task.value.width = newWidth;
-      task.value.endDate = originalStartDate.value.add({ days: newWidth });
+    newEndDate = originalEndDate.value.add({ days: daysMoved });
+    if (Temporal.PlainDate.compare(newEndDate, originalStartDate.value) <= 0) {
+      return; // Don't update if invalid
     }
   }
+
+  // Emit the update instead of mutating
+  emit('updateDates', { startDate: newStartDate, endDate: newEndDate });
 }
 
 function formatDuration(): string {
-  const d = task.value.startDate.until(task.value.endDate).days;
+  const d = task.startDate.until(task.endDate).days;
   const suffix = d == 1 ? "day" : "days";
   return `${d} ${suffix}`;
 }
 
 function onMouseUp() {
   dragMode.value = "none";
-  originalCol.value = null;
-  originalWidth.value = null;
+  originalStartDate.value = null;
+  originalEndDate.value = null;
 
   document.removeEventListener("mousemove", onMouseMove);
   document.removeEventListener("mouseup", onMouseUp);
@@ -147,8 +144,6 @@ function onMouseUp() {
       <p>{{ formatDuration() }}</p>
       <b>Progress</b>
       <p>{{ (task!.progress * 100).toFixed() }}%</p>
-      <b>Col and width</b>
-      <p>{{ task.col }}/{{ task.width }}</p>
     </template>
   </UPopover>
 </template>

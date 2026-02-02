@@ -13,8 +13,6 @@ export interface Task extends Omit<PersistedTask, "startDate" | "endDate"> {
   endDate: Temporal.PlainDate;
   // Computed fields
   row: number; // What row the task is at. We can't use a simple index because visibleTasks doesn't always contain subsequent tasks.
-  col: number; // Start column
-  width: number; // Width
 }
 
 export interface PersistedDeadline {

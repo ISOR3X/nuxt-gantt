@@ -41,7 +41,7 @@ const project = ref<Project>({
   label: "sample-project",
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(20, [startDate, endDate], startDate),
+  tasks: generateRandomTasks(20, [startDate, endDate]),
   deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate], startDate),
 });
 // Save tasks to JSON file
@@ -98,7 +98,6 @@ function addTask() {
     generateRandomTask(
       project.value.tasks.length,
       [project.value.startDate, project.value.endDate],
-      project.value.startDate,
     ),
   );
 }
@@ -158,7 +157,8 @@ const items = ref<DropdownMenuItem[][]>([
       :cell-width
       :cell-height
       :dropdown-items="items"
-      v-model="project"
+      v-model:tasks="project.tasks"
+      v-model:deadlines="project.deadlines"
     />
   </div>
   <div

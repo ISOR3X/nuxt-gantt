@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Task, Project } from "../utils/types.ts";
+import { Task, Project, Deadline } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { Temporal } from "temporal-polyfill";
 import { colToDate } from "../utils/temporal.ts";
@@ -26,7 +26,8 @@ const {
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
-const project = defineModel<Project>({ required: true });
+const tasks = defineModel<Task[]>('tasks',{ required: true });
+const deadlines = defineModel<Deadline[]>('deadlines',{ required: true });
 
 const HEADERHEIGHT = 40; // Height of the header in pixels
 const HEADERWIDTH = 240; // Width of the header in pixels
@@ -45,7 +46,7 @@ const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellWidth
 
 // Virtual grid dimensions
 const totalRows = computed(() => {
-  return Math.max(maxRowsOnScreen.value, project.value.tasks.length);
+  return Math.max(maxRowsOnScreen.value, tasks.value.length);
 });
 const totalColumns = computed(() => {
   return Math.max(maxColsOnScreen.value, startDate.until(endDate).days + 1);
@@ -73,20 +74,28 @@ const visibleTasks = computed(() => {
   const rowEnd = Math.min(totalRows.value, visibleRowEnd.value + OVERSCAN);
   const colStart = Math.max(0, visibleColumnStart.value - OVERSCAN);
   const colEnd = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
-
-  if (project.value.tasks == undefined) {
-    throw Error("No tasks found");
-  }
-
-  return project.value.tasks.filter((task: Task) => {
-    const taskColEnd = task.col + task.width;
-
-    // Check if a task intersects with visible area
-    // Since each task is exactly on its row, we just check row range and column range
-    return (
-      task.row >= rowStart && task.row <= rowEnd && !(task.col > colEnd || taskColEnd < colStart)
-    );
-  });
+  
+  return tasks.value
+    .map((task: Task) => {
+      // Compute col and width from dates
+      const col = startDate.until(task.startDate).days;
+      const width = task.startDate.until(task.endDate).days;
+      
+      return {
+        ...task,
+        col,
+        width
+      };
+    })
+    .filter((task) => {
+      const taskColEnd = task.col + task.width;
+      // Check if a task intersects with visible area
+      return (
+        task.row >= rowStart && 
+        task.row <= rowEnd && 
+        !(task.col > colEnd || taskColEnd < colStart)
+      );
+    });
 });
 
 // Virtualized deadlines - only render those in visible viewport
@@ -94,7 +103,7 @@ const visibleDeadlines = computed(() => {
   const colStart = visibleColumnStart.value - OVERSCAN;
   const colEnd = visibleColumnEnd.value + OVERSCAN;
 
-  return project.value.deadlines.filter(
+  return deadlines.value.filter(
     (deadline) => deadline.col >= colStart && deadline.col <= colEnd,
   );
 });
@@ -211,6 +220,14 @@ useResizeObserver(scrollContainerRef, () => {
   handleScroll();
 });
 
+function updateTaskDates(taskId: number, startDate: Temporal.PlainDate, endDate: Temporal.PlainDate) {
+  const task = tasks.value.find(t => t.id === taskId);
+  if (task) {
+    task.startDate = startDate;
+    task.endDate = endDate;
+  }
+}
+
 // Expose scrollTo function for parent components
 defineExpose({
   scrollTo,
@@ -299,8 +316,8 @@ defineExpose({
               top: `${row.top}px`,
               height: `${cellHeight}px`,
             }"
-            v-if="row.index < project.tasks.length"
-            v-model="project.tasks[row.index]"
+            v-if="row.index < tasks.length"
+            v-model="tasks[row.index]"
             class="absolute left-0 w-full"
           />
           <div
@@ -318,7 +335,7 @@ defineExpose({
     <div
       ref="scrollContainerRef"
       class="relative col-start-2 row-start-2 flex-1 overflow-auto"
-      v-if="project.tasks"
+      v-if="tasks"
     >
       <!-- SVG Grid Background -->
       <svg
@@ -371,7 +388,8 @@ defineExpose({
       >
         <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
-          v-for="(task, idx) in visibleTasks"
+          v-for="task in visibleTasks"
+          class="absolute"
           :key="task.id"
           :style="{
             left: `${task.col * cellWidth}px`,
@@ -379,9 +397,9 @@ defineExpose({
             width: `${task.width * cellWidth}px`,
             height: `${cellHeight}px`,
           }"
-          v-model="visibleTasks[idx]"
-          class="absolute"
           :pixels-width="cellWidth"
+          :task
+          @update-dates="({ startDate, endDate }) => updateTaskDates(task.id, startDate, endDate)"
         />
       </div>
     </div>
