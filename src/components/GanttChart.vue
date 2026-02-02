@@ -231,6 +231,7 @@ onUnmounted(() => {
     scrollContainerRef.value.removeEventListener("scroll", handleScroll);
   }
   getTaskLayout.clear();
+  getDeadlineLayout.clear();
 });
 
 useResizeObserver(scrollContainerRef, () => {
