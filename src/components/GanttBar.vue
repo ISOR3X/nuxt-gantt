@@ -129,7 +129,7 @@ function onMouseUp() {
       </div>
     </div>
     <template #content>
-      <div class="grid grid-cols-2 gap-x-4 text-sm">
+      <div class="grid grid-cols-2 gap-x-4 text-sm *:truncate max-w-64">
         <b>Label</b>
         <p>{{ task.label }}</p>
         <b>Start date</b>

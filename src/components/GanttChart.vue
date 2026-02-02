@@ -271,11 +271,11 @@ async function handleClick(id: number) {
       gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
     }"
   >
-    <div class="col-start-1 row-start-1 flex items-center border-r border-b border-muted px-2">
+    <div class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted pl-4 pr-2">
+      <slot name="header" />
       <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">
         <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
       </UDropdownMenu>
-      <slot name="header" />
     </div>
     <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
