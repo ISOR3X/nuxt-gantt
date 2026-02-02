@@ -159,7 +159,11 @@ const items = ref<DropdownMenuItem[][]>([
       :cell-width
       :cell-height
       :dropdown-items="items"
-    />
+    >
+      <template #header>
+        {{ project.label }}
+      </template>
+    </GanttChart>
   </div>
   <div
     class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"

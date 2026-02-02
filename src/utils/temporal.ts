@@ -24,6 +24,12 @@ export function dateToCol(startDate: Temporal.PlainDate, date: Temporal.PlainDat
   return startDate.until(date).days;
 }
 
+export function formatDurationInDays(duration: Temporal.Duration): string {
+  const d = duration.days;
+  const suffix = d == 1 ? "day" : "days";
+  return `${d} ${suffix}`;
+}
+
 // Workaround until Temporal is in Reka UI.
 // REF: https://github.com/unovue/reka-ui/issues/2183
 export function TemporalToIntDate(value: Temporal.PlainDate): CalendarDate {

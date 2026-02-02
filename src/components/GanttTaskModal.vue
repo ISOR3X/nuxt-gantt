@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { Task } from "../utils/types";
 import UDatePicker from "./UDatePicker.vue";
 import { cloneTask } from "../utils/gantt";
+import { formatDurationInDays } from "../utils/temporal";
 
 const { task } = defineProps<{
   task: Task;
@@ -37,19 +38,25 @@ const endDate = computed({
     :close="false"
   >
     <template #body>
-      <UForm v-if="task" class="space-y-2">
+      <UForm v-if="task" class="space-y-4">
         <UFormField label="Label">
           <UInput v-model="clonedTask.label" />
         </UFormField>
         <UFormField label="Progress" :hint="`${(task.progress * 100).toFixed(0)}%`">
           <USlider v-model="clonedTask.progress" :max="1" :step="0.01" />
         </UFormField>
-        <div class="flex gap-4">
+        <div class="grid grid-cols-3 gap-x-4">
           <UFormField label="Start date">
             <UDatePicker v-model="startDate" :max-value="endDate" />
           </UFormField>
           <UFormField label="End date">
             <UDatePicker v-model="endDate" :min-value="startDate" />
+          </UFormField>
+          <UFormField label="Duration">
+            <!-- TODO: Allow duration input -->
+            <UButton disabled variant="subtle" color="neutral">{{
+              formatDurationInDays(clonedTask.startDate.until(clonedTask.endDate))
+            }}</UButton>
           </UFormField>
         </div>
       </UForm>

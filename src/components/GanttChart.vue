@@ -275,6 +275,7 @@ async function handleClick(id: number) {
       <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">
         <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
       </UDropdownMenu>
+      <slot name="header" />
     </div>
     <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div

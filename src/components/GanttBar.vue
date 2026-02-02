@@ -2,6 +2,7 @@
 import { computed, ref, StyleValue, useAttrs } from "vue";
 import { Task } from "../utils/types.ts";
 import { Temporal } from "temporal-polyfill";
+import { formatDurationInDays } from "../utils/temporal.ts";
 
 const { task, pixelsWidth = 120 } = defineProps<{
   task: Task;
@@ -87,12 +88,6 @@ function onMouseMove(e: MouseEvent) {
   emit("updateDates", { startDate: newStartDate, endDate: newEndDate });
 }
 
-function formatDuration(): string {
-  const d = task.startDate.until(task.endDate).days;
-  const suffix = d == 1 ? "day" : "days";
-  return `${d} ${suffix}`;
-}
-
 function onMouseUp() {
   dragMode.value = "none";
   originalStartDate.value = null;
@@ -104,7 +99,7 @@ function onMouseUp() {
 </script>
 
 <template>
-  <UPopover mode="hover" :ui="{ content: 'p-2' }">
+  <UPopover mode="hover" :ui="{ content: 'p-2 space-y-2' }">
     <div class="group py-1" :style="attrs.style as StyleValue" :class="attrs.class">
       <!-- Left resize handle. Our hitbox is larger than what is visually shown. -->
       <div
@@ -142,14 +137,16 @@ function onMouseUp() {
         <b>End date</b>
         <p>{{ task.endDate }}</p>
         <b>Duration</b>
-        <p>{{ formatDuration() }}</p>
+        <p>{{ formatDurationInDays(task.startDate.until(task.endDate)) }}</p>
         <b>Progress</b>
         <p>{{ (task!.progress * 100).toFixed() }}%</p>
       </div>
       <UButton
         label="Edit task"
         size="xs"
-        class="mt-2"
+        class="mx-auto"
+        block
+        variant="soft"
         @click="emit('popoverClicked', { taskId: task.id })"
       />
     </template>
