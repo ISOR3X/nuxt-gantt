@@ -59,30 +59,21 @@ export function generateRandomTasks(
   return tasks;
 }
 
-export function generateRandomDeadline(
-  dateRange: DateRange,
-  chartStartDate: Temporal.PlainDate,
-  id: number,
-): Deadline {
+export function generateRandomDeadline(dateRange: DateRange, id: number): Deadline {
   const [rangeStart, rangeEnd] = dateRange;
   const deadlineDate = randomDateBetween(rangeStart, rangeEnd);
 
   return {
     id,
-    col: chartStartDate.until(deadlineDate).days,
     date: deadlineDate,
     label: `Deadline ${id}`,
   };
 }
 
-export function generateRandomDeadlines(
-  count: number,
-  dateRange: DateRange,
-  chartStartDate: Temporal.PlainDate,
-): Deadline[] {
+export function generateRandomDeadlines(count: number, dateRange: DateRange): Deadline[] {
   const deadlines: Deadline[] = [];
   for (let i = 0; i < count; i++) {
-    deadlines.push(generateRandomDeadline(dateRange, chartStartDate, i));
+    deadlines.push(generateRandomDeadline(dateRange, i));
   }
   return deadlines;
 }

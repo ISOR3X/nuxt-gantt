@@ -23,8 +23,6 @@ export interface PersistedDeadline {
 
 export interface Deadline extends Omit<PersistedDeadline, "date"> {
   date: Temporal.PlainDate;
-  // Computed fields
-  col: number; // Column
 }
 
 export interface PersistedProject {

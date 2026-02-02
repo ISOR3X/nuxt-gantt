@@ -19,17 +19,17 @@ const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart")
 
 const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
 const endDate = Temporal.Now.plainDateISO().add({ months: 3 });
+
 function generateRandomDeadlinesWithToday(
   count: number,
   dateRange: [Temporal.PlainDate, Temporal.PlainDate],
   chartStartDate: Temporal.PlainDate,
 ): Deadline[] {
-  const deadlines = generateRandomDeadlines(count, dateRange, chartStartDate);
+  const deadlines = generateRandomDeadlines(count, dateRange);
   const today = Temporal.Now.plainDateISO();
 
   deadlines.push({
     id: -1,
-    col: chartStartDate.until(today).days,
     date: today,
     label: "Today",
   });
@@ -41,9 +41,10 @@ const project = ref<Project>({
   label: "sample-project",
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(2000, [startDate, endDate]),
+  tasks: generateRandomTasks(200, [startDate, endDate]),
   deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate], startDate),
 });
+
 // Save tasks to JSON file
 function saveProject() {
   try {

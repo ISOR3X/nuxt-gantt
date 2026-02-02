@@ -73,10 +73,16 @@ const visibleRowEnd = computed(() =>
 const getTaskLayout = useMemoize((taskId: number, startDateStr: string, endDateStr: string) => {
   const taskStartDate = Temporal.PlainDate.from(startDateStr);
   const taskEndDate = Temporal.PlainDate.from(endDateStr);
-
   return {
     col: startDate.until(taskStartDate).days,
     width: taskStartDate.until(taskEndDate).days,
+  };
+});
+
+const getDeadlineLayout = useMemoize((taskId: number, dateStr: string) => {
+  const deadlineDate = Temporal.PlainDate.from(dateStr);
+  return {
+    col: startDate.until(deadlineDate).days,
   };
 });
 
@@ -108,7 +114,14 @@ const visibleDeadlines = computed(() => {
   const colStart = visibleColumnStart.value - OVERSCAN;
   const colEnd = visibleColumnEnd.value + OVERSCAN;
 
-  return deadlines.value.filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
+  return deadlines.value
+    .map((deadline) => {
+      return {
+        ...deadline,
+        ...getDeadlineLayout(deadline.id, deadline.date.toString()),
+      };
+    })
+    .filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
 });
 
 // Generate column headers based on visible columns
