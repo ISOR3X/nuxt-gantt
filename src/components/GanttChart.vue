@@ -6,6 +6,7 @@ import { colToDate } from "../utils/temporal.ts";
 import { Deadline, Task } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
+import { useGanttModal, useTaskEditor } from "../composables/gantt.ts";
 
 export interface GanttChartProps {
   cellWidth?: number;
@@ -29,6 +30,8 @@ const {
 
 const tasks = defineModel<Task[]>("tasks", { required: true });
 const deadlines = defineModel<Deadline[]>("deadlines", { required: true });
+
+const { editTask } = useTaskEditor(tasks);
 
 const HEADERHEIGHT = 40; // Height of the header in pixels
 const HEADERWIDTH = 240; // Width of the header in pixels
@@ -254,6 +257,10 @@ function updateTaskDates(
 defineExpose({
   scrollTo,
 });
+
+async function handleClick(id: number) {
+  await editTask(id);
+}
 </script>
 
 <template>
@@ -338,6 +345,7 @@ defineExpose({
               top: `${row.top}px`,
               height: `${cellHeight}px`,
             }"
+            @settingsClick="({ taskId }) => handleClick(taskId)"
             v-if="row.index < tasks.length"
             v-model="tasks[row.index]"
             class="absolute left-0 w-full"
@@ -420,8 +428,9 @@ defineExpose({
             height: `${cellHeight}px`,
           }"
           :pixels-width="cellWidth"
-          :task
+          :task="task"
           @update-dates="({ startDate, endDate }) => updateTaskDates(task.id, startDate, endDate)"
+          @popover-clicked="({ taskId }) => handleClick(taskId)"
         />
       </div>
     </div>

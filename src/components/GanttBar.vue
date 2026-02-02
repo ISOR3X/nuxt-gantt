@@ -12,6 +12,7 @@ const { task, pixelsWidth = 120 } = defineProps<{
 const attrs = useAttrs();
 const emit = defineEmits<{
   updateDates: [{ startDate: Temporal.PlainDate; endDate: Temporal.PlainDate }];
+  popoverClicked: [{ taskId: number }];
 }>();
 
 type DragMode = "none" | "dragging" | "resizing-left" | "resizing-right";
@@ -103,7 +104,7 @@ function onMouseUp() {
 </script>
 
 <template>
-  <UPopover :ui="{ content: 'grid grid-cols-2 gap-x-4 text-sm p-2' }" mode="hover">
+  <UPopover mode="hover" :ui="{ content: 'p-2' }">
     <div class="group py-1" :style="attrs.style as StyleValue" :class="attrs.class">
       <!-- Left resize handle. Our hitbox is larger than what is visually shown. -->
       <div
@@ -133,16 +134,24 @@ function onMouseUp() {
       </div>
     </div>
     <template #content>
-      <b>Label</b>
-      <p>{{ task.label }}</p>
-      <b>Start date</b>
-      <p>{{ task.startDate }}</p>
-      <b>End date</b>
-      <p>{{ task.endDate }}</p>
-      <b>Duration</b>
-      <p>{{ formatDuration() }}</p>
-      <b>Progress</b>
-      <p>{{ (task!.progress * 100).toFixed() }}%</p>
+      <div class="grid grid-cols-2 gap-x-4 text-sm">
+        <b>Label</b>
+        <p>{{ task.label }}</p>
+        <b>Start date</b>
+        <p>{{ task.startDate }}</p>
+        <b>End date</b>
+        <p>{{ task.endDate }}</p>
+        <b>Duration</b>
+        <p>{{ formatDuration() }}</p>
+        <b>Progress</b>
+        <p>{{ (task!.progress * 100).toFixed() }}%</p>
+      </div>
+      <UButton
+        label="Edit task"
+        size="xs"
+        class="mt-2"
+        @click="emit('popoverClicked', { taskId: task.id })"
+      />
     </template>
   </UPopover>
 </template>

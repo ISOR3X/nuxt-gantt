@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Made with help of Claude, though we really should find a solution for the two sources of truth.
 import { Temporal } from "temporal-polyfill";
 import { computed } from "vue";
 import { Task } from "../utils/types";

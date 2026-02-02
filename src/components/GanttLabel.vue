@@ -1,23 +1,11 @@
 <script setup lang="ts">
-import { useCloned } from "@vueuse/core";
 import { Task } from "../utils/types";
-import GanttTaskModal from "./GanttTaskModal.vue";
 
-const model = defineModel<Task>();
+const model = defineModel<Task>({ required: true });
 
-const overlay = useOverlay();
-
-const modal = overlay.create(GanttTaskModal);
-
-async function openModal() {
-  const copy = useCloned(model);
-  const instance = modal.open({ task: copy.cloned.value as Task });
-  const updatedTask = await instance.result;
-
-  if (updatedTask != null) {
-    model.value = updatedTask;
-  }
-}
+const emit = defineEmits<{
+  settingsClick: [{ taskId: number }];
+}>();
 </script>
 
 <template>
@@ -30,7 +18,7 @@ async function openModal() {
         variant="ghost"
         class="hidden group-hover:block"
         title="Open task configuration"
-        @click="openModal"
+        @click="emit('settingsClick', { taskId: model.id })"
       />
     </slot>
   </div>
