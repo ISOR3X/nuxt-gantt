@@ -6,7 +6,7 @@ import { colToDate } from "../utils/temporal.ts";
 import { Deadline, Task } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
-import { useGanttModal, useTaskEditor } from "../composables/gantt.ts";
+import { useTaskEditor } from "../composables/gantt.ts";
 
 export interface GanttChartProps {
   cellWidth?: number;
@@ -73,7 +73,7 @@ const visibleRowEnd = computed(() =>
 );
 
 // Cache task layout calculations. useMemoize uses the arguments passed to the function, so taskId is still used.
-const getTaskLayout = useMemoize((taskId: number, startDateStr: string, endDateStr: string) => {
+const getTaskLayout = useMemoize((_taskId: number, startDateStr: string, endDateStr: string) => {
   const taskStartDate = Temporal.PlainDate.from(startDateStr);
   const taskEndDate = Temporal.PlainDate.from(endDateStr);
   return {
@@ -82,7 +82,7 @@ const getTaskLayout = useMemoize((taskId: number, startDateStr: string, endDateS
   };
 });
 
-const getDeadlineLayout = useMemoize((taskId: number, dateStr: string) => {
+const getDeadlineLayout = useMemoize((_taskId: number, dateStr: string) => {
   const deadlineDate = Temporal.PlainDate.from(dateStr);
   return {
     col: startDate.until(deadlineDate).days,

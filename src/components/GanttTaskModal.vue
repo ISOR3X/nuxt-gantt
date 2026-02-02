@@ -15,14 +15,14 @@ const emit = defineEmits<{
 const startDate = computed({
   get: () => task.startDate,
   set: (newDate) => {
-    task.startDate =  newDate;
+    task.startDate = newDate;
   },
 });
 
 const endDate = computed({
   get: () => task.endDate,
   set: (newDate) => {
-    task.endDate =  newDate;
+    task.endDate = newDate;
   },
 });
 </script>

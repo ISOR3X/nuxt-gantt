@@ -23,7 +23,6 @@ const endDate = Temporal.Now.plainDateISO().add({ months: 3 });
 function generateRandomDeadlinesWithToday(
   count: number,
   dateRange: [Temporal.PlainDate, Temporal.PlainDate],
-  chartStartDate: Temporal.PlainDate,
 ): Deadline[] {
   const deadlines = generateRandomDeadlines(count, dateRange);
   const today = Temporal.Now.plainDateISO();
@@ -42,7 +41,7 @@ const project = ref<Project>({
   startDate: startDate,
   endDate: endDate,
   tasks: generateRandomTasks(200, [startDate, endDate]),
-  deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate], startDate),
+  deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate]),
 });
 
 // Save tasks to JSON file
