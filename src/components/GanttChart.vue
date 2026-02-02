@@ -272,8 +272,16 @@ async function handleClick(id: number) {
     }"
   >
     <div class="col-start-1 row-start-1 flex items-center border-r border-b border-muted px-2">
-      <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">
-        <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
+      <UDropdownMenu
+        v-if="dropdownItems"
+        :items="dropdownItems"
+        :content="{ align: 'start' }"
+      >
+        <UButton
+          icon="i-lucide-menu"
+          color="neutral"
+          variant="ghost"
+        />
       </UDropdownMenu>
     </div>
     <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
@@ -318,7 +326,7 @@ async function handleClick(id: number) {
             :text="deadline.label"
             :content="{ side: 'top' }"
             :ui="{ content: 'text-sm' }"
-            :delayDuration="0"
+            :delay-duration="0"
           >
             <div
               class="pointer-events-auto absolute -bottom-1.5 -left-1.5 flex size-3 cursor-pointer items-center justify-center rounded-full"
@@ -338,17 +346,20 @@ async function handleClick(id: number) {
         class="relative w-full"
       >
         <!-- Virtualized row headers (task names) -->
-        <template v-for="row in visibleRows" :key="row.index">
+        <template
+          v-for="row in visibleRows"
+          :key="row.index"
+        >
           <!-- TODO: Remove style duplication -->
           <GanttLabel
+            v-if="row.index < tasks.length"
+            v-model="tasks[row.index]"
             :style="{
               top: `${row.top}px`,
               height: `${cellHeight}px`,
             }"
-            @settingsClick="({ taskId }) => handleClick(taskId)"
-            v-if="row.index < tasks.length"
-            v-model="tasks[row.index]"
             class="absolute left-0 w-full"
+            @settings-click="({ taskId }) => handleClick(taskId)"
           />
           <div
             v-else
@@ -363,9 +374,9 @@ async function handleClick(id: number) {
     </div>
 
     <div
+      v-if="tasks"
       ref="scrollContainerRef"
       class="relative col-start-2 row-start-2 flex-1 overflow-auto"
-      v-if="tasks"
     >
       <!-- SVG Grid Background -->
       <svg
@@ -382,7 +393,11 @@ async function handleClick(id: number) {
             :width="cellWidth"
             patternUnits="userSpaceOnUse"
           >
-            <rect :height="cellHeight" :width="cellWidth" fill="transparent" />
+            <rect
+              :height="cellHeight"
+              :width="cellWidth"
+              fill="transparent"
+            />
             <path
               :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
               fill="none"
@@ -391,7 +406,11 @@ async function handleClick(id: number) {
             />
           </pattern>
         </defs>
-        <rect fill="url(#grid-pattern)" height="100%" width="100%" />
+        <rect
+          fill="url(#grid-pattern)"
+          height="100%"
+          width="100%"
+        />
         <!-- Deadline vertical lines -->
         <g
           v-for="deadline in visibleDeadlines"
@@ -419,8 +438,8 @@ async function handleClick(id: number) {
         <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
           v-for="task in visibleTasks"
-          class="absolute"
           :key="task.id"
+          class="absolute"
           :style="{
             left: `${task.col * cellWidth}px`,
             top: `${task.row * cellHeight}px`,

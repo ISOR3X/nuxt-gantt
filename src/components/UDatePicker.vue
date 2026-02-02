@@ -4,24 +4,14 @@ import { Temporal } from "temporal-polyfill";
 import { computed, shallowRef, watch } from "vue";
 import { IntDateToTemporal, TemporalToIntDate } from "../utils/temporal";
 
-const modelValue = defineModel<Temporal.PlainDate>({ required: true });
+const model = defineModel<Temporal.PlainDate>({ required: true });
 
 const props = defineProps<{
   minValue?: Temporal.PlainDate;
   maxValue?: Temporal.PlainDate;
 }>();
 
-// Helper to check if something is a Temporal.PlainDate
-function isTemporalPlainDate(value: any): boolean {
-  return value && typeof value.until === "function" && typeof value.toString === "function";
-}
-
-// Ensure initial value is a proper Temporal.PlainDate
-const initialTemporal = isTemporalPlainDate(modelValue.value)
-  ? modelValue.value
-  : Temporal.PlainDate.from(modelValue.value.toString());
-
-const intDate = shallowRef<CalendarDate>(TemporalToIntDate(initialTemporal));
+const intDate = shallowRef<CalendarDate>(TemporalToIntDate(model.value));
 
 // Convert min/max to CalendarDate
 const minDate = computed(() => {
@@ -37,14 +27,14 @@ watch(intDate, (newDate) => {
   if (newDate) {
     const temporalDate = IntDateToTemporal(newDate);
     // Only update if different to avoid infinite loops
-    if (!modelValue.value || modelValue.value.toString() !== temporalDate.toString()) {
-      modelValue.value = temporalDate;
+    if (!model.value || model.value.toString() !== temporalDate.toString()) {
+      model.value = temporalDate;
     }
   }
 });
 
-// Watch for external changes to modelValue
-watch(modelValue, (newValue) => {
+// Watch for external changes to model
+watch(model, (newValue) => {
   if (newValue) {
     const newIntDate = TemporalToIntDate(newValue);
     // Only update if actually different to avoid infinite loops
@@ -57,11 +47,20 @@ watch(modelValue, (newValue) => {
 
 <template>
   <UPopover>
-    <UButton color="neutral" variant="subtle" icon="i-lucide-calendar">
+    <UButton
+      color="neutral"
+      variant="subtle"
+      icon="i-lucide-calendar"
+    >
       {{ intDate ? intDate.toString() : "Select a date" }}
     </UButton>
     <template #content>
-      <UCalendar v-model="intDate" class="p-2" :min-value="minDate" :max-value="maxDate" />
+      <UCalendar
+        v-model="intDate"
+        class="p-2"
+        :min-value="minDate"
+        :max-value="maxDate"
+      />
     </template>
   </UPopover>
 </template>

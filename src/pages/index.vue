@@ -151,34 +151,56 @@ const items = ref<DropdownMenuItem[][]>([
   <div class="h-full p-4">
     <GanttChart
       ref="ganttChart"
+      v-model:tasks="project.tasks"
+      v-model:deadlines="project.deadlines"
       class="h-full"
       :start-date="project.startDate"
       :end-date="project.endDate"
       :cell-width
       :cell-height
       :dropdown-items="items"
-      v-model:tasks="project.tasks"
-      v-model:deadlines="project.deadlines"
     />
   </div>
   <div
     class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
   >
-    <UFormField label="Cell width (px)" orientation="horizontal">
-      <UInput v-model.number="cellWidth" max="200" min="20" type="number" />
+    <UFormField
+      label="Cell width (px)"
+      orientation="horizontal"
+    >
+      <UInput
+        v-model.number="cellWidth"
+        max="200"
+        min="20"
+        type="number"
+      />
     </UFormField>
-    <UFormField label="Cell height (px)" orientation="horizontal">
-      <UInput v-model.number="cellHeight" max="200" min="20" type="number" />
+    <UFormField
+      label="Cell height (px)"
+      orientation="horizontal"
+    >
+      <UInput
+        v-model.number="cellHeight"
+        max="200"
+        min="20"
+        type="number"
+      />
     </UFormField>
-    <UButton label="scroll to date" @click="testScrollTo()" />
-    <UButton label="add task" @click="addTask()" />
+    <UButton
+      label="scroll to date"
+      @click="testScrollTo()"
+    />
+    <UButton
+      label="add task"
+      @click="addTask()"
+    />
     <!-- Hidden file input for loading tasks -->
     <input
-      type="file"
       ref="fileInput"
+      type="file"
       accept="application/json,.json"
-      @change="handleFileChange"
       style="display: none"
-    />
+      @change="handleFileChange"
+    >
   </div>
 </template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Task } from "../utils/types";
 import UDatePicker from "./UDatePicker.vue";
+import { cloneTask } from "../utils/gantt";
 
 const { task } = defineProps<{
   task: Task;
@@ -11,18 +12,20 @@ const emit = defineEmits<{
   close: [Task | null];
 }>();
 
+const clonedTask = ref<Task>(cloneTask(task));
+
 // Create computed properties for two-way binding
 const startDate = computed({
   get: () => task.startDate,
   set: (newDate) => {
-    task.startDate = newDate;
+    clonedTask.value.startDate = newDate;
   },
 });
 
 const endDate = computed({
   get: () => task.endDate,
   set: (newDate) => {
-    task.endDate = newDate;
+    clonedTask.value.endDate = newDate;
   },
 });
 </script>
@@ -34,27 +37,53 @@ const endDate = computed({
     :close="false"
   >
     <template #body>
-      <UForm v-if="task" class="space-y-2">
+      <UForm
+        v-if="task"
+        class="space-y-2"
+      >
         <UFormField label="Label">
-          <UInput v-model="task.label" />
+          <UInput v-model="clonedTask.label" />
         </UFormField>
-        <UFormField label="Progress" :hint="`${(task.progress * 100).toFixed(0)}%`">
-          <USlider v-model="task.progress" :max="1" :step="0.01" />
+        <UFormField
+          label="Progress"
+          :hint="`${(task.progress * 100).toFixed(0)}%`"
+        >
+          <USlider
+            v-model="clonedTask.progress"
+            :max="1"
+            :step="0.01"
+          />
         </UFormField>
         <div class="flex gap-4">
           <UFormField label="Start date">
-            <UDatePicker v-model="startDate" :max-value="endDate" />
+            <UDatePicker
+              v-model="startDate"
+              :max-value="endDate"
+            />
           </UFormField>
           <UFormField label="End date">
-            <UDatePicker v-model="endDate" :min-value="startDate" />
+            <UDatePicker
+              v-model="endDate"
+              :min-value="startDate"
+            />
           </UFormField>
         </div>
       </UForm>
-      <p v-else>No task found</p>
+      <p v-else>
+        No task found
+      </p>
     </template>
     <template #footer>
-      <UButton label="Cancel" class="ml-auto" variant="outline" @click="emit('close', null)" />
-      <UButton label="Submit" @click="emit('close', task)" />
+      <UButton
+        label="Cancel"
+        class="ml-auto"
+        variant="outline"
+        @click="emit('close', null)"
+      />
+      <UButton
+        label="Submit"
+        @click="emit('close', clonedTask)"
+      />
     </template>
   </UModal>
 </template>

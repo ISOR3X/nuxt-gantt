@@ -7,18 +7,9 @@ import { Task } from "../utils/types";
 const overlay = useOverlay();
 const modal = overlay.create(GanttTaskModal);
 
-function cloneTask(task: Task): Task {
-  return {
-    ...task,
-    startDate: Temporal.PlainDate.from(task.startDate.toString()),
-    endDate: Temporal.PlainDate.from(task.endDate.toString()),
-  };
-}
-
 export function useGanttModal(task: Task) {
   async function openModal() {
-    const copy = cloneTask(task);
-    const instance = modal.open({ task: copy });
+    const instance = modal.open({ task: task });
     const result = await instance.result;
 
     // Ensure dates are PlainDate objects when modal returns
