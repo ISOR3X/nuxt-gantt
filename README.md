@@ -15,9 +15,10 @@ A work in progress project for creating gantt charts.
 - [x] Convert col index to `Temporal.PlainDate` during serialization and vice versa.
 - [ ] Change date format on small cell sizes
 - [ ] Task dependencie with dependency arrows.
-- [ ] Task editing GUI.
+- [x] Task editing GUI.
 - [ ] Make the project into a library and publish on NPM.
 - [ ] Export to pdf (scale to fit page)
+- [ ] Remove two sources of truth for Tasks; date and column index.
 
 This library was inspired by the Gantt chart found in MS Planner, [Umay Gantt Chart builder](https://github.com/aligundogdu/Umay-Gantt-Chart-Builder) and of course Nuxt UI itself for creating stylable components.
 

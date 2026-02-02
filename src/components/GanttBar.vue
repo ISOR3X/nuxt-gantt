@@ -147,6 +147,8 @@ function onMouseUp() {
       <p>{{ formatDuration() }}</p>
       <b>Progress</b>
       <p>{{ (task!.progress * 100).toFixed() }}%</p>
+      <b>Col and width</b>
+      <p>{{ task.col }}/{{ task.width }}</p>
     </template>
   </UPopover>
 </template>

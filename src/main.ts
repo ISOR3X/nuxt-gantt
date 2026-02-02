@@ -1,8 +1,8 @@
 import "./assets/css/main.css";
 
+import ui from "@nuxt/ui/vue-plugin";
 import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
-import ui from "@nuxt/ui/vue-plugin";
 
 import App from "./App.vue";
 

@@ -1,6 +1,7 @@
-import { Project, PersistedProject } from "./types";
-import { dateToCol } from "./temporal";
 import { Temporal } from "temporal-polyfill";
+
+import { dateToCol } from "./temporal";
+import { Project, PersistedProject } from "./types";
 
 export function serializeProject(project: Project): PersistedProject {
   return {
