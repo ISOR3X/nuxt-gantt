@@ -91,10 +91,10 @@ const endDate = computed({
         </UFormField>
         <div class="flex gap-4">
           <UFormField label="Start date">
-            <UDatePicker v-model="startDate" />
+            <UDatePicker v-model="startDate" :max-value="endDate" />
           </UFormField>
           <UFormField label="End date">
-            <UDatePicker v-model="endDate" />
+            <UDatePicker v-model="endDate" :min-value="startDate" />
           </UFormField>
         </div>
       </UForm>

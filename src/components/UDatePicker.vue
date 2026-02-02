@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { CalendarDate } from "@internationalized/date";
 import { Temporal } from "temporal-polyfill";
-import { shallowRef, watch } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { IntDateToTemporal, TemporalToIntDate } from "../utils/temporal";
 
 const modelValue = defineModel<Temporal.PlainDate>({ required: true });
+
+const props = defineProps<{
+  minValue?: Temporal.PlainDate;
+  maxValue?: Temporal.PlainDate;
+}>();
 
 // Helper to check if something is a Temporal.PlainDate
 function isTemporalPlainDate(value: any): boolean {
@@ -17,6 +22,15 @@ const initialTemporal = isTemporalPlainDate(modelValue.value)
   : Temporal.PlainDate.from(modelValue.value.toString());
 
 const intDate = shallowRef<CalendarDate>(TemporalToIntDate(initialTemporal));
+
+// Convert min/max to CalendarDate
+const minDate = computed(() => {
+  return props.minValue ? TemporalToIntDate(props.minValue) : undefined;
+});
+
+const maxDate = computed(() => {
+  return props.maxValue ? TemporalToIntDate(props.maxValue) : undefined;
+});
 
 // Watch the intDate ref
 watch(intDate, (newDate) => {
@@ -47,7 +61,7 @@ watch(modelValue, (newValue) => {
       {{ intDate ? intDate.toString() : "Select a date" }}
     </UButton>
     <template #content>
-      <UCalendar v-model="intDate" class="p-2" />
+      <UCalendar v-model="intDate" class="p-2" :min-value="minDate" :max-value="maxDate" />
     </template>
   </UPopover>
 </template>
