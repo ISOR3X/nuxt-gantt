@@ -1,10 +1,11 @@
 <script lang="ts">
-import { Task, Project, Deadline } from "../utils/types.ts";
-import GanttLabel from "./GanttLabel.vue";
+import { DropdownMenuItem } from "@nuxt/ui";
+import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
 import { colToDate } from "../utils/temporal.ts";
-import { useResizeObserver } from "@vueuse/core";
-import { DropdownMenuItem } from "@nuxt/ui";
+import { Deadline, Task } from "../utils/types.ts";
+import GanttLabel from "./GanttLabel.vue";
+import { useMemoize } from "@vueuse/core";
 
 export interface GanttChartProps {
   cellWidth?: number;
@@ -26,8 +27,8 @@ const {
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
 
-const tasks = defineModel<Task[]>('tasks',{ required: true });
-const deadlines = defineModel<Deadline[]>('deadlines',{ required: true });
+const tasks = defineModel<Task[]>("tasks", { required: true });
+const deadlines = defineModel<Deadline[]>("deadlines", { required: true });
 
 const HEADERHEIGHT = 40; // Height of the header in pixels
 const HEADERWIDTH = 240; // Width of the header in pixels
@@ -68,33 +69,37 @@ const visibleRowEnd = computed(() =>
   Math.ceil((scrollTop.value + viewportHeight.value) / cellHeight),
 );
 
-// Virtualized tasks - only render those in visible viewport
+// Cache task layout calculations. useMemoize uses the arguments passed to the function, so taskId is still used.
+const getTaskLayout = useMemoize((taskId: number, startDateStr: string, endDateStr: string) => {
+  const taskStartDate = Temporal.PlainDate.from(startDateStr);
+  const taskEndDate = Temporal.PlainDate.from(endDateStr);
+
+  return {
+    col: startDate.until(taskStartDate).days,
+    width: taskStartDate.until(taskEndDate).days,
+  };
+});
+
+// Then use tasksWithLayout instead of tasks.value
 const visibleTasks = computed(() => {
   const rowStart = Math.max(0, visibleRowStart.value - OVERSCAN);
   const rowEnd = Math.min(totalRows.value, visibleRowEnd.value + OVERSCAN);
   const colStart = Math.max(0, visibleColumnStart.value - OVERSCAN);
   const colEnd = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
-  
+
   return tasks.value
+    .filter((task: Task) => task.row >= rowStart && task.row <= rowEnd) // Remove tasks outside of viewport (in y-axis) first to reduce unnecessary computations.
     .map((task: Task) => {
-      // Compute col and width from dates
-      const col = startDate.until(task.startDate).days;
-      const width = task.startDate.until(task.endDate).days;
-      
+      // Map task to its position and size in the grid.
       return {
         ...task,
-        col,
-        width
+        ...getTaskLayout(task.id, task.startDate.toString(), task.endDate.toString()),
       };
     })
     .filter((task) => {
+      // Remove tasks outside of viewport (in x-axis).
       const taskColEnd = task.col + task.width;
-      // Check if a task intersects with visible area
-      return (
-        task.row >= rowStart && 
-        task.row <= rowEnd && 
-        !(task.col > colEnd || taskColEnd < colStart)
-      );
+      return !(task.col > colEnd || taskColEnd < colStart);
     });
 });
 
@@ -103,9 +108,7 @@ const visibleDeadlines = computed(() => {
   const colStart = visibleColumnStart.value - OVERSCAN;
   const colEnd = visibleColumnEnd.value + OVERSCAN;
 
-  return deadlines.value.filter(
-    (deadline) => deadline.col >= colStart && deadline.col <= colEnd,
-  );
+  return deadlines.value.filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
 });
 
 // Generate column headers based on visible columns
@@ -220,8 +223,12 @@ useResizeObserver(scrollContainerRef, () => {
   handleScroll();
 });
 
-function updateTaskDates(taskId: number, startDate: Temporal.PlainDate, endDate: Temporal.PlainDate) {
-  const task = tasks.value.find(t => t.id === taskId);
+function updateTaskDates(
+  taskId: number,
+  startDate: Temporal.PlainDate,
+  endDate: Temporal.PlainDate,
+) {
+  const task = tasks.value.find((t) => t.id === taskId);
   if (task) {
     task.startDate = startDate;
     task.endDate = endDate;

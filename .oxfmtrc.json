@@ -1,20 +1,20 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-    "experimentalTailwindcss": {
-      "stylesheet": "./src/assets/css/main.css",
-      "attributes": ["class", "className"],
-      "functions": ["clsx", "cn"],
-      "preserveWhitespace": true
-    },
-    "experimentalSortImports": {
-      "groups": [
-        ["side-effect"],
-        ["builtin"],
-        ["external", "type-external"],
-        ["internal", "type-internal"],
-        ["parent", "type-parent"],
-        ["sibling", "type-sibling"],
-        ["index", "type-index"]
-      ]
-    }
+  "experimentalTailwindcss": {
+    "stylesheet": "./src/assets/css/main.css",
+    "attributes": ["class", "className"],
+    "functions": ["clsx", "cn"],
+    "preserveWhitespace": true
+  },
+  "experimentalSortImports": {
+    "groups": [
+      ["side-effect"],
+      ["builtin"],
+      ["external", "type-external"],
+      ["internal", "type-internal"],
+      ["parent", "type-parent"],
+      ["sibling", "type-sibling"],
+      ["index", "type-index"]
+    ]
+  }
 }

@@ -3,7 +3,6 @@ import { computed, ref, StyleValue, useAttrs } from "vue";
 import { Task } from "../utils/types.ts";
 import { Temporal } from "temporal-polyfill";
 
-
 const { task, pixelsWidth = 120 } = defineProps<{
   task: Task;
   pixelsWidth?: number;
@@ -84,7 +83,7 @@ function onMouseMove(e: MouseEvent) {
   }
 
   // Emit the update instead of mutating
-  emit('updateDates', { startDate: newStartDate, endDate: newEndDate });
+  emit("updateDates", { startDate: newStartDate, endDate: newEndDate });
 }
 
 function formatDuration(): string {

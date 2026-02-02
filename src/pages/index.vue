@@ -41,7 +41,7 @@ const project = ref<Project>({
   label: "sample-project",
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(20, [startDate, endDate]),
+  tasks: generateRandomTasks(2000, [startDate, endDate]),
   deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate], startDate),
 });
 // Save tasks to JSON file
@@ -95,10 +95,10 @@ function testScrollTo() {
 
 function addTask() {
   project.value.tasks.push(
-    generateRandomTask(
-      project.value.tasks.length,
-      [project.value.startDate, project.value.endDate],
-    ),
+    generateRandomTask(project.value.tasks.length, [
+      project.value.startDate,
+      project.value.endDate,
+    ]),
   );
 }
 
@@ -165,10 +165,10 @@ const items = ref<DropdownMenuItem[][]>([
     class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
   >
     <UFormField label="Cell width (px)" orientation="horizontal">
-      <UInput v-model.number="cellWidth" max="200" min="5" type="number" />
+      <UInput v-model.number="cellWidth" max="200" min="20" type="number" />
     </UFormField>
     <UFormField label="Cell height (px)" orientation="horizontal">
-      <UInput v-model.number="cellHeight" max="200" min="5" type="number" />
+      <UInput v-model.number="cellHeight" max="200" min="20" type="number" />
     </UFormField>
     <UButton label="scroll to date" @click="testScrollTo()" />
     <UButton label="add task" @click="addTask()" />
