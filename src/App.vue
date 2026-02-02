@@ -7,9 +7,7 @@ import AppLogo from "./components/AppLogo.vue";
     <UApp>
       <UHeader>
         <template #left>
-          <RouterLink to="/">
             <AppLogo class="h-6 w-auto shrink-0" />
-          </RouterLink>
         </template>
         <template #right>
           <UColorModeButton />
