@@ -46,15 +46,6 @@ const startDate = computed({
   get: () => task.startDate,
   set: (newDate) => {
     const newTemporal = ensureTemporalDate(newDate);
-    const oldTemporal = ensureTemporalDate(task.startDate);
-
-    if (oldTemporal && newTemporal) {
-      const daysMoved = newTemporal.until(oldTemporal).days;
-      console.log(`Moving task ${task.id} by ${daysMoved} days`);
-      task.col -= daysMoved;
-      task.width += daysMoved;
-    }
-
     task.startDate = newTemporal || newDate;
   },
 });
@@ -63,13 +54,6 @@ const endDate = computed({
   get: () => task.endDate,
   set: (newDate) => {
     const newTemporal = ensureTemporalDate(newDate);
-    const oldTemporal = ensureTemporalDate(task.endDate);
-
-    if (oldTemporal && newTemporal) {
-      const daysDiff = oldTemporal.until(newTemporal).days;
-      task.width += daysDiff;
-    }
-
     task.endDate = newTemporal || newDate;
   },
 });
