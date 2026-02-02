@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Temporal } from "temporal-polyfill";
 import { computed } from "vue";
 import { Task } from "../utils/types";
 import UDatePicker from "./UDatePicker.vue";
@@ -12,48 +11,18 @@ const emit = defineEmits<{
   close: [Task | null];
 }>();
 
-// Helper to check if something is a Temporal.PlainDate
-function isTemporalPlainDate(value: any): boolean {
-  return value && typeof value.until === "function" && typeof value.toString === "function";
-}
-
-// Helper to ensure we get a valid Temporal.PlainDate
-function ensureTemporalDate(date: any): Temporal.PlainDate | null {
-  if (!date) return null;
-
-  if (isTemporalPlainDate(date)) {
-    return date;
-  }
-
-  // Try to convert it
-  try {
-    if (typeof date === "string") {
-      return Temporal.PlainDate.from(date);
-    }
-    if (date.toString && typeof date.toString === "function") {
-      return Temporal.PlainDate.from(date.toString());
-    }
-  } catch (e) {
-    console.error("Failed to convert to Temporal.PlainDate:", date, e);
-  }
-
-  return null;
-}
-
 // Create computed properties for two-way binding
 const startDate = computed({
   get: () => task.startDate,
   set: (newDate) => {
-    const newTemporal = ensureTemporalDate(newDate);
-    task.startDate = newTemporal || newDate;
+    task.startDate =  newDate;
   },
 });
 
 const endDate = computed({
   get: () => task.endDate,
   set: (newDate) => {
-    const newTemporal = ensureTemporalDate(newDate);
-    task.endDate = newTemporal || newDate;
+    task.endDate =  newDate;
   },
 });
 </script>
