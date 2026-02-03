@@ -161,7 +161,7 @@ const items = ref<DropdownMenuItem[][]>([
       :dropdown-items="items"
     >
       <template #header>
-        {{ project.label }}
+        <UInput v-model="project.label" variant="ghost" />
       </template>
     </GanttChart>
   </div>

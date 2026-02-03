@@ -272,7 +272,7 @@ async function handleClick(id: number) {
     }"
   >
     <div
-      class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted pr-2 pl-4"
+      class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted px-1"
     >
       <slot name="header" />
       <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">

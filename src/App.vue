@@ -7,7 +7,7 @@ import AppLogo from "./components/AppLogo.vue";
     <UApp>
       <UHeader>
         <template #left>
-            <AppLogo class="h-6 w-auto shrink-0" />
+          <AppLogo class="h-6 w-auto shrink-0" />
         </template>
         <template #right>
           <UColorModeButton />

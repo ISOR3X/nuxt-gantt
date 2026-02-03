@@ -9,16 +9,19 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="group flex w-10 items-center border-b border-default px-4 text-sm">
-    <span class="min-w-0 flex-1 truncate">
-      {{ model?.label }}
-    </span>
+  <div class="group flex gap-2 border-b border-default px-1 text-sm">
+    <UInput
+      class="h-full min-w-0 flex-1 truncate py-0.5"
+      size="md"
+      variant="ghost"
+      v-model="model.label"
+    />
 
     <UButton
       icon="i-lucide-settings-2"
-      size="xs"
+      size="md"
       variant="ghost"
-      class="hidden shrink-0 group-hover:block"
+      class="my-1 hidden shrink-0 group-hover:block"
       title="Open task configuration"
       @click="emit('settingsClick', { taskId: model.id })"
     />
