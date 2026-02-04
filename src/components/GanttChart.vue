@@ -7,6 +7,7 @@ import { Deadline, Task } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
 import { useTaskEditor } from "../composables/gantt.ts";
+import ULabel from "./ULabel.vue";
 
 export interface GanttChartProps {
   cellWidth?: number;
@@ -279,7 +280,7 @@ async function handleClick(id: number) {
         <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
       </UDropdownMenu>
     </div>
-    <div class="z-10 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
+    <div class="z-50 isolate col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
         :style="{
           transform: `translateX(-${scrollLeft}px)`,
@@ -300,11 +301,11 @@ async function handleClick(id: number) {
           <span class="pointer-events-none">
             {{ col.label }}
           </span>
-          <div
-            class="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 rounded-md border border-default bg-default px-2 py-0.5 opacity-0 group-hover:opacity-100"
+          <ULabel
+            class="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 hidden group-hover:block"
           >
             {{ formatColumnHeader(col.date, true) }}
-          </div>
+          </ULabel>
         </div>
 
         <!-- Deadline header markers -->
@@ -315,7 +316,7 @@ async function handleClick(id: number) {
             left: `${deadline.col * cellWidth}px`,
             width: `${cellWidth}px`,
           }"
-          class="pointer-events-none absolute h-full"
+          class="pointer-events-none absolute h-full z-20"
         >
           <UTooltip
             :text="deadline.label"
@@ -329,6 +330,20 @@ async function handleClick(id: number) {
             />
           </UTooltip>
         </div>
+        <UTooltip
+          text="Holiday"
+          :content="{ side: 'top' }"
+          :ui="{ content: 'text-sm' }"
+          :delay-duration="0"
+        >
+       <div
+        :style="{
+          left: `${10 * cellWidth}px`,
+          width: `${10 * cellWidth}px`,
+        }"
+        class="absolute -bottom-0.5 bg-primary h-1 cursor-pointer z-10 rounded-full"
+      />
+      </UTooltip>
       </div>
     </div>
 
@@ -417,13 +432,13 @@ async function handleClick(id: number) {
           width: `${totalWidth}px`,
           height: `${totalHeight}px`,
         }"
-        class="absolute"
+        class="absolute z-20 pointer-events-none"
       >
         <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
           v-for="task in visibleTasks"
           :key="task.id"
-          class="absolute"
+          class="absolute pointer-events-auto"
           :style="{
             left: `${task.col * cellWidth}px`,
             top: `${task.row * cellHeight}px`,
@@ -435,6 +450,21 @@ async function handleClick(id: number) {
           @update-dates="({ startDate, endDate }) => updateTaskDates(task.id, startDate, endDate)"
           @popover-clicked="({ taskId }) => handleClick(taskId)"
         />
+      </div>
+      <div
+        :style="{
+          width: `${totalWidth}px`,
+          height: `${totalHeight}px`,
+        }"
+        class="absolute z-10 pointer-events-none"
+      >
+          <div
+          class="absolute bg-primary/10 h-full border-x-primary pointer-events-auto"
+          :style="{
+            left: `${10 * cellWidth}px`,
+            top: `${0 * cellHeight}px`,
+            width: `${10 * cellWidth}px`,
+          }"/>
       </div>
     </div>
   </div>

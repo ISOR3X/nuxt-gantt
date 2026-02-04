@@ -21,7 +21,7 @@ const emit = defineEmits<{
       icon="i-lucide-settings-2"
       size="md"
       variant="ghost"
-      class="my-1 hidden shrink-0 group-hover:block"
+      class="hidden shrink-0 group-hover:block"
       title="Open task configuration"
       @click="emit('settingsClick', { taskId: model.id })"
     />
