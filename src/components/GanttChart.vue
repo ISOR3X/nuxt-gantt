@@ -171,6 +171,7 @@ function formatColumnHeader(date: Temporal.PlainDate, force: boolean = false): s
   const formatted = date.toLocaleString("en", {
     month: "short",
     day: "numeric",
+    weekday: "short",
     ...(isFirstFullWeekOfYear && date.dayOfWeek == 1 ? { year: "numeric" } : {}),
   });
 
@@ -464,6 +465,15 @@ async function handleClick(id: number) {
             left: `${10 * cellWidth}px`,
             top: `${0 * cellHeight}px`,
             width: `${10 * cellWidth}px`,
+          }"/>
+          
+          <div
+          v-for="i in [0,7,14]"
+          class="absolute bg-accented/10 h-full border-x-primary pointer-events-auto"
+          :style="{
+            left: `${(20 + i)* cellWidth}px`,
+            top: `${0 * cellHeight}px`,
+            width: `${3 * cellWidth}px`,
           }"/>
       </div>
     </div>
