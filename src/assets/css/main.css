@@ -19,3 +19,7 @@
 .dark {
   --ui-primary: var(--ui-color-primary-500);
 }
+
+.bevel {
+    corner-shape: bevel;
+}

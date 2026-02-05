@@ -109,8 +109,8 @@ function onMouseUp() {
         <div class="h-full rounded-full border-accented group-hover:border-2" />
       </div>
       <div
-        :class="cursorStyle"
         class="group relative h-full rounded-md border-2 border-primary bg-primary/10 select-none"
+        :class="[{'bevel': Temporal.PlainDate.compare(task.startDate, task.endDate) == 0}, cursorStyle]"
         @mousedown="onMouseDownBar"
       >
         <div
