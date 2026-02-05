@@ -2,16 +2,17 @@
 import { DropdownMenuItem } from "@nuxt/ui";
 import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
-import { colToDate } from "../utils/temporal.ts";
-import { Deadline, Task } from "../utils/types.ts";
+import { colToDate, formatColumnDate, formatColumnHeader } from "../utils/temporal.ts";
+import { Deadline, Task, Vec2 } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
 import { useTaskEditor } from "../composables/gantt.ts";
 import ULabel from "./ULabel.vue";
 
+type CellHighlight = {row: boolean, col: boolean}
 export interface GanttChartProps {
-  cellWidth?: number;
-  cellHeight?: number;
+  cellSize?: Vec2;
+  cellHighlight?: CellHighlight,
   startDate?: Temporal.PlainDate;
   endDate?: Temporal.PlainDate;
   dropdownItems?: DropdownMenuItem[];
@@ -23,8 +24,8 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import GanttBar from "./GanttBar.vue";
 
 const {
-  cellWidth = 50,
-  cellHeight = 50,
+  cellSize = { x: 30, y: 30 },
+  cellHighlight = {row: false, col: false},
   startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
@@ -46,8 +47,8 @@ const scrollTop = ref(0);
 
 const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth ?? 0);
 const viewportHeight = computed(() => scrollContainerRef.value?.clientHeight ?? 0);
-const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellHeight) - 1);
-const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellWidth) - 1);
+const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellSize.y) - 1);
+const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellSize.x) - 1);
 
 // Virtual grid dimensions
 const totalRows = computed(() => {
@@ -58,19 +59,19 @@ const totalColumns = computed(() => {
 });
 
 // Total size in pixels
-const totalWidth = computed(() => totalColumns.value * cellWidth);
-const totalHeight = computed(() => totalRows.value * cellHeight);
+const totalWidth = computed(() => totalColumns.value * cellSize.x);
+const totalHeight = computed(() => totalRows.value * cellSize.y);
 
 // Calculate visible column range
-const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellWidth));
+const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellSize.x));
 const visibleColumnEnd = computed(() =>
-  Math.ceil((scrollLeft.value + viewportWidth.value) / cellWidth),
+  Math.ceil((scrollLeft.value + viewportWidth.value) / cellSize.x),
 );
 
 // Calculate visible row range
-const visibleRowStart = computed(() => Math.floor(scrollTop.value / cellHeight));
+const visibleRowStart = computed(() => Math.floor(scrollTop.value / cellSize.y));
 const visibleRowEnd = computed(() =>
-  Math.ceil((scrollTop.value + viewportHeight.value) / cellHeight),
+  Math.ceil((scrollTop.value + viewportHeight.value) / cellSize.y),
 );
 
 // Cache task layout calculations. useMemoize uses the arguments passed to the function, so taskId is still used.
@@ -139,7 +140,7 @@ const visibleColumns = computed(() => {
     columns.push({
       index: i,
       date: d,
-      left: i * cellWidth,
+      left: i * cellSize.x,
       label: formatColumnHeader(d),
     });
   }
@@ -156,27 +157,11 @@ const visibleRows = computed(() => {
     rows.push({
       index: i,
       label: `R-${i}`,
-      top: i * cellHeight,
+      top: i * cellSize.y,
     });
   }
   return rows;
 });
-
-// Format the date for display in the header
-function formatColumnHeader(date: Temporal.PlainDate, force: boolean = false): string | undefined {
-  if (date.dayOfWeek !== 1 && !force) return;
-
-  const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
-
-  const formatted = date.toLocaleString("en", {
-    month: "short",
-    day: "numeric",
-    weekday: "short",
-    ...(isFirstFullWeekOfYear && date.dayOfWeek == 1 ? { year: "numeric" } : {}),
-  });
-
-  return formatted;
-}
 
 // Update scroll position on scroll event
 function handleScroll() {
@@ -202,13 +187,13 @@ function scrollTo(
   const { behavior = "auto", alignment = "start" } = options || {};
 
   // Calculate the target scroll position
-  let targetScrollLeft = idx * cellWidth;
+  let targetScrollLeft = idx * cellSize.x;
 
   // Adjust for alignment
   if (alignment === "center") {
-    targetScrollLeft -= (viewportWidth.value - cellWidth) / 2;
+    targetScrollLeft -= (viewportWidth.value - cellSize.x) / 2;
   } else if (alignment === "end") {
-    targetScrollLeft -= viewportWidth.value - cellWidth;
+    targetScrollLeft -= viewportWidth.value - cellSize.x;
   }
 
   // Ensure we don't scroll beyond bounds
@@ -263,6 +248,26 @@ defineExpose({
 async function handleClick(id: number) {
   await editTask(id);
 }
+
+const mousePos = ref<Vec2 | null>({ x: 0, y: 0 });
+
+const hoveredCell = computed(() => {
+  if (mousePos.value) {
+    const relativeX = mousePos.value.x + scrollLeft.value;
+    const col = Math.floor(relativeX / cellSize.x);
+
+    const relativeY = mousePos.value.y + scrollTop.value;
+    const row = Math.floor(relativeY / cellSize.y);
+
+    return { col: col, row: row };
+  }
+});
+
+function handleMouseMove(event: MouseEvent) {
+  const rect = scrollContainerRef.value?.getBoundingClientRect();
+  if (!rect) return;
+  mousePos.value = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
 </script>
 
 <template>
@@ -272,6 +277,12 @@ async function handleClick(id: number) {
       gridTemplateColumns: `${HEADERWIDTH}px 1fr`,
       gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
     }"
+    @mousemove="handleMouseMove"
+    @mouseleave="
+      () => {
+        mousePos = null;
+      }
+    "
   >
     <div
       class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted px-1"
@@ -281,7 +292,7 @@ async function handleClick(id: number) {
         <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
       </UDropdownMenu>
     </div>
-    <div class="z-50 isolate col-start-2 row-start-1 overflow-x-clip border-b border-muted">
+    <div class="isolate z-50 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
         :style="{
           transform: `translateX(-${scrollLeft}px)`,
@@ -294,7 +305,7 @@ async function handleClick(id: number) {
           :key="col.index"
           :style="{
             left: `${col.left}px`,
-            width: `${cellWidth}px`,
+            width: `${cellSize.x}px`,
           }"
           class="group absolute top-0 flex h-full items-center border-default text-left text-sm text-nowrap"
           :class="{ 'border-l-2 pl-2': col.label }"
@@ -303,9 +314,10 @@ async function handleClick(id: number) {
             {{ col.label }}
           </span>
           <ULabel
-            class="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 hidden group-hover:block"
+            v-if="hoveredCell && hoveredCell.col == col.index"
+            class="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2"
           >
-            {{ formatColumnHeader(col.date, true) }}
+            {{ formatColumnDate(col.date) }}
           </ULabel>
         </div>
 
@@ -314,10 +326,10 @@ async function handleClick(id: number) {
           v-for="deadline in visibleDeadlines"
           :key="deadline.id"
           :style="{
-            left: `${deadline.col * cellWidth}px`,
-            width: `${cellWidth}px`,
+            left: `${deadline.col * cellSize.x}px`,
+            width: `${cellSize.x}px`,
           }"
-          class="pointer-events-none absolute h-full z-20"
+          class="pointer-events-none absolute z-20 h-full"
         >
           <UTooltip
             :text="deadline.label"
@@ -331,7 +343,7 @@ async function handleClick(id: number) {
             />
           </UTooltip>
         </div>
-        <UTooltip
+        <!-- <UTooltip
           text="Holiday"
           :content="{ side: 'top' }"
           :ui="{ content: 'text-sm' }"
@@ -339,12 +351,12 @@ async function handleClick(id: number) {
         >
        <div
         :style="{
-          left: `${10 * cellWidth}px`,
-          width: `${10 * cellWidth}px`,
+          left: `${10 * cellSize.x}px`,
+          width: `${10 * cellSize.x}px`,
         }"
         class="absolute -bottom-0.5 bg-primary h-1 cursor-pointer z-10 rounded-full"
       />
-      </UTooltip>
+      </UTooltip> -->
       </div>
     </div>
 
@@ -364,7 +376,7 @@ async function handleClick(id: number) {
             v-model="tasks[row.index]"
             :style="{
               top: `${row.top}px`,
-              height: `${cellHeight}px`,
+              height: `${cellSize.y}px`,
             }"
             class="absolute left-0 w-full"
             @settings-click="({ taskId }) => handleClick(taskId)"
@@ -373,7 +385,7 @@ async function handleClick(id: number) {
             v-else
             :style="{
               top: `${row.top}px`,
-              height: `${cellHeight}px`,
+              height: `${cellSize.y}px`,
             }"
             class="absolute left-0 w-full border-b border-default"
           />
@@ -397,13 +409,13 @@ async function handleClick(id: number) {
         <defs>
           <pattern
             id="grid-pattern"
-            :height="cellHeight"
-            :width="cellWidth"
+            :height="cellSize.y"
+            :width="cellSize.x"
             patternUnits="userSpaceOnUse"
           >
-            <rect :height="cellHeight" :width="cellWidth" fill="transparent" />
+            <rect :height="cellSize.y" :width="cellSize.x" fill="transparent" />
             <path
-              :d="`M ${cellWidth} 0 L 0 0 0 ${cellHeight}`"
+              :d="`M ${cellSize.x} 0 L 0 0 0 ${cellSize.y}`"
               fill="none"
               stroke="var(--ui-border)"
               stroke-width="1"
@@ -415,7 +427,7 @@ async function handleClick(id: number) {
         <g
           v-for="deadline in visibleDeadlines"
           :key="`line-${deadline.id}`"
-          :transform="`translate(${deadline.col * cellWidth}, 0)`"
+          :transform="`translate(${deadline.col * cellSize.x}, 0)`"
         >
           <line
             y1="0"
@@ -433,26 +445,44 @@ async function handleClick(id: number) {
           width: `${totalWidth}px`,
           height: `${totalHeight}px`,
         }"
-        class="absolute z-20 pointer-events-none"
+        class="pointer-events-none absolute z-20"
       >
         <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
           v-for="task in visibleTasks"
           :key="task.id"
-          class="absolute pointer-events-auto"
+          class="pointer-events-auto absolute z-20"
           :style="{
-            left: `${task.col * cellWidth}px`,
-            top: `${task.row * cellHeight}px`,
-            width: `${task.width * cellWidth}px`,
-            height: `${cellHeight}px`,
+            left: `${task.col * cellSize.x}px`,
+            top: `${task.row * cellSize.y}px`,
+            width: `${task.width * cellSize.x}px`,
+            height: `${cellSize.y}px`,
           }"
-          :pixels-width="cellWidth"
+          :pixels-width="cellSize.x"
           :task="task"
           @update-dates="({ startDate, endDate }) => updateTaskDates(task.id, startDate, endDate)"
           @popover-clicked="({ taskId }) => handleClick(taskId)"
         />
+
+        <!-- Cell highlight -->
+        <div
+          v-if="hoveredCell && cellHighlight.col"
+          class="pointer-events-auto absolute z-0 h-full bg-accented/10"
+          :style="{
+            left: `${hoveredCell.col * cellSize.x}px`,
+            width: `${cellSize.x}px`,
+          }"
+        />
+        <div
+          v-if="hoveredCell && cellHighlight.row"
+          class="pointer-events-auto absolute z-0 w-full bg-accented/10"
+          :style="{
+            top: `${hoveredCell.row * cellSize.y}px`,
+            height: `${cellSize.y}px`,
+          }"
+        />
       </div>
-      <div
+      <!-- <div
         :style="{
           width: `${totalWidth}px`,
           height: `${totalHeight}px`,
@@ -462,20 +492,20 @@ async function handleClick(id: number) {
           <div
           class="absolute bg-primary/10 h-full border-x-primary pointer-events-auto"
           :style="{
-            left: `${10 * cellWidth}px`,
-            top: `${0 * cellHeight}px`,
-            width: `${10 * cellWidth}px`,
+            left: `${10 * cellSize.x}px`,
+            top: `${0 * cellSize.y}px`,
+            width: `${10 * cellSize.x}px`,
           }"/>
           
           <div
           v-for="i in [0,7,14]"
           class="absolute bg-accented/10 h-full border-x-primary pointer-events-auto"
           :style="{
-            left: `${(20 + i)* cellWidth}px`,
-            top: `${0 * cellHeight}px`,
-            width: `${3 * cellWidth}px`,
+            left: `${(20 + i)* cellSize.x}px`,
+            top: `${0 * cellSize.y}px`,
+            width: `${3 * cellSize.x}px`,
           }"/>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

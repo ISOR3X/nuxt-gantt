@@ -2,20 +2,6 @@ import { CalendarDate } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
 import { Temporal } from "temporal-polyfill";
 
-export function isBetween(
-  start: Temporal.PlainDate,
-  end: Temporal.PlainDate,
-  current: Temporal.PlainDate,
-) {
-  return (
-    Temporal.PlainDate.compare(current, start) >= 0 && Temporal.PlainDate.compare(current, end) <= 0
-  );
-}
-
-export function daysBetween(date1: Temporal.PlainDate, date2: Temporal.PlainDate): number {
-  return Math.abs(date1.until(date2).days);
-}
-
 export function colToDate(startDate: Temporal.PlainDate, col: number): Temporal.PlainDate {
   return startDate.add({ days: col });
 }
@@ -28,6 +14,30 @@ export function formatDurationInDays(duration: Temporal.Duration): string {
   const d = duration.days;
   const suffix = d == 1 ? "day" : "days";
   return `${d} ${suffix}`;
+}
+
+// Format the date for display in the header
+export function formatColumnHeader(date: Temporal.PlainDate): string | undefined {
+  if (date.dayOfWeek !== 1) return;
+
+  const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
+
+  const formatted = date.toLocaleString("en", {
+    month: "short",
+    day: "numeric",
+    ...(isFirstFullWeekOfYear && date.dayOfWeek == 1 ? { year: "numeric" } : {}),
+  });
+
+  return formatted;
+}
+
+export function formatColumnDate(date: Temporal.PlainDate): string {
+  const formatted = date.toLocaleString("en", {
+    month: "short",
+    day: "numeric",
+    weekday: "short",
+  });
+  return formatted;
 }
 
 // Workaround until Temporal is in Reka UI.

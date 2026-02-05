@@ -42,3 +42,8 @@ export interface Project extends Omit<
   tasks: Task[];
   deadlines: Deadline[];
 }
+
+export interface Vec2 {
+  x: number;
+  y: number;
+}
