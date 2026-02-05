@@ -8,17 +8,17 @@ import {
 import { ref, useTemplateRef } from "vue";
 import { saveProject as _saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
-import { Deadline, Project } from "../utils/types.ts";
+import { Deadline, Project, Vec2 } from "../utils/types.ts";
 import { DropdownMenuItem } from "@nuxt/ui";
 
-const cellWidth = ref(30);
-const cellHeight = ref(30);
+const cellSize = ref<Vec2>({ x: 10, y: 18 });
+const showControls = ref(false);
 
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
-const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
-const endDate = Temporal.Now.plainDateISO().add({ months: 3 });
+const startDate = Temporal.PlainDate.from("2026-02-02");
+const endDate = Temporal.PlainDate.from("2026-07-03");
 
 function generateRandomDeadlinesWithToday(
   count: number,
@@ -40,7 +40,7 @@ const project = ref<Project>({
   label: "sample-project",
   startDate: startDate,
   endDate: endDate,
-  tasks: generateRandomTasks(200, [startDate, endDate]),
+  tasks: generateRandomTasks(50, [startDate, endDate]),
   deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate]),
 });
 
@@ -148,16 +148,16 @@ const items = ref<DropdownMenuItem[][]>([
 </script>
 
 <template>
-  <div class="h-full p-4">
+  <div class="h-full">
     <GanttChart
       ref="ganttChart"
       v-model:tasks="project.tasks"
       v-model:deadlines="project.deadlines"
-      class="h-full"
+      class="h-full bg-default"
+      id="export"
       :start-date="project.startDate"
       :end-date="project.endDate"
-      :cell-width
-      :cell-height
+      :cell-size
       :dropdown-items="items"
     >
       <template #header>
@@ -166,13 +166,14 @@ const items = ref<DropdownMenuItem[][]>([
     </GanttChart>
   </div>
   <div
+    v-if="showControls"
     class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
   >
     <UFormField label="Cell width (px)" orientation="horizontal">
-      <UInput v-model.number="cellWidth" max="200" min="20" type="number" />
+      <UInput v-model.number="cellSize.x" max="200" min="0" type="number" />
     </UFormField>
     <UFormField label="Cell height (px)" orientation="horizontal">
-      <UInput v-model.number="cellHeight" max="200" min="20" type="number" />
+      <UInput v-model.number="cellSize.y" max="200" min="0" type="number" />
     </UFormField>
     <UButton label="scroll to date" @click="testScrollTo()" />
     <UButton label="add task" @click="addTask()" />

@@ -9,10 +9,10 @@ import { useMemoize } from "@vueuse/core";
 import { useTaskEditor } from "../composables/gantt.ts";
 import ULabel from "./ULabel.vue";
 
-type CellHighlight = {row: boolean, col: boolean}
+type CellHighlight = { row: boolean; col: boolean };
 export interface GanttChartProps {
   cellSize?: Vec2;
-  cellHighlight?: CellHighlight,
+  cellHighlight?: CellHighlight;
   startDate?: Temporal.PlainDate;
   endDate?: Temporal.PlainDate;
   dropdownItems?: DropdownMenuItem[];
@@ -25,7 +25,7 @@ import GanttBar from "./GanttBar.vue";
 
 const {
   cellSize = { x: 30, y: 30 },
-  cellHighlight = {row: false, col: false},
+  cellHighlight = { row: false, col: false },
   startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();
@@ -272,7 +272,7 @@ function handleMouseMove(event: MouseEvent) {
 
 <template>
   <div
-    class="grid min-h-0 rounded-md border border-muted"
+    class="grid min-h-0 border border-muted"
     :style="{
       gridTemplateColumns: `${HEADERWIDTH}px 1fr`,
       gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
@@ -338,7 +338,7 @@ function handleMouseMove(event: MouseEvent) {
             :delay-duration="0"
           >
             <div
-              class="pointer-events-auto absolute -bottom-1.5 -left-1.5 flex size-3 cursor-pointer items-center justify-center rounded-full"
+              class="pointer-events-auto absolute -bottom-1 -left-1 flex size-2 cursor-pointer items-center justify-center rounded-full"
               :class="[deadline.id == -1 ? 'bg-error' : 'bg-primary']"
             />
           </UTooltip>
