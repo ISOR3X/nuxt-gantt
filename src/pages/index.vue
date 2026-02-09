@@ -8,11 +8,10 @@ import {
 import { ref, useTemplateRef } from "vue";
 import { saveProject as _saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
-import { Deadline, Project } from "../utils/types.ts";
+import { Deadline, Project, Vec2 } from "../utils/types.ts";
 import { DropdownMenuItem } from "@nuxt/ui";
 
-const cellWidth = ref(30);
-const cellHeight = ref(30);
+const cellSize = ref<Vec2>({x: 30, y:30})
 
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
@@ -156,8 +155,7 @@ const items = ref<DropdownMenuItem[][]>([
       class="h-full"
       :start-date="project.startDate"
       :end-date="project.endDate"
-      :cell-width
-      :cell-height
+      :cell-size
       :dropdown-items="items"
     >
       <template #header>
@@ -169,10 +167,10 @@ const items = ref<DropdownMenuItem[][]>([
     class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
   >
     <UFormField label="Cell width (px)" orientation="horizontal">
-      <UInput v-model.number="cellWidth" max="200" min="20" type="number" />
+      <UInput v-model.number="cellSize.x" max="200" min="20" type="number" />
     </UFormField>
     <UFormField label="Cell height (px)" orientation="horizontal">
-      <UInput v-model.number="cellHeight" max="200" min="20" type="number" />
+      <UInput v-model.number="cellSize.y" max="200" min="20" type="number" />
     </UFormField>
     <UButton label="scroll to date" @click="testScrollTo()" />
     <UButton label="add task" @click="addTask()" />

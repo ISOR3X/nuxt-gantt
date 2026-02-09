@@ -1,10 +1,10 @@
 import { Temporal } from "temporal-polyfill";
 
 // Finish to start, finish to finish, start to finish and start to start.
-export type TaskDependencyType = "FS" | "FF" | "SF" | "SS"
+export type TaskDependencyType = "FS" | "FF" | "SF" | "SS";
 
 export interface TaskDependency {
-  to: Task;
+  toId: number;
   type: TaskDependencyType;
 }
 
@@ -14,7 +14,7 @@ export interface PersistedTask {
   progress: number;
   startDate: string;
   endDate: string;
-  dependencies?: string[]
+  dependencies?: string[];
 }
 
 export interface Task extends Omit<PersistedTask, "startDate" | "endDate" | "dependencies"> {

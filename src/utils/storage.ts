@@ -1,5 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
+import { parseDependencyString, serializeDependency } from "./arrows";
 import { dateToCol } from "./temporal";
 import { Project, PersistedProject } from "./types";
 
@@ -14,6 +15,7 @@ export function serializeProject(project: Project): PersistedProject {
       progress: task.progress,
       startDate: task.startDate.toString(),
       endDate: task.endDate.toString(),
+      dependencies: task.dependencies?.map(serializeDependency),
     })),
     deadlines: project.deadlines.map((deadline) => ({
       id: deadline.id,
@@ -34,6 +36,11 @@ export function deserializeProject(persisted: PersistedProject): Project {
     tasks: persisted.tasks.map((s_task, index) => {
       const _startDate = Temporal.PlainDate.from(s_task.startDate);
       const _endDate = Temporal.PlainDate.from(s_task.endDate);
+      // Parse persisted dependency strings (e.g. "11FS") into TaskDependency objects
+      const dependencies = s_task.dependencies
+        ?.map(parseDependencyString)
+        .filter((d) => d !== null);
+
       return {
         id: s_task.id,
         label: s_task.label,
@@ -44,6 +51,7 @@ export function deserializeProject(persisted: PersistedProject): Project {
         row: index,
         col: dateToCol(startDate, _startDate),
         width: _startDate.until(_endDate).days,
+        dependencies: dependencies && dependencies.length > 0 ? dependencies : undefined,
       };
     }),
     deadlines: persisted.deadlines.map((deadline) => {

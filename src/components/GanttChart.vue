@@ -3,6 +3,7 @@ import { DropdownMenuItem } from "@nuxt/ui";
 import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
 import { colToDate, formatColumnDate, formatColumnHeader } from "../utils/temporal.ts";
+import { computeVisibleArrows, type ArrowBBox, type GanttArrow } from "../utils/arrows.ts";
 import { Deadline, Task, Vec2 } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
@@ -34,6 +35,13 @@ const tasks = defineModel<Task[]>("tasks", { required: true });
 const deadlines = defineModel<Deadline[]>("deadlines", { required: true });
 
 const { editTask } = useTaskEditor(tasks);
+
+// O(1) task lookup map for dependency arrow resolution
+const taskMap = computed(() => {
+  const map = new Map<number, Task>();
+  for (const task of tasks.value) map.set(task.id, task);
+  return map;
+});
 
 const HEADERHEIGHT = 40; // Height of the header in pixels
 const HEADERWIDTH = 240; // Width of the header in pixels
@@ -89,6 +97,25 @@ const getDeadlineLayout = useMemoize((_taskId: number, dateStr: string) => {
   return {
     col: startDate.until(deadlineDate).days,
   };
+});
+
+// Visible viewport bounds in virtual (scroll) coordinates for arrow virtualization
+const viewportBBox = computed<ArrowBBox>(() => ({
+  left: scrollLeft.value,
+  top: scrollTop.value,
+  right: scrollLeft.value + viewportWidth.value,
+  bottom: scrollTop.value + viewportHeight.value,
+}));
+
+// Compute visible dependency arrows (virtualized via bounding box intersection)
+const visibleArrows = computed<GanttArrow[]>(() => {
+  return computeVisibleArrows(
+    tasks.value,
+    taskMap.value,
+    getTaskLayout,
+    cellSize,
+    viewportBBox.value,
+  );
 });
 
 // Then use tasksWithLayout instead of tasks.value
@@ -437,6 +464,38 @@ function handleMouseMove(event: MouseEvent) {
             :class="[deadline.id == -1 ? 'stroke-error' : 'stroke-primary']"
           />
         </g>
+      </svg>
+
+      <!-- SVG Dependency Arrows Layer -->
+      <svg
+        class="pointer-events-none absolute inset-0 z-10 h-full w-full"
+        :style="{
+          minHeight: `${totalHeight}px`,
+          minWidth: `${totalWidth}px`,
+        }"
+      >
+        <defs>
+          <marker
+            id="arrowhead"
+            markerWidth="8"
+            markerHeight="6"
+            refX="7"
+            refY="3"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M 0 0 L 8 3 L 0 6 Z" fill="var(--ui-text-muted)" />
+          </marker>
+        </defs>
+        <path
+          v-for="arrow in visibleArrows"
+          :key="`${arrow.fromTaskId}-${arrow.toTaskId}-${arrow.type}`"
+          :d="arrow.path"
+          fill="none"
+          stroke="var(--ui-text-muted)"
+          stroke-width="1.5"
+          marker-end="url(#arrowhead)"
+        />
       </svg>
 
       <!-- HTML Div Container for Tasks/Squares -->

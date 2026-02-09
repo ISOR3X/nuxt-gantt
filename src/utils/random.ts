@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Deadline, Task } from "./types";
+import { Deadline, Task, TaskDependency, TaskDependencyType } from "./types";
 
 type DateRange = [Temporal.PlainDate, Temporal.PlainDate]; // [start, end]
 
@@ -47,6 +47,42 @@ export function generateRandomTask(
   };
 }
 
+const DEPENDENCY_TYPES: TaskDependencyType[] = ["FS"];
+
+/**
+ * Generate random dependencies for a task.
+ * Roughly 30% of tasks get 1-2 dependencies pointing to nearby tasks.
+ * Only creates dependencies to tasks with a lower index to avoid circular refs.
+ */
+function generateRandomDependencies(
+  taskIndex: number,
+  dependencyChance: number = 0.1,
+  maxLookback: number = 10,
+): TaskDependency[] | undefined {
+  if (taskIndex === 0 || Math.random() > dependencyChance) return undefined;
+
+  const depCount = randomIntBetween(1, 3); // 1 or 2 dependencies
+  const deps: TaskDependency[] = [];
+  const usedIds = new Set<number>();
+
+  for (let d = 0; d < depCount; d++) {
+    // Pick a random task from the nearby preceding tasks
+    const lookback = Math.min(maxLookback, taskIndex);
+    const targetIndex = taskIndex - randomIntBetween(1, lookback + 1);
+
+    if (targetIndex < 0 || usedIds.has(targetIndex)) continue;
+    usedIds.add(targetIndex);
+
+    // Mostly FS dependencies (70%), rest are random types
+    const type =
+      Math.random() < 0.7 ? "FS" : DEPENDENCY_TYPES[randomIntBetween(0, DEPENDENCY_TYPES.length)];
+
+    deps.push({ toId: targetIndex, type });
+  }
+
+  return deps.length > 0 ? deps : undefined;
+}
+
 export function generateRandomTasks(
   count: number,
   dateRange: DateRange,
@@ -54,7 +90,9 @@ export function generateRandomTasks(
 ): Task[] {
   const tasks: Task[] = [];
   for (let i = 0; i < count; i++) {
-    tasks.push(generateRandomTask(i, dateRange, maxDurationDays));
+    const task = generateRandomTask(i, dateRange, maxDurationDays);
+    task.dependencies = generateRandomDependencies(i);
+    tasks.push(task);
   }
   return tasks;
 }

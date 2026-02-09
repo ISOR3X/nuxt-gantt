@@ -59,6 +59,13 @@ const endDate = computed({
             }}</UButton>
           </UFormField>
         </div>
+        <div v-if="task.dependencies">
+            <UFormField label="Dependencies">
+                <div v-for="d in task.dependencies">
+                    {{d.toId}}: {{d.type}}
+                </div>
+            </UFormField>
+        </div>
       </UForm>
       <p v-else>No task found</p>
     </template>
