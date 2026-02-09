@@ -4,11 +4,13 @@ import { Temporal } from "temporal-polyfill";
 
 import { Weekday } from "../types";
 
+export const ALL_WEEKDAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
+
 /**
  * Convert a column index to a calendar date.
  *
  * When `workDays` is provided (and has fewer than 7 entries), columns only
- * represent workdays — off-days are skipped entirely.
+ * represent workdays - off-days are skipped entirely.
  */
 export function colToDate(
   startDate: Temporal.PlainDate,
@@ -45,7 +47,7 @@ export function colToDate(
  * Convert a calendar date to a column index.
  *
  * When `workDays` is provided (and has fewer than 7 entries), only workdays
- * are counted — off-days don't occupy column space.
+ * are counted - off-days don't occupy column space.
  */
 export function dateToCol(
   startDate: Temporal.PlainDate,

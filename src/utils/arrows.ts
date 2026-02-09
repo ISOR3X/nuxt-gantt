@@ -1,5 +1,6 @@
 import { Task, TaskDependencyType, Vec2 } from "../types";
 
+// TODO: Expose these.
 // Minimum horizontal stub length when exiting/entering a task
 const STUB_LENGTH = 15;
 // Extra padding around the bounding box for viewport intersection checks
@@ -9,7 +10,7 @@ const CORNER_RADIUS = 6;
 // How far the horizontal section should be separated from its source.
 const HORIZONTALL_POSITION_OFFSET = 0;
 // How war the horizontal line should at least be from its source.
-const MIN_SOURCE_DIST = 30 / 2;
+const MIN_SOURCE_DIST = 30 / 2; // TODO: This is currently the same as default cell size.
 
 export interface BBox {
   left: number;
@@ -25,6 +26,8 @@ export interface GanttArrow {
   path: string; // SVG path `d` attribute
   bbox: BBox;
 }
+
+type Segment = { dir: "H" | "V"; len: number };
 
 /**
  * Compute source and target anchor points for a dependency arrow using precomputed layout data.
@@ -78,10 +81,7 @@ export function getAnchors(
   return { source, target };
 }
 
-// --- Path building ---
-
-type Segment = { dir: "H" | "V"; len: number };
-
+// #region Path building
 /**
  * Build an SVG path string from a starting point and a list of alternating H/V segments,
  * inserting rounded arc corners at each direction change.
@@ -101,7 +101,7 @@ function buildPathFromSegments(start: Vec2, segments: Segment[], r: number): str
       const cr = Math.min(r, Math.abs(seg.len), Math.abs(next.len));
 
       if (cr < 1 || seg.len === 0) {
-        // Too small for rounding — straight line
+        // Too small for rounding - straight line
         parts.push(seg.dir === "H" ? `h ${seg.len}` : `v ${seg.len}`);
         continue;
       }
@@ -138,8 +138,8 @@ function buildPathFromSegments(start: Vec2, segments: Segment[], r: number): str
  * Uses rounded corners for a polished look.
  *
  * Routing strategy:
- * 1. Simple case — target is reachable with exit-stub → vertical → enter-stub (3 segments)
- * 2. Complex case — target requires a detour (usually when it has to flip back): exit-stub → V half → H across → V half → enter-stub (5 segments)
+ * 1. Simple case - target is reachable with exit-stub -> vertical -> enter-stub (3 segments)
+ * 2. Complex case - target requires a detour (usually when it has to flip back): exit-stub -> V half -> H across -> V half -> enter-stub (5 segments)
  */
 export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyType): string {
   const r = CORNER_RADIUS;
@@ -154,7 +154,7 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
   const exitSign = exitRight ? 1 : -1;
   const enterSign = enterLeft ? -1 : 1;
 
-  // Same row — straight horizontal line if direction is favorable
+  // Same row - straight horizontal line if direction is favorable
   if (dy === 0) {
     const minDirect = STUB_LENGTH * 2;
     if ((exitRight && dx > minDirect) || (!exitRight && dx < -minDirect)) {
@@ -179,7 +179,7 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
       : midX_afterExit > midX_beforeEnter; // SF: exit point stays right of entry approach
 
   if (simpleRouteWorks && dy !== 0) {
-    // 3-segment route: H → V → H
+    // 3-segment route: H -> V -> H
     // With parameter (0 = at exit stub, 1 = at entry stub):
     const midX = midX_afterExit + (midX_beforeEnter - midX_afterExit) * HORIZONTALL_POSITION_OFFSET;
     return buildPathFromSegments(
@@ -193,7 +193,7 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
     );
   }
 
-  // 5-segment detour route: H stub → V half → H across → V half → H stub
+  // 5-segment detour route: H stub -> V half -> H across -> V half -> H stub
   const sign = Math.sign(dy);
   const absDy = Math.abs(dy);
   const absFirstV = Math.min(
@@ -218,9 +218,9 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
     r,
   );
 }
+// #endregion
 
-// --- Bounding box & visibility ---
-
+// #region: Bounding box & visibility
 /**
  * Compute the bounding box enclosing an arrow given its source and target anchors.
  */
@@ -244,8 +244,7 @@ export function isArrowVisible(bbox: BBox, viewport: BBox): boolean {
     bbox.top > viewport.bottom
   );
 }
-
-// --- Main entry point: compute all visible arrows ---
+// #endregion
 
 /**
  * Compute all visible dependency arrows for the current viewport.
@@ -255,7 +254,7 @@ export function isArrowVisible(bbox: BBox, viewport: BBox): boolean {
  * The bounding-box intersection test ensures only relevant arrows are returned.
  *
  * @param tasks - All tasks in the project
- * @param taskMap - O(1) lookup map: task ID → Task
+ * @param taskMap - O(1) lookup map: task ID -> Task
  * @param getLayout - Function returning precomputed { col, width } for a task
  * @param cellSize - Cell dimensions in pixels
  * @param viewport - Visible viewport bounds in virtual (scroll) coordinates
@@ -300,7 +299,6 @@ export function computeVisibleArrows(
       // Virtualization: skip arrows entirely outside the viewport
       if (!isArrowVisible(bbox, viewport)) continue;
 
-      console.log(fromTask.label);
       const path = buildArrowPath(source, target, dep.type);
 
       arrows.push({

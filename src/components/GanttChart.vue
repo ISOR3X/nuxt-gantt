@@ -1,20 +1,10 @@
 <script lang="ts">
-import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
-import {
-  colToDate,
-  countColumnsInRange,
-  dateToCol,
-  formatColumnDate,
-  formatColumnHeader,
-  weekDaysInRange,
-} from "../utils/temporal.ts";
-import { computeVisibleArrows, type BBox, type GanttArrow } from "../utils/arrows.ts";
+import { ALL_WEEKDAYS, weekDaysInRange } from "../utils/temporal.ts";
 import { Deadline, Task, Vec2, Weekday } from "../types";
 import GanttLabel from "./GanttLabel.vue";
-import { useMemoize } from "@vueuse/core";
-import { useTaskEditor } from "../composables/gantt.ts";
 import ULabel from "./ULabel.vue";
+import { useGanttModal } from "../composables/gantt.ts";
 
 type CellHighlight = { row: boolean; col: boolean };
 
@@ -33,8 +23,11 @@ export interface GanttChartProps {
 </script>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, ref } from "vue";
+import { useScroll, useElementSize } from "@vueuse/core";
 import GanttBar from "./GanttBar.vue";
+import { useGanttGrid } from "../composables/useGanttGrid.ts";
+import { useGanttMouse } from "../composables/useGanttMouse.ts";
 
 const {
   cellSize = { x: 30, y: 30 },
@@ -47,204 +40,65 @@ const {
 const tasks = defineModel<Task[]>("tasks", { required: true });
 const deadlines = defineModel<Deadline[]>("deadlines", { required: true });
 
-const { editTask } = useTaskEditor(tasks);
-
-// When hideDaysOff is true, pass workDays to mapping functions so off-days
-// are skipped. When false, pass undefined so all 7 days map 1:1 to columns.
+// #region: Week-option derived state
 const effectiveWorkDays = computed<Weekday[] | undefined>(() =>
   weekOptions.hideDaysOff ? weekOptions.workDays : undefined,
 );
 
-// Days NOT in workDays — used for the shading pattern when hideDaysOff is false
-const offDays = computed<Weekday[]>(() => {
-  const all: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
-  return all.filter((d) => !weekOptions.workDays.includes(d));
-});
+const offDays = computed<Weekday[]>(() =>
+  ALL_WEEKDAYS.filter((d) => !weekOptions.workDays.includes(d)),
+);
 
-// First workday of the week — used for column header label placement
 const firstWorkDay = computed<Weekday>(() => {
   const sorted = [...weekOptions.workDays].sort((a, b) => a - b);
   return sorted[0];
 });
+// #endregion
 
-// O(1) task lookup map for dependency arrow resolution
-const taskMap = computed(() => {
-  const map = new Map<number, Task>();
-  for (const task of tasks.value) map.set(task.id, task);
-  return map;
-});
-
-const HEADERHEIGHT = 40; // Height of the header in pixels
-const HEADERWIDTH = 240; // Width of the header in pixels
+// #region: Scroll & viewport
+const HEADERHEIGHT = 40;
+const HEADERWIDTH = 240;
 const OVERSCAN = 5;
 
 const scrollContainerRef = ref<HTMLElement | null>(null);
+const { x: scrollLeft, y: scrollTop } = useScroll(scrollContainerRef);
+const { width: viewportWidth, height: viewportHeight } = useElementSize(scrollContainerRef);
+// #endregion
 
-// Get current scroll position for virtualization
-const scrollLeft = ref(0);
-const scrollTop = ref(0);
-
-const viewportWidth = computed(() => scrollContainerRef.value?.clientWidth ?? 0);
-const viewportHeight = computed(() => scrollContainerRef.value?.clientHeight ?? 0);
-const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellSize.y) - 1);
-const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellSize.x) - 1);
-
-// Virtual grid dimensions
-const totalRows = computed(() => {
-  return Math.max(maxRowsOnScreen.value, tasks.value.length);
+// Grid layout & virtualized items
+const {
+  taskMap,
+  totalColumns,
+  totalWidth,
+  totalHeight,
+  visibleTasks,
+  visibleDeadlines,
+  visibleColumns,
+  visibleRows,
+  visibleArrows,
+} = useGanttGrid({
+  tasks,
+  deadlines,
+  startDate,
+  endDate,
+  effectiveWorkDays,
+  firstWorkDay,
+  cellSize,
+  scrollLeft,
+  scrollTop,
+  viewportWidth,
+  viewportHeight,
+  overscan: OVERSCAN,
 });
-const totalColumns = computed(() => {
-  return Math.max(
-    maxColsOnScreen.value,
-    countColumnsInRange(startDate, endDate, effectiveWorkDays.value),
-  );
-});
 
-// Total size in pixels
-const totalWidth = computed(() => totalColumns.value * cellSize.x);
-const totalHeight = computed(() => totalRows.value * cellSize.y);
-
-// Calculate visible column range
-const visibleColumnStart = computed(() => Math.floor(scrollLeft.value / cellSize.x));
-const visibleColumnEnd = computed(() =>
-  Math.ceil((scrollLeft.value + viewportWidth.value) / cellSize.x),
+// Mouse tracking
+const { hoveredCell, handleMouseMove, handleMouseLeave } = useGanttMouse(
+  scrollContainerRef,
+  scrollLeft,
+  scrollTop,
+  cellSize,
 );
 
-// Calculate visible row range
-const visibleRowStart = computed(() => Math.floor(scrollTop.value / cellSize.y));
-const visibleRowEnd = computed(() =>
-  Math.ceil((scrollTop.value + viewportHeight.value) / cellSize.y),
-);
-
-// Cache task layout calculations. useMemoize uses the arguments passed to the function, so taskId is still used.
-const getTaskLayout = useMemoize((_taskId: number, startDateStr: string, endDateStr: string) => {
-  const taskStartDate = Temporal.PlainDate.from(startDateStr);
-  const taskEndDate = Temporal.PlainDate.from(endDateStr);
-  const wd = effectiveWorkDays.value;
-  return {
-    col: dateToCol(startDate, taskStartDate, wd),
-    width: dateToCol(taskStartDate, taskEndDate, wd),
-  };
-});
-
-const getDeadlineLayout = useMemoize((_taskId: number, dateStr: string) => {
-  const deadlineDate = Temporal.PlainDate.from(dateStr);
-  return {
-    col: dateToCol(startDate, deadlineDate, effectiveWorkDays.value),
-  };
-});
-
-// Invalidate memoized layout caches when week options change
-watch(
-  () => weekOptions,
-  () => {
-    getTaskLayout.clear();
-    getDeadlineLayout.clear();
-  },
-  { deep: true },
-);
-
-// Visible viewport bounds in virtual (scroll) coordinates for arrow virtualization
-const viewportBBox = computed<BBox>(() => ({
-  left: scrollLeft.value,
-  top: scrollTop.value,
-  right: scrollLeft.value + viewportWidth.value,
-  bottom: scrollTop.value + viewportHeight.value,
-}));
-
-// Compute visible dependency arrows (virtualized via bounding box intersection)
-const visibleArrows = computed<GanttArrow[]>(() => {
-  return computeVisibleArrows(
-    tasks.value,
-    taskMap.value,
-    getTaskLayout,
-    cellSize,
-    viewportBBox.value,
-  );
-});
-
-// Then use tasksWithLayout instead of tasks.value
-const visibleTasks = computed(() => {
-  const rowStart = Math.max(0, visibleRowStart.value - OVERSCAN);
-  const rowEnd = Math.min(totalRows.value, visibleRowEnd.value + OVERSCAN);
-  const colStart = Math.max(0, visibleColumnStart.value - OVERSCAN);
-  const colEnd = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
-
-  return tasks.value
-    .filter((task: Task) => task.row >= rowStart && task.row <= rowEnd) // Remove tasks outside of viewport (in y-axis) first to reduce unnecessary computations.
-    .map((task: Task) => {
-      // Map task to its position and size in the grid.
-      return {
-        ...task,
-        ...getTaskLayout(task.id, task.startDate.toString(), task.endDate.toString()),
-      };
-    })
-    .filter((task) => {
-      // Remove tasks outside of viewport (in x-axis).
-      const taskColEnd = task.col + task.width;
-      return !(task.col > colEnd || taskColEnd < colStart);
-    });
-});
-
-// Virtualized deadlines - only render those in visible viewport
-const visibleDeadlines = computed(() => {
-  const colStart = visibleColumnStart.value - OVERSCAN;
-  const colEnd = visibleColumnEnd.value + OVERSCAN;
-
-  return deadlines.value
-    .map((deadline) => {
-      return {
-        ...deadline,
-        ...getDeadlineLayout(deadline.id, deadline.date.toString()),
-      };
-    })
-    .filter((deadline) => deadline.col >= colStart && deadline.col <= colEnd);
-});
-
-// Generate column headers based on visible columns
-const visibleColumns = computed(() => {
-  const columns = [];
-  const startCol = Math.max(0, visibleColumnStart.value - OVERSCAN);
-  const endCol = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
-  const wd = effectiveWorkDays.value;
-
-  for (let i = startCol; i < endCol; i++) {
-    const d = colToDate(startDate, i, wd);
-    columns.push({
-      index: i,
-      date: d,
-      left: i * cellSize.x,
-      label: formatColumnHeader(d, firstWorkDay.value),
-    });
-  }
-
-  return columns;
-});
-
-const visibleRows = computed(() => {
-  const rows = [];
-  const startRow = Math.max(0, visibleRowStart.value - OVERSCAN);
-  const endRow = Math.min(totalRows.value, visibleRowEnd.value + OVERSCAN);
-
-  for (let i = startRow; i < endRow; i++) {
-    rows.push({
-      index: i,
-      label: `R-${i}`,
-      top: i * cellSize.y,
-    });
-  }
-  return rows;
-});
-
-// Update scroll position on scroll event
-function handleScroll() {
-  if (scrollContainerRef.value) {
-    scrollLeft.value = scrollContainerRef.value.scrollLeft;
-    scrollTop.value = scrollContainerRef.value.scrollTop;
-  }
-}
-
-// Scroll to a specific column index
 function scrollTo(
   idx: number,
   options?: {
@@ -281,66 +135,32 @@ function scrollTo(
   });
 }
 
-// Set up and cleanup scroll listener
-onMounted(() => {
-  if (scrollContainerRef.value) {
-    scrollContainerRef.value.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial update
-  }
-});
-
-onUnmounted(() => {
-  if (scrollContainerRef.value) {
-    scrollContainerRef.value.removeEventListener("scroll", handleScroll);
-  }
-  getTaskLayout.clear();
-  getDeadlineLayout.clear();
-});
-
-useResizeObserver(scrollContainerRef, () => {
-  handleScroll();
-});
-
 function updateTaskDates(
   taskId: number,
-  startDate: Temporal.PlainDate,
-  endDate: Temporal.PlainDate,
+  newStartDate: Temporal.PlainDate,
+  newEndDate: Temporal.PlainDate,
 ) {
-  const task = tasks.value.find((t) => t.id === taskId);
+  const task = taskMap.value.get(taskId);
   if (task) {
-    task.startDate = startDate;
-    task.endDate = endDate;
+    task.startDate = newStartDate;
+    task.endDate = newEndDate;
   }
 }
-
-// Expose scrollTo function for parent components
-defineExpose({
-  scrollTo,
-});
 
 async function handleClick(id: number) {
-  await editTask(id);
-}
+  const task = taskMap.value.get(id);
+  if (!task) return;
 
-const mousePos = ref<Vec2 | null>({ x: 0, y: 0 });
+  const { openModal } = useGanttModal(task);
+  const updatedTask = await openModal();
 
-const hoveredCell = computed(() => {
-  if (mousePos.value) {
-    const relativeX = mousePos.value.x + scrollLeft.value;
-    const col = Math.floor(relativeX / cellSize.x);
-
-    const relativeY = mousePos.value.y + scrollTop.value;
-    const row = Math.floor(relativeY / cellSize.y);
-
-    return { col: col, row: row };
+  if (updatedTask != null) {
+    const idx = tasks.value.findIndex((t) => t.id === id);
+    if (idx !== -1) tasks.value[idx] = updatedTask;
   }
-});
-
-function handleMouseMove(event: MouseEvent) {
-  const rect = scrollContainerRef.value?.getBoundingClientRect();
-  if (!rect) return;
-  mousePos.value = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 }
+
+defineExpose({ scrollTo });
 </script>
 
 <template>
@@ -351,17 +171,16 @@ function handleMouseMove(event: MouseEvent) {
       gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
     }"
     @mousemove="handleMouseMove"
-    @mouseleave="
-      () => {
-        mousePos = null;
-      }
-    "
+    @mouseleave="handleMouseLeave"
   >
+    <!-- Header corner -->
     <div
       class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted px-1"
     >
       <slot name="header" />
     </div>
+
+    <!-- Column headers -->
     <div class="isolate z-50 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
         :style="{
@@ -387,7 +206,7 @@ function handleMouseMove(event: MouseEvent) {
             v-if="hoveredCell && hoveredCell.col == col.index"
             class="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2"
           >
-            {{ formatColumnDate(col.date) }}
+            {{ col.dateLabel }}
           </ULabel>
         </div>
 
@@ -413,23 +232,10 @@ function handleMouseMove(event: MouseEvent) {
             />
           </UTooltip>
         </div>
-        <!-- <UTooltip
-          text="Holiday"
-          :content="{ side: 'top' }"
-          :ui="{ content: 'text-sm' }"
-          :delay-duration="0"
-        >
-       <div
-        :style="{
-          left: `${10 * cellSize.x}px`,
-          width: `${10 * cellSize.x}px`,
-        }"
-        class="absolute -bottom-0.5 bg-primary h-1 cursor-pointer z-10 rounded-full"
-      />
-      </UTooltip> -->
       </div>
     </div>
 
+    <!-- Row labels (left sidebar) -->
     <div class="row-start-2 overflow-hidden border-r border-muted">
       <div
         :style="{
@@ -438,9 +244,7 @@ function handleMouseMove(event: MouseEvent) {
         }"
         class="relative w-full"
       >
-        <!-- Virtualized row headers (task names) -->
         <template v-for="row in visibleRows" :key="row.index">
-          <!-- TODO: Remove style duplication -->
           <GanttLabel
             v-if="row.index < tasks.length"
             v-model="tasks[row.index]"
@@ -464,6 +268,7 @@ function handleMouseMove(event: MouseEvent) {
       </div>
     </div>
 
+    <!-- Main scrollable grid area -->
     <div
       v-if="tasks"
       ref="scrollContainerRef"
@@ -485,14 +290,12 @@ function handleMouseMove(event: MouseEvent) {
             patternUnits="userSpaceOnUse"
           >
             <rect :height="cellSize.y" :width="cellSize.x" fill="transparent" />
-            <!-- Vertical line -->
             <path
               :d="`M ${cellSize.x} 0 L ${cellSize.x} ${cellSize.y}`"
               fill="none"
               class="stroke-default"
               stroke-width="1"
             />
-            <!-- Horizontal line -->
             <path
               :d="`M 0 ${cellSize.y} L ${cellSize.x} ${cellSize.y}`"
               fill="none"
@@ -561,7 +364,7 @@ function handleMouseMove(event: MouseEvent) {
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M 0 0 L 5 5 L 0 10 Z" class="border-accented" />
+            <path d="M 0 0 L 5 5 L 0 10 Z" class="fill-(--ui-border-accented)" />
           </marker>
         </defs>
         <path
@@ -575,7 +378,7 @@ function handleMouseMove(event: MouseEvent) {
         />
       </svg>
 
-      <!-- HTML Div Container for Tasks/Squares -->
+      <!-- HTML Div Container for Tasks -->
       <div
         :style="{
           width: `${totalWidth}px`,
@@ -583,7 +386,6 @@ function handleMouseMove(event: MouseEvent) {
         }"
         class="pointer-events-none absolute z-20"
       >
-        <!-- Virtualized HTML Div Tasks (one per row) -->
         <GanttBar
           v-for="task in visibleTasks"
           :key="task.id"
@@ -618,30 +420,6 @@ function handleMouseMove(event: MouseEvent) {
           }"
         />
       </div>
-      <!-- <div
-        :style="{
-          width: `${totalWidth}px`,
-          height: `${totalHeight}px`,
-        }"
-        class="absolute z-10 pointer-events-none"
-      >
-          <div
-          class="absolute bg-primary/10 h-full border-x-primary pointer-events-auto"
-          :style="{
-            left: `${10 * cellSize.x}px`,
-            top: `${0 * cellSize.y}px`,
-            width: `${10 * cellSize.x}px`,
-          }"/>
-
-          <div
-          v-for="i in [0,7,14]"
-          class="absolute bg-accented/10 h-full border-x-primary pointer-events-auto"
-          :style="{
-            left: `${(20 + i)* cellSize.x}px`,
-            top: `${0 * cellSize.y}px`,
-            width: `${3 * cellSize.x}px`,
-          }"/>
-      </div> -->
     </div>
   </div>
 </template>

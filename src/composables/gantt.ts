@@ -1,10 +1,7 @@
-import { Ref } from "vue";
-
-import GanttTaskModal from "../components/GanttTaskModal.vue";
 import { Task } from "../types";
 
 const overlay = useOverlay();
-const modal = overlay.create(GanttTaskModal);
+const modal = overlay.create(() => import("../components/GanttTaskModal.vue"));
 
 export function useGanttModal(task: Task) {
   async function openModal() {
@@ -14,28 +11,5 @@ export function useGanttModal(task: Task) {
 
   return {
     openModal,
-  };
-}
-
-// New composable for editing tasks with automatic update
-export function useTaskEditor(tasks: Ref<Task[]>) {
-  async function editTask(id: number) {
-    const idx = tasks.value.findIndex((t) => t.id === id);
-    const task = tasks.value[idx];
-
-    if (idx === -1 || !task) return null;
-
-    const { openModal } = useGanttModal(task);
-    const updatedTask = await openModal();
-
-    if (updatedTask != null) {
-      tasks.value[idx] = updatedTask;
-    }
-
-    return updatedTask;
-  }
-
-  return {
-    editTask,
   };
 }
