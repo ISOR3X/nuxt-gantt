@@ -152,7 +152,7 @@ const items = ref<DropdownMenuItem[][]>([
       ref="ganttChart"
       v-model:tasks="project.tasks"
       v-model:deadlines="project.deadlines"
-      class="h-full"
+      class="rounded-md border border-default"
       :start-date="project.startDate"
       :end-date="project.endDate"
       :cell-size

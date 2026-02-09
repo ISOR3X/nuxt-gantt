@@ -105,8 +105,6 @@ const {
 // Provide shared context to sub-components
 provideGanttContext({
   cellSize,
-  totalWidth,
-  totalHeight,
 });
 
 // Mouse tracking
@@ -182,64 +180,60 @@ defineExpose({ scrollTo });
 
 <template>
   <div
+    class="relative isolate grid h-full overflow-y-scroll"
     ref="scrollContainerRef"
-    class="min-h-0 overflow-auto rounded-md border border-muted"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
+    :style="{
+      gridTemplateColumns: `${HEADERWIDTH}px ${totalWidth}px`,
+      gridTemplateRows: `${HEADERHEIGHT}px ${totalHeight}px`,
+    }"
   >
     <div
-      class="grid"
-      :style="{
-        gridTemplateColumns: `${HEADERWIDTH}px ${totalWidth}px`,
-        gridTemplateRows: `${HEADERHEIGHT}px ${totalHeight}px`,
-      }"
+      class="sticky-left sticky-top z-20 flex items-center justify-between border-r border-b border-muted bg-default px-1"
     >
-      <!-- Corner: sticks to top-left -->
-      <div
-        class="sticky top-0 left-0 z-50 flex items-center justify-between border-r border-b border-muted bg-default px-1"
-        :style="{ width: `${HEADERWIDTH}px`, height: `${HEADERHEIGHT}px` }"
-      >
-        <slot name="header" />
-      </div>
-
-      <!-- Column headers: stick to top, scroll horizontally with content -->
-      <GanttColumnHeader
-        class="sticky top-0 z-40 bg-default"
-        :visible-columns="visibleColumns"
+      <slot name="header" />
+    </div>
+    <GanttColumnHeader
+      class="sticky-top z-10"
+      :visible-columns="visibleColumns"
+      :visible-deadlines="visibleDeadlines"
+      :hovered-col="hoveredCell?.col"
+    />
+    <GanttRowLabels
+      class="sticky-left z-10"
+      v-model:tasks="tasks"
+      :visible-rows="visibleRows"
+      :hovered-row="hoveredCell?.row"
+      @settings-click="({ taskId }) => handleClick(taskId)"
+    />
+    <div class="relative isolate">
+      <GanttGridBackground
+        :start-date="startDate"
+        :off-days="offDays"
+        :hide-days-off="weekOptions.hideDaysOff"
         :visible-deadlines="visibleDeadlines"
-        :hovered-col="hoveredCell?.col"
       />
-
-      <!-- Row labels: stick to left, scroll vertically with content -->
-      <GanttRowLabels
-        class="sticky left-0 z-30 bg-default"
-        v-model:tasks="tasks"
-        :visible-rows="visibleRows"
-        :hovered-row="hoveredCell?.row"
-        @settings-click="({ taskId }) => handleClick(taskId)"
+      <GanttArrowLayer :visible-arrows="visibleArrows" />
+      <GanttTaskLayer
+        :visible-tasks="visibleTasks"
+        :hovered-cell="hoveredCell"
+        :cell-highlight="cellHighlight"
+        @update-dates="(taskId, startDate, endDate) => updateTaskDates(taskId, startDate, endDate)"
+        @task-click="(taskId) => handleClick(taskId)"
       />
-
-      <!-- Grid content: scrolls normally in both directions -->
-      <div class="relative">
-        <GanttGridBackground
-          :start-date="startDate"
-          :off-days="offDays"
-          :hide-days-off="weekOptions.hideDaysOff"
-          :visible-deadlines="visibleDeadlines"
-        />
-
-        <GanttArrowLayer :visible-arrows="visibleArrows" />
-
-        <GanttTaskLayer
-          :visible-tasks="visibleTasks"
-          :hovered-cell="hoveredCell"
-          :cell-highlight="cellHighlight"
-          @update-dates="
-            (taskId, startDate, endDate) => updateTaskDates(taskId, startDate, endDate)
-          "
-          @task-click="(taskId) => handleClick(taskId)"
-        />
-      </div>
     </div>
   </div>
 </template>
+
+<style>
+.sticky-top {
+  position: sticky;
+  top: 0;
+}
+
+.sticky-left {
+  position: sticky;
+  left: 0;
+}
+</style>

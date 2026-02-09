@@ -16,11 +16,11 @@ const props = defineProps<{
   hoveredCol: number | undefined;
 }>();
 
-const { cellSize, totalWidth } = useGanttContext();
+const { cellSize } = useGanttContext();
 </script>
 
 <template>
-  <div class="relative border-b border-muted" :style="{ width: `${totalWidth}px` }">
+  <div class="relative border-b border-muted bg-default">
     <!-- Virtualized column headers -->
     <div
       v-for="col in visibleColumns"

@@ -1,22 +1,13 @@
 <script lang="ts" setup>
-import { useGanttContext } from "../composables/gantt.ts";
 import type { GanttArrow } from "../utils/arrows.ts";
 
 defineProps<{
   visibleArrows: GanttArrow[];
 }>();
-
-const { totalWidth, totalHeight } = useGanttContext();
 </script>
 
 <template>
-  <svg
-    class="pointer-events-none absolute inset-0 z-10 h-full w-full"
-    :style="{
-      minHeight: `${totalHeight}px`,
-      minWidth: `${totalWidth}px`,
-    }"
-  >
+  <svg class="pointer-events-none absolute inset-0 z-10 h-full w-full">
     <defs>
       <marker
         id="arrowhead"

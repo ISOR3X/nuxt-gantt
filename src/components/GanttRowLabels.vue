@@ -13,11 +13,11 @@ const emit = defineEmits<{
   settingsClick: [{ taskId: number }];
 }>();
 
-const { cellSize, totalHeight } = useGanttContext();
+const { cellSize } = useGanttContext();
 </script>
 
 <template>
-  <div class="relative border-r border-muted" :style="{ height: `${totalHeight}px` }">
+  <div class="relative border-r border-muted bg-default">
     <template v-for="row in visibleRows" :key="row.index">
       <div
         v-if="row.index < tasks.length"

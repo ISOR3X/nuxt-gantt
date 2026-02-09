@@ -1,4 +1,4 @@
-import { inject, InjectionKey, provide, Ref } from "vue";
+import { inject, InjectionKey, provide } from "vue";
 
 import GanttTaskModal from "../components/GanttTaskModal.vue";
 import { Task } from "../types";
@@ -21,8 +21,6 @@ export function useGanttModal(task: Task) {
 // #region context
 export interface GanttContext {
   cellSize: Vec2;
-  totalWidth: Ref<number>;
-  totalHeight: Ref<number>;
 }
 
 export const GANTT_CONTEXT_KEY: InjectionKey<GanttContext> = Symbol("gantt-context");

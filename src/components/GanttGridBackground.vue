@@ -11,17 +11,11 @@ const props = defineProps<{
   visibleDeadlines: (Deadline & { col: number })[];
 }>();
 
-const { cellSize, totalWidth, totalHeight } = useGanttContext();
+const { cellSize } = useGanttContext();
 </script>
 
 <template>
-  <svg
-    class="pointer-events-none absolute inset-0 z-0 h-full w-full"
-    :style="{
-      minHeight: `${totalHeight}px`,
-      minWidth: `${totalWidth}px`,
-    }"
-  >
+  <svg class="pointer-events-none absolute inset-0 z-0 h-full w-full">
     <defs>
       <pattern
         id="grid-pattern"

@@ -18,17 +18,11 @@ const emit = defineEmits<{
   taskClick: [taskId: number];
 }>();
 
-const { cellSize, totalWidth, totalHeight } = useGanttContext();
+const { cellSize } = useGanttContext();
 </script>
 
 <template>
-  <div
-    :style="{
-      width: `${totalWidth}px`,
-      height: `${totalHeight}px`,
-    }"
-    class="pointer-events-none absolute z-20"
-  >
+  <div class="pointer-events-none absolute z-20">
     <GanttBar
       v-for="task in visibleTasks"
       :key="task.id"
