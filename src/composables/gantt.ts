@@ -1,7 +1,11 @@
+import { inject, InjectionKey, provide, Ref } from "vue";
+
+import GanttTaskModal from "../components/GanttTaskModal.vue";
 import { Task } from "../types";
+import { Vec2 } from "../types";
 
 const overlay = useOverlay();
-const modal = overlay.create(() => import("../components/GanttTaskModal.vue"));
+const modal = overlay.create(GanttTaskModal);
 
 export function useGanttModal(task: Task) {
   async function openModal() {
@@ -13,3 +17,27 @@ export function useGanttModal(task: Task) {
     openModal,
   };
 }
+
+// #region context
+export interface GanttContext {
+  cellSize: Vec2;
+  totalWidth: Ref<number>;
+  totalHeight: Ref<number>;
+  scrollLeft: Ref<number>;
+  scrollTop: Ref<number>;
+}
+
+export const GANTT_CONTEXT_KEY: InjectionKey<GanttContext> = Symbol("gantt-context");
+
+export function provideGanttContext(ctx: GanttContext) {
+  provide(GANTT_CONTEXT_KEY, ctx);
+}
+
+export function useGanttContext(): GanttContext {
+  const ctx = inject(GANTT_CONTEXT_KEY);
+  if (!ctx) {
+    throw new Error("useGanttContext() must be called inside a <GanttChart> component.");
+  }
+  return ctx;
+}
+// #endregion
