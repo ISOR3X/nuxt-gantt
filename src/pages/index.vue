@@ -6,7 +6,7 @@ import {
   generateRandomTasks,
 } from "../utils/random.ts";
 import { ref, useTemplateRef } from "vue";
-import { saveProject as _saveProject, loadProjectFromFile } from "../utils/storage.ts";
+import { loadProjectFromFile, saveProject as _saveProject } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
 import { Deadline, Project, Vec2 } from "../types";
 import { DropdownMenuItem } from "@nuxt/ui";
@@ -43,7 +43,7 @@ const project = ref<Project>({
   deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate]),
 });
 
-// Save tasks to JSON file
+// Save tasks to a JSON file
 function saveProject() {
   try {
     _saveProject(project.value);
@@ -68,8 +68,8 @@ async function handleFileChange(event: Event) {
   }
 
   try {
-    const loadedProject = await loadProjectFromFile(file);
-    project.value = loadedProject;
+    // FIXME: Why isn't min/max dates in header updates on project load?
+    project.value = await loadProjectFromFile(file);
 
     // Reset file input so the same file can be loaded again
     target.value = "";

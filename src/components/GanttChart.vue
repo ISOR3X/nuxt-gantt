@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Temporal } from "temporal-polyfill";
-import { weekDaysInRange } from "../utils/temporal.ts";
+import { ALL_WEEKDAYS, weekDaysInRange } from "../utils/temporal.ts";
 import { Deadline, Task, Vec2, Weekday } from "../types";
 import { useGanttModal } from "../composables/gantt.ts";
 
@@ -48,7 +48,6 @@ const effectiveWorkDays = computed<Weekday[] | undefined>(() =>
   weekOptions.hideDaysOff ? weekOptions.workDays : undefined,
 );
 
-const ALL_WEEKDAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
 const offDays = computed<Weekday[]>(() =>
   ALL_WEEKDAYS.filter((d) => !weekOptions.workDays.includes(d)),
 );
