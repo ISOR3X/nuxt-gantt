@@ -9,10 +9,10 @@ import { useMemoize } from "@vueuse/core";
 import { useTaskEditor } from "../composables/gantt.ts";
 import ULabel from "./ULabel.vue";
 
-type CellHighlight = {row: boolean, col: boolean}
+type CellHighlight = { row: boolean; col: boolean };
 export interface GanttChartProps {
   cellSize?: Vec2;
-  cellHighlight?: CellHighlight,
+  cellHighlight?: CellHighlight;
   startDate?: Temporal.PlainDate;
   endDate?: Temporal.PlainDate;
   dropdownItems?: DropdownMenuItem[];
@@ -25,7 +25,7 @@ import GanttBar from "./GanttBar.vue";
 
 const {
   cellSize = { x: 30, y: 30 },
-  cellHighlight = {row: false, col: false},
+  cellHighlight = { row: false, col: false },
   startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
 } = defineProps<GanttChartProps>();

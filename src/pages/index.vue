@@ -176,7 +176,6 @@ const items = ref<DropdownMenuItem[][]>([
     </UFormField>
     <UButton label="scroll to date" @click="testScrollTo()" />
     <UButton label="add task" @click="addTask()" />
-    <div class="size-6 bg-primary/10 border rounded-full bevel"/>
     <!-- Hidden file input for loading tasks -->
     <input
       ref="fileInput"
