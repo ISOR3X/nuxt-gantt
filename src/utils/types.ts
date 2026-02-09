@@ -1,18 +1,29 @@
 import { Temporal } from "temporal-polyfill";
 
+// Finish to start, finish to finish, start to finish and start to start.
+export type TaskDependencyType = "FS" | "FF" | "SF" | "SS"
+
+export interface TaskDependency {
+  to: Task;
+  type: TaskDependencyType;
+}
+
 export interface PersistedTask {
   id: number;
   label: string;
   progress: number;
   startDate: string;
   endDate: string;
+  dependencies?: string[]
 }
 
-export interface Task extends Omit<PersistedTask, "startDate" | "endDate"> {
+export interface Task extends Omit<PersistedTask, "startDate" | "endDate" | "dependencies"> {
   startDate: Temporal.PlainDate;
   endDate: Temporal.PlainDate;
   // Computed fields
+  // TODO: Rename to outline or something similar to better state where it's used.
   row: number; // What row the task is at. We can't use a simple index because visibleTasks doesn't always contain subsequent tasks.
+  dependencies?: TaskDependency[];
 }
 
 export interface PersistedDeadline {
