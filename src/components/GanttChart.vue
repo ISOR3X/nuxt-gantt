@@ -3,6 +3,8 @@ import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
 import {
   colToDate,
+  countColumnsInRange,
+  dateToCol,
   formatColumnDate,
   formatColumnHeader,
   weekDaysInRange,
@@ -17,7 +19,7 @@ import ULabel from "./ULabel.vue";
 type CellHighlight = { row: boolean; col: boolean };
 
 interface WeekOptions {
-  workDays: Weekday;
+  workDays: Weekday[];
   hideDaysOff: boolean;
 }
 
@@ -31,7 +33,7 @@ export interface GanttChartProps {
 </script>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import GanttBar from "./GanttBar.vue";
 
 const {
@@ -39,13 +41,31 @@ const {
   cellHighlight = { row: false, col: false },
   startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
-  weekOptions = { workDays: weekDaysInRange(1, 7), hideDaysOff: false },
+  weekOptions = { workDays: weekDaysInRange(1, 5), hideDaysOff: false },
 } = defineProps<GanttChartProps>();
 
 const tasks = defineModel<Task[]>("tasks", { required: true });
 const deadlines = defineModel<Deadline[]>("deadlines", { required: true });
 
 const { editTask } = useTaskEditor(tasks);
+
+// When hideDaysOff is true, pass workDays to mapping functions so off-days
+// are skipped. When false, pass undefined so all 7 days map 1:1 to columns.
+const effectiveWorkDays = computed<Weekday[] | undefined>(() =>
+  weekOptions.hideDaysOff ? weekOptions.workDays : undefined,
+);
+
+// Days NOT in workDays — used for the shading pattern when hideDaysOff is false
+const offDays = computed<Weekday[]>(() => {
+  const all: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
+  return all.filter((d) => !weekOptions.workDays.includes(d));
+});
+
+// First workday of the week — used for column header label placement
+const firstWorkDay = computed<Weekday>(() => {
+  const sorted = [...weekOptions.workDays].sort((a, b) => a - b);
+  return sorted[0];
+});
 
 // O(1) task lookup map for dependency arrow resolution
 const taskMap = computed(() => {
@@ -74,7 +94,10 @@ const totalRows = computed(() => {
   return Math.max(maxRowsOnScreen.value, tasks.value.length);
 });
 const totalColumns = computed(() => {
-  return Math.max(maxColsOnScreen.value, startDate.until(endDate).days + 1);
+  return Math.max(
+    maxColsOnScreen.value,
+    countColumnsInRange(startDate, endDate, effectiveWorkDays.value),
+  );
 });
 
 // Total size in pixels
@@ -97,18 +120,29 @@ const visibleRowEnd = computed(() =>
 const getTaskLayout = useMemoize((_taskId: number, startDateStr: string, endDateStr: string) => {
   const taskStartDate = Temporal.PlainDate.from(startDateStr);
   const taskEndDate = Temporal.PlainDate.from(endDateStr);
+  const wd = effectiveWorkDays.value;
   return {
-    col: startDate.until(taskStartDate).days,
-    width: taskStartDate.until(taskEndDate).days,
+    col: dateToCol(startDate, taskStartDate, wd),
+    width: dateToCol(taskStartDate, taskEndDate, wd),
   };
 });
 
 const getDeadlineLayout = useMemoize((_taskId: number, dateStr: string) => {
   const deadlineDate = Temporal.PlainDate.from(dateStr);
   return {
-    col: startDate.until(deadlineDate).days,
+    col: dateToCol(startDate, deadlineDate, effectiveWorkDays.value),
   };
 });
+
+// Invalidate memoized layout caches when week options change
+watch(
+  () => weekOptions,
+  () => {
+    getTaskLayout.clear();
+    getDeadlineLayout.clear();
+  },
+  { deep: true },
+);
 
 // Visible viewport bounds in virtual (scroll) coordinates for arrow virtualization
 const viewportBBox = computed<BBox>(() => ({
@@ -172,14 +206,15 @@ const visibleColumns = computed(() => {
   const columns = [];
   const startCol = Math.max(0, visibleColumnStart.value - OVERSCAN);
   const endCol = Math.min(totalColumns.value, visibleColumnEnd.value + OVERSCAN);
+  const wd = effectiveWorkDays.value;
 
   for (let i = startCol; i < endCol; i++) {
-    const d = colToDate(startDate, i);
+    const d = colToDate(startDate, i, wd);
     columns.push({
       index: i,
       date: d,
       left: i * cellSize.x,
-      label: formatColumnHeader(d),
+      label: formatColumnHeader(d, firstWorkDay.value),
     });
   }
 
@@ -450,15 +485,47 @@ function handleMouseMove(event: MouseEvent) {
             patternUnits="userSpaceOnUse"
           >
             <rect :height="cellSize.y" :width="cellSize.x" fill="transparent" />
+            <!-- Vertical line -->
             <path
-              :d="`M ${cellSize.x} 0 L 0 0 0 ${cellSize.y}`"
+              :d="`M ${cellSize.x} 0 L ${cellSize.x} ${cellSize.y}`"
               fill="none"
-              stroke="var(--ui-border)"
+              class="stroke-default"
+              stroke-width="1"
+            />
+            <!-- Horizontal line -->
+            <path
+              :d="`M 0 ${cellSize.y} L ${cellSize.x} ${cellSize.y}`"
+              fill="none"
+              class="stroke-default"
               stroke-width="1"
             />
           </pattern>
         </defs>
         <rect fill="url(#grid-pattern)" height="100%" width="100%" />
+
+        <!-- Off-day shading pattern (only when days-off are visible) -->
+        <template v-if="!weekOptions.hideDaysOff && offDays.length > 0">
+          <defs>
+            <pattern
+              id="off-days-pattern"
+              :x="-(startDate.dayOfWeek - 1) * cellSize.x"
+              :height="cellSize.y"
+              :width="7 * cellSize.x"
+              patternUnits="userSpaceOnUse"
+            >
+              <rect
+                v-for="day in offDays"
+                :key="day"
+                :x="(day - 1) * cellSize.x"
+                y="0"
+                :width="cellSize.x"
+                :height="cellSize.y"
+                class="fill-default/20"
+              />
+            </pattern>
+          </defs>
+          <rect fill="url(#off-days-pattern)" height="100%" width="100%" />
+        </template>
 
         <!-- Deadline vertical lines -->
         <g
@@ -494,7 +561,7 @@ function handleMouseMove(event: MouseEvent) {
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M 0 0 L 5 5 L 0 10 Z" fill="var(--ui-border-accented)" />
+            <path d="M 0 0 L 5 5 L 0 10 Z" class="border-accented" />
           </marker>
         </defs>
         <path
@@ -502,7 +569,7 @@ function handleMouseMove(event: MouseEvent) {
           :key="`${arrow.fromTaskId}-${arrow.toTaskId}-${arrow.type}`"
           :d="arrow.path"
           fill="none"
-          stroke="var(--ui-border-accented)"
+          class="stroke-(--ui-border-accented)"
           stroke-width="1.5"
           marker-end="url(#arrowhead)"
         />
@@ -565,7 +632,7 @@ function handleMouseMove(event: MouseEvent) {
             top: `${0 * cellSize.y}px`,
             width: `${10 * cellSize.x}px`,
           }"/>
-          
+
           <div
           v-for="i in [0,7,14]"
           class="absolute bg-accented/10 h-full border-x-primary pointer-events-auto"
