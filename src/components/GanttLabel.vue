@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Task } from "../utils/types";
+import { Task } from "../types";
 
 const props = defineProps<{ highlight: boolean }>();
 
@@ -18,7 +18,7 @@ const emit = defineEmits<{
   >
     <UInput
       class="h-full min-w-0 flex-1 truncate py-0.5"
-      :ui="{base: 'truncate'}"
+      :ui="{ base: 'truncate' }"
       size="md"
       variant="ghost"
       v-model="model.label"

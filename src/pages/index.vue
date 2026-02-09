@@ -8,7 +8,7 @@ import {
 import { ref, useTemplateRef } from "vue";
 import { saveProject as _saveProject, loadProjectFromFile } from "../utils/storage.ts";
 import { Temporal } from "temporal-polyfill";
-import { Deadline, Project, Vec2 } from "../utils/types.ts";
+import { Deadline, Project, Vec2 } from "../types";
 import { DropdownMenuItem } from "@nuxt/ui";
 
 const cellSize = ref<Vec2>({ x: 30, y: 30 });
@@ -156,10 +156,12 @@ const items = ref<DropdownMenuItem[][]>([
       :start-date="project.startDate"
       :end-date="project.endDate"
       :cell-size
-      :dropdown-items="items"
     >
       <template #header>
-        <UInput v-model="project.label" variant="ghost" />
+        <UInput v-model="project.label" variant="ghost" class="font-bold" />
+        <UDropdownMenu :items="items" :content="{ align: 'start' }">
+          <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
+        </UDropdownMenu>
       </template>
     </GanttChart>
   </div>

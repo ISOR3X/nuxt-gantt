@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Deadline, Task, TaskDependency, TaskDependencyType } from "./types";
+import { Deadline, Task, TaskDependency, TaskDependencyType } from "../types";
 
 type DateRange = [Temporal.PlainDate, Temporal.PlainDate]; // [start, end]
 

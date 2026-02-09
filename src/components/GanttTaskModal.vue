@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Task } from "../utils/types";
+import { Task } from "../types";
 import UDatePicker from "./UDatePicker.vue";
 import { cloneTask } from "../utils/gantt";
 import { formatDurationInDays } from "../utils/temporal";

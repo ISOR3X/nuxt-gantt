@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Task } from "./types";
+import { Task } from "../types";
 
 export function cloneTask(task: Task): Task {
   return {

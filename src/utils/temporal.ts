@@ -2,6 +2,8 @@ import { CalendarDate } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
 import { Temporal } from "temporal-polyfill";
 
+import { Weekday } from "../types";
+
 export function colToDate(startDate: Temporal.PlainDate, col: number): Temporal.PlainDate {
   return startDate.add({ days: col });
 }
@@ -33,6 +35,9 @@ export function formatColumnHeader(date: Temporal.PlainDate): string | undefined
   return formatted;
 }
 
+/**
+ * Format the date for display in the popover
+ */
 export function formatColumnDate(date: Temporal.PlainDate): string {
   const formatted = date.toLocaleString("en", {
     month: "short",
@@ -42,6 +47,18 @@ export function formatColumnDate(date: Temporal.PlainDate): string {
   return formatted;
 }
 
+export function weekDaysInRange(startWeekDay: Weekday, endWeekDay: Weekday): Weekday[] {
+  const days: Weekday[] = [];
+  let current = startWeekDay;
+
+  while (current !== endWeekDay) {
+    days.push(current);
+    current = ((current % 7) + 1) as Weekday;
+  }
+  days.push(endWeekDay);
+
+  return days;
+}
 // Workaround until Temporal is in Reka UI.
 // REF: https://github.com/unovue/reka-ui/issues/2183
 export function TemporalToIntDate(value: Temporal.PlainDate): CalendarDate {

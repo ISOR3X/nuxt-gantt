@@ -1,22 +1,32 @@
 <script lang="ts">
-import { DropdownMenuItem } from "@nuxt/ui";
 import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
-import { colToDate, formatColumnDate, formatColumnHeader } from "../utils/temporal.ts";
+import {
+  colToDate,
+  formatColumnDate,
+  formatColumnHeader,
+  weekDaysInRange,
+} from "../utils/temporal.ts";
 import { computeVisibleArrows, type BBox, type GanttArrow } from "../utils/arrows.ts";
-import { Deadline, Task, Vec2 } from "../utils/types.ts";
+import { Deadline, Task, Vec2, Weekday } from "../types";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
 import { useTaskEditor } from "../composables/gantt.ts";
 import ULabel from "./ULabel.vue";
 
 type CellHighlight = { row: boolean; col: boolean };
+
+interface WeekOptions {
+  workDays: Weekday;
+  hideDaysOff: boolean;
+}
+
 export interface GanttChartProps {
   cellSize?: Vec2;
   cellHighlight?: CellHighlight;
   startDate?: Temporal.PlainDate;
   endDate?: Temporal.PlainDate;
-  dropdownItems?: DropdownMenuItem[];
+  weekOptions?: WeekOptions;
 }
 </script>
 
@@ -29,6 +39,7 @@ const {
   cellHighlight = { row: false, col: false },
   startDate = Temporal.Now.plainDateISO().subtract({ months: 1 }),
   endDate = Temporal.Now.plainDateISO().add({ years: 1 }),
+  weekOptions = { workDays: weekDaysInRange(1, 7), hideDaysOff: false },
 } = defineProps<GanttChartProps>();
 
 const tasks = defineModel<Task[]>("tasks", { required: true });
@@ -315,9 +326,6 @@ function handleMouseMove(event: MouseEvent) {
       class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted px-1"
     >
       <slot name="header" />
-      <UDropdownMenu v-if="dropdownItems" :items="dropdownItems" :content="{ align: 'start' }">
-        <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
-      </UDropdownMenu>
     </div>
     <div class="isolate z-50 col-start-2 row-start-1 overflow-x-clip border-b border-muted">
       <div
@@ -451,6 +459,7 @@ function handleMouseMove(event: MouseEvent) {
           </pattern>
         </defs>
         <rect fill="url(#grid-pattern)" height="100%" width="100%" />
+
         <!-- Deadline vertical lines -->
         <g
           v-for="deadline in visibleDeadlines"
@@ -485,7 +494,7 @@ function handleMouseMove(event: MouseEvent) {
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M 0 0 L 5 5 L 0 10 Z" fill="var(--ui-text-muted)" />
+            <path d="M 0 0 L 5 5 L 0 10 Z" fill="var(--ui-border-accented)" />
           </marker>
         </defs>
         <path
@@ -493,7 +502,7 @@ function handleMouseMove(event: MouseEvent) {
           :key="`${arrow.fromTaskId}-${arrow.toTaskId}-${arrow.type}`"
           :d="arrow.path"
           fill="none"
-          stroke="var(--ui-text-muted)"
+          stroke="var(--ui-border-accented)"
           stroke-width="1.5"
           marker-end="url(#arrowhead)"
         />

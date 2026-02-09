@@ -1,7 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 
+import { Project, PersistedProject, TaskDependency, TaskDependencyType } from "../types";
+
 import { dateToCol } from "./temporal";
-import { Project, PersistedProject, TaskDependency, TaskDependencyType } from "./types";
 
 /**
  * Parse a persisted dependency string (e.g. "11FS") into a TaskDependency object.

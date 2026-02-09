@@ -1,4 +1,4 @@
-import { Task, TaskDependencyType, Vec2 } from "./types";
+import { Task, TaskDependencyType, Vec2 } from "../types";
 
 // Minimum horizontal stub length when exiting/entering a task
 const STUB_LENGTH = 15;

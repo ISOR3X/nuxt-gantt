@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, StyleValue, useAttrs } from "vue";
-import { Task } from "../utils/types.ts";
+import { Task } from "../types";
 import { Temporal } from "temporal-polyfill";
 import { formatDurationInDays } from "../utils/temporal.ts";
 

@@ -1,8 +1,7 @@
-import { Temporal } from "temporal-polyfill";
 import { Ref } from "vue";
 
 import GanttTaskModal from "../components/GanttTaskModal.vue";
-import { Task } from "../utils/types";
+import { Task } from "../types";
 
 const overlay = useOverlay();
 const modal = overlay.create(GanttTaskModal);
