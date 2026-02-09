@@ -13,10 +13,12 @@ const emit = defineEmits<{
 <template>
   <div
     class="group flex gap-2 border-b border-default px-1 text-sm"
+    :title="model.label"
     :class="{ highlight: highlight }"
   >
     <UInput
       class="h-full min-w-0 flex-1 truncate py-0.5"
+      :ui="{base: 'truncate'}"
       size="md"
       variant="ghost"
       v-model="model.label"
