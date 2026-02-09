@@ -23,8 +23,6 @@ export interface GanttContext {
   cellSize: Vec2;
   totalWidth: Ref<number>;
   totalHeight: Ref<number>;
-  scrollLeft: Ref<number>;
-  scrollTop: Ref<number>;
 }
 
 export const GANTT_CONTEXT_KEY: InjectionKey<GanttContext> = Symbol("gantt-context");

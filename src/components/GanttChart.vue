@@ -43,10 +43,7 @@ const {
 const tasks = defineModel<Task[]>("tasks", { required: true });
 const deadlines = defineModel<Deadline[]>("deadlines", { required: true });
 
-// ---------------------------------------------------------------------------
-// Week-option derived state
-// ---------------------------------------------------------------------------
-
+// #region: week-option derived state
 const effectiveWorkDays = computed<Weekday[] | undefined>(() =>
   weekOptions.hideDaysOff ? weekOptions.workDays : undefined,
 );
@@ -60,11 +57,9 @@ const firstWorkDay = computed<Weekday>(() => {
   const sorted = [...weekOptions.workDays].sort((a, b) => a - b);
   return sorted[0];
 });
+// #endregion
 
-// ---------------------------------------------------------------------------
-// Scroll & viewport (via VueUse)
-// ---------------------------------------------------------------------------
-
+// #region: scroll & viewport (via VueUse)
 const HEADERHEIGHT = 40;
 const HEADERWIDTH = 240;
 const OVERSCAN = 5;
@@ -73,10 +68,15 @@ const scrollContainerRef = ref<HTMLElement | null>(null);
 const { x: scrollLeft, y: scrollTop } = useScroll(scrollContainerRef);
 const { width: viewportWidth, height: viewportHeight } = useElementSize(scrollContainerRef);
 
-// ---------------------------------------------------------------------------
-// Grid layout & virtualized items
-// ---------------------------------------------------------------------------
+// The content viewport is the visible area minus the sticky header dimensions.
+// scrollLeft/scrollTop already map directly to content offsets because the
+// content grid cell starts at (HEADERWIDTH, HEADERHEIGHT) in the scrollable
+// space — so scrolling by N pixels reveals content pixel N.
+const contentViewportWidth = computed(() => Math.max(0, viewportWidth.value - HEADERWIDTH));
+const contentViewportHeight = computed(() => Math.max(0, viewportHeight.value - HEADERHEIGHT));
+// #endregion
 
+// Grid layout & virtualized items
 const {
   taskMap,
   totalColumns,
@@ -97,37 +97,27 @@ const {
   cellSize,
   scrollLeft,
   scrollTop,
-  viewportWidth,
-  viewportHeight,
+  viewportWidth: contentViewportWidth,
+  viewportHeight: contentViewportHeight,
   overscan: OVERSCAN,
 });
 
-// ---------------------------------------------------------------------------
 // Provide shared context to sub-components
-// ---------------------------------------------------------------------------
-
 provideGanttContext({
   cellSize,
   totalWidth,
   totalHeight,
-  scrollLeft,
-  scrollTop,
 });
 
-// ---------------------------------------------------------------------------
 // Mouse tracking
-// ---------------------------------------------------------------------------
-
 const { hoveredCell, handleMouseMove, handleMouseLeave } = useGanttMouse(
   scrollContainerRef,
   scrollLeft,
   scrollTop,
   cellSize,
+  HEADERWIDTH,
+  HEADERHEIGHT,
 );
-
-// ---------------------------------------------------------------------------
-// Actions
-// ---------------------------------------------------------------------------
 
 function scrollTo(
   idx: number,
@@ -146,14 +136,14 @@ function scrollTo(
   let targetScrollLeft = idx * cellSize.x;
 
   if (alignment === "center") {
-    targetScrollLeft -= (viewportWidth.value - cellSize.x) / 2;
+    targetScrollLeft -= (contentViewportWidth.value - cellSize.x) / 2;
   } else if (alignment === "end") {
-    targetScrollLeft -= viewportWidth.value - cellSize.x;
+    targetScrollLeft -= contentViewportWidth.value - cellSize.x;
   }
 
   targetScrollLeft = Math.max(
     0,
-    Math.min(targetScrollLeft, totalWidth.value - viewportWidth.value),
+    Math.min(targetScrollLeft, totalWidth.value - contentViewportWidth.value),
   );
 
   scrollContainerRef.value.scrollTo({
@@ -192,58 +182,64 @@ defineExpose({ scrollTo });
 
 <template>
   <div
-    class="grid min-h-0 rounded-md border border-muted"
-    :style="{
-      gridTemplateColumns: `${HEADERWIDTH}px 1fr`,
-      gridTemplateRows: `${HEADERHEIGHT}px 1fr`,
-    }"
+    ref="scrollContainerRef"
+    class="min-h-0 overflow-auto rounded-md border border-muted"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
   >
-    <!-- Header corner -->
     <div
-      class="col-start-1 row-start-1 flex items-center justify-between border-r border-b border-muted px-1"
+      class="grid"
+      :style="{
+        gridTemplateColumns: `${HEADERWIDTH}px ${totalWidth}px`,
+        gridTemplateRows: `${HEADERHEIGHT}px ${totalHeight}px`,
+      }"
     >
-      <slot name="header" />
-    </div>
+      <!-- Corner: sticks to top-left -->
+      <div
+        class="sticky top-0 left-0 z-50 flex items-center justify-between border-r border-b border-muted bg-default px-1"
+        :style="{ width: `${HEADERWIDTH}px`, height: `${HEADERHEIGHT}px` }"
+      >
+        <slot name="header" />
+      </div>
 
-    <!-- Column headers -->
-    <GanttColumnHeader
-      :visible-columns="visibleColumns"
-      :visible-deadlines="visibleDeadlines"
-      :hovered-col="hoveredCell?.col"
-    />
-
-    <!-- Row labels (left sidebar) -->
-    <GanttRowLabels
-      v-model:tasks="tasks"
-      :visible-rows="visibleRows"
-      :hovered-row="hoveredCell?.row"
-      @settings-click="({ taskId }) => handleClick(taskId)"
-    />
-
-    <!-- Main scrollable grid area -->
-    <div
-      v-if="tasks"
-      ref="scrollContainerRef"
-      class="relative col-start-2 row-start-2 flex-1 overflow-auto"
-    >
-      <GanttGridBackground
-        :start-date="startDate"
-        :off-days="offDays"
-        :hide-days-off="weekOptions.hideDaysOff"
+      <!-- Column headers: stick to top, scroll horizontally with content -->
+      <GanttColumnHeader
+        class="sticky top-0 z-40 bg-default"
+        :visible-columns="visibleColumns"
         :visible-deadlines="visibleDeadlines"
+        :hovered-col="hoveredCell?.col"
       />
 
-      <GanttArrowLayer :visible-arrows="visibleArrows" />
-
-      <GanttTaskLayer
-        :visible-tasks="visibleTasks"
-        :hovered-cell="hoveredCell"
-        :cell-highlight="cellHighlight"
-        @update-dates="(taskId, startDate, endDate) => updateTaskDates(taskId, startDate, endDate)"
-        @task-click="(taskId) => handleClick(taskId)"
+      <!-- Row labels: stick to left, scroll vertically with content -->
+      <GanttRowLabels
+        class="sticky left-0 z-30 bg-default"
+        v-model:tasks="tasks"
+        :visible-rows="visibleRows"
+        :hovered-row="hoveredCell?.row"
+        @settings-click="({ taskId }) => handleClick(taskId)"
       />
+
+      <!-- Grid content: scrolls normally in both directions -->
+      <div class="relative">
+        <GanttGridBackground
+          :start-date="startDate"
+          :off-days="offDays"
+          :hide-days-off="weekOptions.hideDaysOff"
+          :visible-deadlines="visibleDeadlines"
+        />
+
+        <GanttArrowLayer :visible-arrows="visibleArrows" />
+
+        <GanttTaskLayer
+          :visible-tasks="visibleTasks"
+          :hovered-cell="hoveredCell"
+          :cell-highlight="cellHighlight"
+          @update-dates="
+            (taskId, startDate, endDate) => updateTaskDates(taskId, startDate, endDate)
+          "
+          @task-click="(taskId) => handleClick(taskId)"
+        />
+      </div>
     </div>
   </div>
 </template>

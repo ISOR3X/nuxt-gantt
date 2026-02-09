@@ -7,16 +7,18 @@ export function useGanttMouse(
   scrollLeft: Ref<number>,
   scrollTop: Ref<number>,
   cellSize: Vec2,
+  headerWidth: number,
+  headerHeight: number,
 ) {
   const mousePos = ref<Vec2 | null>(null);
 
   const hoveredCell = computed(() => {
     if (!mousePos.value) return undefined;
 
-    const relativeX = mousePos.value.x + scrollLeft.value;
+    const relativeX = mousePos.value.x + scrollLeft.value - headerWidth;
     const col = Math.floor(relativeX / cellSize.x);
 
-    const relativeY = mousePos.value.y + scrollTop.value;
+    const relativeY = mousePos.value.y + scrollTop.value - headerHeight;
     const row = Math.floor(relativeY / cellSize.y);
 
     return { col, row };

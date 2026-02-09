@@ -13,55 +13,47 @@ const emit = defineEmits<{
   settingsClick: [{ taskId: number }];
 }>();
 
-const { cellSize, totalHeight, scrollTop } = useGanttContext();
+const { cellSize, totalHeight } = useGanttContext();
 </script>
 
 <template>
-  <div class="row-start-2 overflow-hidden border-r border-muted">
-    <div
-      :style="{
-        height: `${totalHeight}px`,
-        transform: `translateY(-${scrollTop}px)`,
-      }"
-      class="relative w-full"
-    >
-      <template v-for="row in visibleRows" :key="row.index">
-        <div
-          v-if="row.index < tasks.length"
-          :style="{
-            top: `${row.top}px`,
-            height: `${cellSize.y}px`,
-          }"
-          class="group absolute left-0 flex w-full gap-2 border-b border-default px-1 text-sm"
-          :title="tasks[row.index].label"
-          :class="{ highlight: row.index === hoveredRow }"
-        >
-          <UInput
-            v-model="tasks[row.index].label"
-            class="h-full min-w-0 flex-1 truncate py-0.5"
-            :ui="{ base: 'truncate' }"
-            size="md"
-            variant="ghost"
-          />
-          <UButton
-            icon="i-lucide-settings-2"
-            size="md"
-            variant="ghost"
-            class="hidden shrink-0 group-hover:block"
-            title="Open task configuration"
-            @click="emit('settingsClick', { taskId: tasks[row.index].id })"
-          />
-        </div>
-        <div
-          v-else
-          :style="{
-            top: `${row.top}px`,
-            height: `${cellSize.y}px`,
-          }"
-          class="absolute left-0 w-full border-b border-default"
+  <div class="relative border-r border-muted" :style="{ height: `${totalHeight}px` }">
+    <template v-for="row in visibleRows" :key="row.index">
+      <div
+        v-if="row.index < tasks.length"
+        :style="{
+          top: `${row.top}px`,
+          height: `${cellSize.y}px`,
+        }"
+        class="group absolute left-0 flex w-full gap-2 border-b border-default px-1 text-sm"
+        :title="tasks[row.index].label"
+        :class="{ highlight: row.index === hoveredRow }"
+      >
+        <UInput
+          v-model="tasks[row.index].label"
+          class="h-full min-w-0 flex-1 truncate py-0.5"
+          :ui="{ base: 'truncate' }"
+          size="md"
+          variant="ghost"
         />
-      </template>
-    </div>
+        <UButton
+          icon="i-lucide-settings-2"
+          size="md"
+          variant="ghost"
+          class="hidden shrink-0 group-hover:block"
+          title="Open task configuration"
+          @click="emit('settingsClick', { taskId: tasks[row.index].id })"
+        />
+      </div>
+      <div
+        v-else
+        :style="{
+          top: `${row.top}px`,
+          height: `${cellSize.y}px`,
+        }"
+        class="absolute left-0 w-full border-b border-default"
+      />
+    </template>
   </div>
 </template>
 

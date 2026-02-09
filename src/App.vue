@@ -5,7 +5,7 @@ import AppLogo from "./components/AppLogo.vue";
 <template>
   <Suspense>
     <UApp>
-      <UHeader>
+      <!-- <UHeader>
         <template #left>
           <AppLogo class="h-6 w-auto shrink-0" />
         </template>
@@ -20,10 +20,12 @@ import AppLogo from "./components/AppLogo.vue";
             variant="ghost"
           />
         </template>
-      </UHeader>
-      <UMain class="h-[calc(100vh-var(--ui-header-height))]">
+      </UHeader> -->
+      <!-- <UMain class="h-[calc(100vh-var(--ui-header-height))]"> -->
+      <div class="mx-auto mt-10 h-200 w-200 bg-error/10">
         <RouterView />
-      </UMain>
+      </div>
+      <!-- </UMain> -->
     </UApp>
   </Suspense>
 </template>
