@@ -1,11 +1,13 @@
-import { Task, TaskDependency, TaskDependencyType, Vec2 } from "./types";
+import { Task, TaskDependencyType, Vec2 } from "./types";
 
-export interface ArrowAnchor {
-  x: number;
-  y: number;
-}
+// Minimum horizontal stub length when exiting/entering a task
+const STUB_LENGTH = 20;
+// Extra padding around the bounding box for viewport intersection checks
+const BBOX_PADDING = 12;
+// Corner radius for rounded path bends
+const CORNER_RADIUS = 6;
 
-export interface ArrowBBox {
+export interface BBox {
   left: number;
   top: number;
   right: number;
@@ -17,15 +19,9 @@ export interface GanttArrow {
   toTaskId: number;
   type: TaskDependencyType;
   path: string; // SVG path `d` attribute
-  bbox: ArrowBBox;
+  bbox: BBox;
 }
 
-// Minimum horizontal stub length when exiting/entering a task
-const STUB_LENGTH = 20;
-// Extra padding around the bounding box for viewport intersection checks
-const BBOX_PADDING = 12;
-// Corner radius for rounded path bends
-const CORNER_RADIUS = 6;
 
 /**
  * Compute source and target anchor points for a dependency arrow using precomputed layout data.
@@ -45,7 +41,7 @@ export function getAnchors(
   toRow: number,
   type: TaskDependencyType,
   cellSize: Vec2,
-): { source: ArrowAnchor; target: ArrowAnchor } {
+): { source: Vec2; target: Vec2 } {
   const fromLeftX = fromCol * cellSize.x;
   const fromRightX = (fromCol + fromWidth) * cellSize.x;
   const fromCenterY = fromRow * cellSize.y + cellSize.y / 2;
@@ -54,8 +50,8 @@ export function getAnchors(
   const toRightX = (toCol + toWidth) * cellSize.x;
   const toCenterY = toRow * cellSize.y + cellSize.y / 2;
 
-  let source: ArrowAnchor;
-  let target: ArrowAnchor;
+  let source: Vec2;
+  let target: Vec2;
 
   switch (type) {
     case "FS":
@@ -87,7 +83,7 @@ type Segment = { dir: "H" | "V"; len: number };
  * Build an SVG path string from a starting point and a list of alternating H/V segments,
  * inserting rounded arc corners at each direction change.
  */
-function buildPathFromSegments(start: ArrowAnchor, segments: Segment[], r: number): string {
+function buildPathFromSegments(start: Vec2, segments: Segment[], r: number): string {
   if (segments.length === 0) return `M ${start.x} ${start.y}`;
 
   // Clone segment lengths so we can mutate them when consuming corner radius
@@ -143,8 +139,8 @@ function buildPathFromSegments(start: ArrowAnchor, segments: Segment[], r: numbe
  * 2. Complex case — target requires a detour: exit-stub → V half → H across → V half → enter-stub (5 segments)
  */
 export function buildArrowPath(
-  source: ArrowAnchor,
-  target: ArrowAnchor,
+  source: Vec2,
+  target: Vec2,
   type: TaskDependencyType,
 ): string {
   const r = CORNER_RADIUS;
@@ -221,7 +217,7 @@ export function buildArrowPath(
 /**
  * Compute the bounding box enclosing an arrow given its source and target anchors.
  */
-export function computeArrowBBox(source: ArrowAnchor, target: ArrowAnchor): ArrowBBox {
+export function computeArrowBBox(source: Vec2, target: Vec2): BBox {
   return {
     left: Math.min(source.x, target.x) - BBOX_PADDING,
     top: Math.min(source.y, target.y) - BBOX_PADDING,
@@ -233,7 +229,7 @@ export function computeArrowBBox(source: ArrowAnchor, target: ArrowAnchor): Arro
 /**
  * Check whether an arrow's bounding box intersects with the visible viewport.
  */
-export function isArrowVisible(bbox: ArrowBBox, viewport: ArrowBBox): boolean {
+export function isArrowVisible(bbox: BBox, viewport: BBox): boolean {
   return !(
     bbox.right < viewport.left ||
     bbox.left > viewport.right ||
@@ -262,7 +258,7 @@ export function computeVisibleArrows(
   taskMap: Map<number, Task>,
   getLayout: (taskId: number, startDate: string, endDate: string) => { col: number; width: number },
   cellSize: Vec2,
-  viewport: ArrowBBox,
+  viewport: BBox,
 ): GanttArrow[] {
   const arrows: GanttArrow[] = [];
 
@@ -310,28 +306,4 @@ export function computeVisibleArrows(
   }
 
   return arrows;
-}
-
-// --- Serialization helpers ---
-
-/**
- * Parse a persisted dependency string (e.g. "11FS") into a TaskDependency object.
- * Format: <taskId><type> where type is one of FS, FF, SS, SF.
- */
-export function parseDependencyString(dep: string): TaskDependency | null {
-  const match = dep.match(/^(\d+)(FS|FF|SS|SF)$/);
-  console.log(match)
-  if (!match) return null;
-
-  return {
-    toId: parseInt(match[1], 10),
-    type: match[2] as TaskDependencyType,
-  };
-}
-
-/**
- * Serialize a TaskDependency to the persisted string format (e.g. "11FS").
- */
-export function serializeDependency(dep: TaskDependency): string {
-  return `${dep.toId}${dep.type}`;
 }

@@ -1,9 +1,33 @@
 import { Temporal } from "temporal-polyfill";
 
-import { parseDependencyString, serializeDependency } from "./arrows";
 import { dateToCol } from "./temporal";
-import { Project, PersistedProject } from "./types";
+import { Project, PersistedProject, TaskDependency, TaskDependencyType } from "./types";
 
+/**
+ * Parse a persisted dependency string (e.g. "11FS") into a TaskDependency object.
+ * Format: <taskId><type> where type is one of FS, FF, SS, SF.
+ */
+export function parseDependencyString(dep: string): TaskDependency | null {
+  const match = dep.match(/^(\d+)(FS|FF|SS|SF)$/);
+  console.log(match)
+  if (!match) return null;
+
+  return {
+    toId: parseInt(match[1], 10),
+    type: match[2] as TaskDependencyType,
+  };
+}
+
+/**
+ * Serialize a TaskDependency to the persisted string format (e.g. "11FS").
+ */
+export function serializeDependency(dep: TaskDependency): string {
+  return `${dep.toId}${dep.type}`;
+}
+
+/**
+ * Serialize a Project to a PersistedProject.
+ */
 export function serializeProject(project: Project): PersistedProject {
   return {
     label: project.label,
@@ -25,6 +49,9 @@ export function serializeProject(project: Project): PersistedProject {
   };
 }
 
+/**
+ * Desarialize a PersistedProject (usually parsed straight from JSON) to a Project.
+ */
 export function deserializeProject(persisted: PersistedProject): Project {
   const startDate = Temporal.PlainDate.from(persisted.startDate);
   const endDate = Temporal.PlainDate.from(persisted.endDate);
@@ -68,7 +95,7 @@ export function deserializeProject(persisted: PersistedProject): Project {
 }
 
 /**
- * Save project to a JSON file and trigger download
+ * Save project to a JSON file and trigger download.
  */
 export function saveProject(project: Project): void {
   try {
@@ -90,8 +117,8 @@ export function saveProject(project: Project): void {
 }
 
 /**
- * Load project from a file
- * Returns a promise that resolves with the loaded project
+ * Load project from a file.
+ * @returns A promise that resolves with the loaded project
  */
 export function loadProjectFromFile(file: File): Promise<Project> {
   return new Promise((resolve, reject) => {

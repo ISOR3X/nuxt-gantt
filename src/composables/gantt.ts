@@ -10,17 +10,7 @@ const modal = overlay.create(GanttTaskModal);
 export function useGanttModal(task: Task) {
   async function openModal() {
     const instance = modal.open({ task: task });
-    const result = await instance.result;
-
-    // Ensure dates are PlainDate objects when modal returns
-    if (result && typeof result.startDate === "string") {
-      result.startDate = Temporal.PlainDate.from(result.startDate);
-    }
-    if (result && typeof result.endDate === "string") {
-      result.endDate = Temporal.PlainDate.from(result.endDate);
-    }
-
-    return result;
+    return await instance.result;
   }
 
   return {
@@ -30,8 +20,7 @@ export function useGanttModal(task: Task) {
 
 // New composable for editing tasks with automatic update
 export function useTaskEditor(tasks: Ref<Task[]>) {
-  async function editTask(taskOrId: Task | number) {
-    const id = typeof taskOrId === "number" ? taskOrId : taskOrId.id;
+  async function editTask(id: number) {
     const idx = tasks.value.findIndex((t) => t.id === id);
     const task = tasks.value[idx];
 

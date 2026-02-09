@@ -16,7 +16,9 @@ export function formatDurationInDays(duration: Temporal.Duration): string {
   return `${d} ${suffix}`;
 }
 
-// Format the date for display in the header
+/**
+ * Format the date for display in the header
+ */
 export function formatColumnHeader(date: Temporal.PlainDate): string | undefined {
   if (date.dayOfWeek !== 1) return;
 

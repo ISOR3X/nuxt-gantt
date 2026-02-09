@@ -3,7 +3,7 @@ import { DropdownMenuItem } from "@nuxt/ui";
 import { useResizeObserver } from "@vueuse/core";
 import { Temporal } from "temporal-polyfill";
 import { colToDate, formatColumnDate, formatColumnHeader } from "../utils/temporal.ts";
-import { computeVisibleArrows, type ArrowBBox, type GanttArrow } from "../utils/arrows.ts";
+import { computeVisibleArrows, type BBox, type GanttArrow } from "../utils/arrows.ts";
 import { Deadline, Task, Vec2 } from "../utils/types.ts";
 import GanttLabel from "./GanttLabel.vue";
 import { useMemoize } from "@vueuse/core";
@@ -100,7 +100,7 @@ const getDeadlineLayout = useMemoize((_taskId: number, dateStr: string) => {
 });
 
 // Visible viewport bounds in virtual (scroll) coordinates for arrow virtualization
-const viewportBBox = computed<ArrowBBox>(() => ({
+const viewportBBox = computed<BBox>(() => ({
   left: scrollLeft.value,
   top: scrollTop.value,
   right: scrollLeft.value + viewportWidth.value,
