@@ -11,7 +11,7 @@ import { Temporal } from "temporal-polyfill";
 import { Deadline, Project, Vec2 } from "../utils/types.ts";
 import { DropdownMenuItem } from "@nuxt/ui";
 
-const cellSize = ref<Vec2>({x: 30, y:30})
+const cellSize = ref<Vec2>({ x: 30, y: 30 });
 
 const fileInput = useTemplateRef("fileInput");
 const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");

@@ -22,7 +22,6 @@ export interface GanttArrow {
   bbox: BBox;
 }
 
-
 /**
  * Compute source and target anchor points for a dependency arrow using precomputed layout data.
  *
@@ -138,11 +137,7 @@ function buildPathFromSegments(start: Vec2, segments: Segment[], r: number): str
  * 1. Simple case — target is reachable with exit-stub → vertical → enter-stub (3 segments)
  * 2. Complex case — target requires a detour: exit-stub → V half → H across → V half → enter-stub (5 segments)
  */
-export function buildArrowPath(
-  source: Vec2,
-  target: Vec2,
-  type: TaskDependencyType,
-): string {
+export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyType): string {
   const r = CORNER_RADIUS;
   const dx = target.x - source.x;
   const dy = target.y - source.y;

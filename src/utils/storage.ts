@@ -9,7 +9,7 @@ import { Project, PersistedProject, TaskDependency, TaskDependencyType } from ".
  */
 export function parseDependencyString(dep: string): TaskDependency | null {
   const match = dep.match(/^(\d+)(FS|FF|SS|SF)$/);
-  console.log(match)
+  console.log(match);
   if (!match) return null;
 
   return {
