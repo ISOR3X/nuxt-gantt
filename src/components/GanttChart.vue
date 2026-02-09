@@ -478,13 +478,13 @@ function handleMouseMove(event: MouseEvent) {
           <marker
             id="arrowhead"
             markerWidth="8"
-            markerHeight="6"
-            refX="7"
-            refY="3"
+            markerHeight="10"
+            refX="4.5"
+            refY="5"
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M 0 0 L 8 3 L 0 6 Z" fill="var(--ui-text-muted)" />
+            <path d="M 0 0 L 5 5 L 0 10 Z" fill="var(--ui-text-muted)" />
           </marker>
         </defs>
         <path

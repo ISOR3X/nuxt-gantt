@@ -1,11 +1,15 @@
 import { Task, TaskDependencyType, Vec2 } from "./types";
 
 // Minimum horizontal stub length when exiting/entering a task
-const STUB_LENGTH = 20;
+const STUB_LENGTH = 15;
 // Extra padding around the bounding box for viewport intersection checks
 const BBOX_PADDING = 12;
 // Corner radius for rounded path bends
 const CORNER_RADIUS = 6;
+// How far the horizontal section should be separated from its source.
+const HORIZONTALL_POSITION_OFFSET = 0;
+// How war the horizontal line should at least be from its source.
+const MIN_SOURCE_DIST = 30 / 2;
 
 export interface BBox {
   left: number;
@@ -135,7 +139,7 @@ function buildPathFromSegments(start: Vec2, segments: Segment[], r: number): str
  *
  * Routing strategy:
  * 1. Simple case — target is reachable with exit-stub → vertical → enter-stub (3 segments)
- * 2. Complex case — target requires a detour: exit-stub → V half → H across → V half → enter-stub (5 segments)
+ * 2. Complex case — target requires a detour (usually when it has to flip back): exit-stub → V half → H across → V half → enter-stub (5 segments)
  */
 export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyType): string {
   const r = CORNER_RADIUS;
@@ -176,7 +180,8 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
 
   if (simpleRouteWorks && dy !== 0) {
     // 3-segment route: H → V → H
-    const midX = (midX_afterExit + midX_beforeEnter) / 2;
+    // With parameter (0 = at exit stub, 1 = at entry stub):
+    const midX = midX_afterExit + (midX_beforeEnter - midX_afterExit) * HORIZONTALL_POSITION_OFFSET;
     return buildPathFromSegments(
       source,
       [
@@ -189,7 +194,14 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
   }
 
   // 5-segment detour route: H stub → V half → H across → V half → H stub
-  const halfY = dy / 2;
+  const sign = Math.sign(dy);
+  const absDy = Math.abs(dy);
+  const absFirstV = Math.min(
+    Math.max(absDy * HORIZONTALL_POSITION_OFFSET, MIN_SOURCE_DIST),
+    absDy - MIN_SOURCE_DIST,
+  );
+  const firstV = absFirstV * sign;
+  const secondV = dy - firstV;
 
   // If dy is 0 (same row, but simple route didn't work), offset vertically to route around
   const detourV = dy === 0 ? STUB_LENGTH * 2 : 0;
@@ -198,9 +210,9 @@ export function buildArrowPath(source: Vec2, target: Vec2, type: TaskDependencyT
     source,
     [
       { dir: "H", len: stubOut },
-      { dir: "V", len: halfY + detourV },
+      { dir: "V", len: firstV + detourV },
       { dir: "H", len: target.x + stubIn - (source.x + stubOut) },
-      { dir: "V", len: halfY - detourV },
+      { dir: "V", len: secondV - detourV },
       { dir: "H", len: -stubIn },
     ],
     r,
@@ -288,6 +300,7 @@ export function computeVisibleArrows(
       // Virtualization: skip arrows entirely outside the viewport
       if (!isArrowVisible(bbox, viewport)) continue;
 
+      console.log(fromTask.label);
       const path = buildArrowPath(source, target, dep.type);
 
       arrows.push({
