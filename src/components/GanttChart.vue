@@ -406,6 +406,7 @@ function handleMouseMove(event: MouseEvent) {
               height: `${cellSize.y}px`,
             }"
             class="absolute left-0 w-full"
+            :highlight="row.index == hoveredCell?.row"
             @settings-click="({ taskId }) => handleClick(taskId)"
           />
           <div
