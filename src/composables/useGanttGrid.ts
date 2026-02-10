@@ -15,8 +15,8 @@ import {
 export interface UseGanttGridOptions {
   tasks: Ref<Task[]>;
   deadlines: Ref<Deadline[]>;
-  startDate: Temporal.PlainDate;
-  endDate: Temporal.PlainDate;
+  startDate: Ref<Temporal.PlainDate>;
+  endDate: Ref<Temporal.PlainDate>;
   effectiveWorkDays: Ref<Weekday[] | undefined>;
   firstWorkDay: Ref<Weekday>;
   cellSize: Vec2;
@@ -51,7 +51,6 @@ export function useGanttGrid(options: UseGanttGridOptions) {
   });
 
   // #region: Grid dimensions
-
   const maxRowsOnScreen = computed(() => Math.ceil(viewportHeight.value / cellSize.y) - 1);
   const maxColsOnScreen = computed(() => Math.ceil(viewportWidth.value / cellSize.x) - 1);
 
@@ -59,7 +58,7 @@ export function useGanttGrid(options: UseGanttGridOptions) {
   const totalColumns = computed(() =>
     Math.max(
       maxColsOnScreen.value,
-      countColumnsInRange(startDate, endDate, effectiveWorkDays.value),
+      countColumnsInRange(startDate.value, endDate.value, effectiveWorkDays.value),
     ),
   );
 
@@ -73,7 +72,7 @@ export function useGanttGrid(options: UseGanttGridOptions) {
     const taskEndDate = Temporal.PlainDate.from(endDateStr);
     const wd = effectiveWorkDays.value;
     return {
-      col: dateToCol(startDate, taskStartDate, wd),
+      col: dateToCol(startDate.value, taskStartDate, wd),
       width: dateToCol(taskStartDate, taskEndDate, wd),
     };
   });
@@ -81,7 +80,7 @@ export function useGanttGrid(options: UseGanttGridOptions) {
   const getDeadlineLayout = useMemoize((_deadlineId: number, dateStr: string) => {
     const deadlineDate = Temporal.PlainDate.from(dateStr);
     return {
-      col: dateToCol(startDate, deadlineDate, effectiveWorkDays.value),
+      col: dateToCol(startDate.value, deadlineDate, effectiveWorkDays.value),
     };
   });
 
@@ -174,7 +173,7 @@ export function useGanttGrid(options: UseGanttGridOptions) {
     const wd = effectiveWorkDays.value;
 
     for (let i = startCol; i < endCol; i++) {
-      const d = colToDate(startDate, i, wd);
+      const d = colToDate(startDate.value, i, wd);
       columns.push({
         index: i,
         date: d,
