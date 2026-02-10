@@ -21,7 +21,7 @@ export interface GanttChartProps {
 </script>
 
 <script lang="ts" setup>
-import { computed, ref, toRef, watch } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useScroll, useElementSize } from "@vueuse/core";
 import { useGanttGrid } from "../composables/useGanttGrid.ts";
 import { useGanttMouse } from "../composables/useGanttMouse.ts";

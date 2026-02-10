@@ -1,8 +1,6 @@
 import { inject, InjectionKey, provide } from "vue";
-
 import GanttTaskModal from "../components/GanttTaskModal.vue";
-import { Task } from "../types";
-import { Vec2 } from "../types";
+import { Task, Vec2 } from "../types";
 
 const overlay = useOverlay();
 const modal = overlay.create(GanttTaskModal);
