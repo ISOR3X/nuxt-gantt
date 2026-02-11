@@ -1,4 +1,5 @@
 import { inject, InjectionKey, provide } from "vue";
+
 import GanttTaskModal from "../components/GanttTaskModal.vue";
 import { Task, Vec2 } from "../types";
 
