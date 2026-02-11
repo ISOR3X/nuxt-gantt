@@ -29,7 +29,7 @@ const ui = computed(() =>
 </script>
 
 <template>
-  <svg class="pointer-events-none absolute inset-0 z-0 h-full w-full">
+  <svg :class="ui.root({ class: [props.ui?.root, props.class] })">
     <defs>
       <pattern
         id="grid-pattern"

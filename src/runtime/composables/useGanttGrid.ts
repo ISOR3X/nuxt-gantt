@@ -33,7 +33,7 @@ export function useGanttGrid(
 
   const rowsOnScreen = computed(() => {
     return {
-      min: Math.ceil(scrolled.y.value / options.cellSize.height),
+      min: Math.floor(scrolled.y.value / options.cellSize.height),
       // -1 because we want index based rows.
       max:
         Math.ceil(
@@ -44,7 +44,7 @@ export function useGanttGrid(
 
   const colsOnScreen = computed(() => {
     return {
-      min: Math.ceil(scrolled.x.value / options.cellSize.width),
+      min: Math.floor(scrolled.x.value / options.cellSize.width),
       // -1 because we want index based cols.
       max:
         Math.ceil(
