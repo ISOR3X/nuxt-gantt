@@ -6,14 +6,14 @@ import Chart from "../runtime/components/gantt/Chart.vue";
 
 const uniqueTasks: Task[] = [
   {
-    id: "",
-    label: "",
+    id: "19g4nh",
+    label: "Task",
     startDate: Temporal.Now.plainDateISO(),
     endDate: Temporal.Now.plainDateISO().add({ days: 1 }),
   },
   {
-    id: "",
-    label: "",
+    id: "f93mgi",
+    label: "Milestone",
     type: "milestone",
     startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
   },
@@ -29,7 +29,6 @@ onMounted(() => {
   }
 });
 
-const cellWidth = ref(30);
 </script>
 
 <template>
@@ -40,11 +39,7 @@ const cellWidth = ref(30);
         start: Temporal.Now.plainDateISO(),
         end: Temporal.Now.plainDateISO().add({ years: 1 }),
       }"
-      :cellSize="{
-        width: cellWidth,
-      }"
       v-model:tasks="tasks"
     />
-    <!-- <UInput v-model="cellWidth" type="number" /> -->
   </div>
 </template>

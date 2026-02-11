@@ -39,8 +39,8 @@ const props = withDefaults(defineProps<ChartProps>(), {});
 // const slots = defineSlots<...>()
 
 // Using defu makes for easy merging if only partial values are passed in the props.
-const headerProps = toRef(() => defu(props.header, { firstRowHeight: 40, firstColWidth: 240 }));
-const cellSizeProps = toRef(() => defu(props.cellSize, { width: 30, height: 30 }));
+const headerProps = toRef(() => defu(props.header, { firstRowHeight: 48, firstColWidth: 240 }));
+const cellSizeProps = toRef(() => defu(props.cellSize, { width: 24, height: 32 }));
 const virtualProps = toRef(() => defu(props.virtual, { overscan: 5 }));
 
 const appConfig = useAppConfig() as Chart["AppConfig"];
@@ -167,27 +167,24 @@ const ui = computed(() =>
         :key="t.index"
         :style="{ width: `${cellSizeProps.width}px`, left: `${t.leftOffset}px` }"
         :item="t"
-        v-slot="{ item }"
-      >
-        {{ item.index }}
-      </ColItem>
+      />
     </div>
     <div data-slot="firstCol" :class="ui.firstCol({ class: props.ui?.firstCol })">
       <RowItem
+        v-if="tasks"
         v-for="t in visibleRowItems"
         :key="t.index"
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
-        :item="t"
-        v-slot="{ item }"
-      >
-        {{ item.index }}
-      </RowItem>
+        :highlight="hoveredCell?.row == t.index"
+        v-model="tasks[t.index]"
+        />
+        
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <GridBackground />
     </div>
   </div>
-  <div class="fixed right-10 bottom-10 bg-black">
+  <div class="fixed right-10 bottom-4 bg-black">
     {{ visibleColItems.map((t) => t.index)[0] }}
     {{ visibleColItems.map((t) => t.index)[visibleColItems.length - 1] }}
     {{ colsOnScreen }}

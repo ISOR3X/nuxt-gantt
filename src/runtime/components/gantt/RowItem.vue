@@ -7,32 +7,36 @@ import { Task } from "../../types/gantt";
 
 type RowItem = ComponentConfig<typeof theme, AppConfig, "rowItem">;
 
-export interface ChartProps<T extends Task> {
-  item: T;
+export interface ChartProps {
+  highlight?: boolean
   class?: any;
   ui?: RowItem["slots"];
 }
 
-export interface RowItemSlots<T extends Task> {
-  default(props: { ui: RowItem["ui"]; item: T }): any;
+export interface RowItemSlots {
+  default(props: { ui: RowItem["ui"]; }): any;
 }
 </script>
 
 <script setup lang="ts" generic="T extends Task">
-const props = withDefaults(defineProps<ChartProps<T>>(), {});
-const slots = defineSlots<RowItemSlots<T>>();
+const props = withDefaults(defineProps<ChartProps>(), {});
+const slots = defineSlots<RowItemSlots>();
 
 const appConfig = useAppConfig() as RowItem["AppConfig"];
 
+const item = defineModel<T>({required: true})
+
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.rowItem })({
-    // ...
+    highlight: props.highlight
   }),
 );
 </script>
 
 <template>
   <div :class="ui.root({ class: [props.ui?.root, props.class] })">
-    <slot :ui="ui" :item="props.item" />
+    <slot :ui="ui" >
+        <UInput v-model="item.label" variant="ghost" :ui="{base: 'rounded-none'}" />
+    </slot>
   </div>
 </template>
