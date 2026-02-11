@@ -32,6 +32,7 @@ import { defu } from "defu";
 import GridBackground from "./GridBackground.vue";
 import RowItem from "./RowItem.vue";
 import ColItem from "./ColItem.vue";
+import ULabel from "../../../components/ULabel.vue";
 
 const props = withDefaults(defineProps<ChartProps>(), {});
 
@@ -167,7 +168,10 @@ const ui = computed(() =>
         :key="t.index"
         :style="{ width: `${cellSizeProps.width}px`, left: `${t.leftOffset}px` }"
         :item="t"
-      />
+        v-slot="{item}"
+        >
+            <ULabel v-if="t.index == hoveredCell?.col" class="-translate-x-1/2 z-10">{{item.date}}</ULabel>
+        </ColItem>
     </div>
     <div data-slot="firstCol" :class="ui.firstCol({ class: props.ui?.firstCol })">
       <RowItem
@@ -178,7 +182,6 @@ const ui = computed(() =>
         :highlight="hoveredCell?.row == t.index"
         v-model="tasks[t.index]"
         />
-        
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <GridBackground />
