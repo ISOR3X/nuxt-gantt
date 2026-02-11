@@ -69,5 +69,3 @@ const { cellSize } = useGanttContext();
   pointer-events: none;
 }
 </style>
-
- 

@@ -19,9 +19,7 @@ export interface ColItemSlots<T extends HasDate> {
   default(props: { ui: ColItem["ui"]; item: T }): any;
 }
 
-export function formatDate(
-  date: Temporal.PlainDate,
-): string | undefined {
+export function formatDate(date: Temporal.PlainDate): string | undefined {
   if (date.dayOfWeek !== 1) return;
 
   const isFirstFullWeekOfYear = date.day <= 7 && date.month === 1;
@@ -34,23 +32,21 @@ export function formatDate(
 
   return formatted;
 }
-
 </script>
 
 <script setup lang="ts" generic="T extends HasDate">
 const props = withDefaults(defineProps<ChartProps<T>>(), {});
 const slots = defineSlots<ColItemSlots<T>>();
 
-const formatDateProp = props.formatDate ?? formatDate
+const formatDateProp = props.formatDate ?? formatDate;
 
 const appConfig = useAppConfig() as ColItem["AppConfig"];
 
-const dateStr = computed(() => formatDateProp(props.item.date))
-
+const dateStr = computed(() => formatDateProp(props.item.date));
 
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.colItem })({
-    hasDate: dateStr.value != null
+    hasDate: dateStr.value != null,
   }),
 );
 </script>
@@ -58,7 +54,7 @@ const ui = computed(() =>
 <template>
   <div :class="ui.root({ class: [props.ui?.root, props.class] })">
     <slot :ui="ui" :item="props.item">
-        {{ dateStr }}
+      {{ dateStr }}
     </slot>
   </div>
 </template>

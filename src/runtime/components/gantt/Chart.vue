@@ -168,10 +168,12 @@ const ui = computed(() =>
         :key="t.index"
         :style="{ width: `${cellSizeProps.width}px`, left: `${t.leftOffset}px` }"
         :item="t"
-        v-slot="{item}"
-        >
-            <ULabel v-if="t.index == hoveredCell?.col" class="-translate-x-1/2 z-10">{{item.date}}</ULabel>
-        </ColItem>
+        v-slot="{ item }"
+      >
+        <ULabel v-if="t.index == hoveredCell?.col" class="z-10 -translate-x-1/2">{{
+          item.date
+        }}</ULabel>
+      </ColItem>
     </div>
     <div data-slot="firstCol" :class="ui.firstCol({ class: props.ui?.firstCol })">
       <RowItem
@@ -181,7 +183,7 @@ const ui = computed(() =>
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
         :highlight="hoveredCell?.row == t.index"
         v-model="tasks[t.index]"
-        />
+      />
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <GridBackground />

@@ -1,6 +1,6 @@
 <script lang="ts">
 // This component copies the styling from tooltip since that is what it is used for, except we can't use it how regular tooltips are used.
-import theme from "#build/ui/tooltip"
+import theme from "#build/ui/tooltip";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { AppConfig, computed } from "vue";
@@ -17,14 +17,11 @@ export interface LabelProps {
 const props = withDefaults(defineProps<LabelProps>(), {});
 const appConfig = useAppConfig() as Label["AppConfig"];
 
-const ui = computed(() =>
-  tv({ extend: tv(theme), ...appConfig.ui?.tooltip })({
-  }),
-);
+const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.tooltip })({}));
 </script>
 
 <template>
-<span :class="ui.content({ class: [props.ui?.content, props.class] })">
-    <slot/>
-</span>
+  <span :class="ui.content({ class: [props.ui?.content, props.class] })">
+    <slot />
+  </span>
 </template>

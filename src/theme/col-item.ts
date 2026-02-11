@@ -6,7 +6,7 @@ export default {
     hasDate: {
       true: {
         root: "border-l border-muted",
-      }
-    }
-  }
+      },
+    },
+  },
 };
