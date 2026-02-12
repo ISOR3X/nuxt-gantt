@@ -10,6 +10,7 @@ const uniqueTasks: Task[] = [
   {
     id: "19g4nh",
     label: "Task",
+    progress: 0.9,
     startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
     endDate: Temporal.Now.plainDateISO().add({ days: 5 }),
   },
@@ -28,8 +29,8 @@ onMounted(() => {
   for (let i = 0; i < 20; i++) {
     for (const task of uniqueTasks) {
       const newTask = task;
-      newTask.startDate = newTask.startDate.add({ days: i });
-      if (newTask.endDate) newTask.endDate = newTask.endDate.add({ days: i });
+      newTask.startDate = newTask.startDate.add({ days: 4 });
+      if (newTask.endDate) newTask.endDate = newTask.endDate.add({ days: 4 });
       tasks.value.push({ ...newTask, label: `${newTask.label} ${idx}`, id: crypto.randomUUID() });
       idx++;
     }

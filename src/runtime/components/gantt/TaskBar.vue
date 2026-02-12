@@ -128,9 +128,16 @@ const ui = computed(() =>
     </div>
     <div
       :class="ui.base({ class: [props.ui?.base, props.class, cursorStyle] })"
+      :title="item?.label"
       @mousedown="onMouseDownBar"
     >
-      <slot :ui="ui" />
+      <slot :ui="ui">
+        <div
+          v-if="item && item.progress"
+          :class="ui.progress({ class: props.ui?.progress })"
+          :style="{ width: `${item.progress * 100}%` }"
+        />
+      </slot>
     </div>
     <div
       :class="ui.rightHandleRoot({ class: props.ui?.rightHandleRoot })"
