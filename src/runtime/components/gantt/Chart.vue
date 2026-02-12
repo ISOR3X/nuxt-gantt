@@ -176,7 +176,7 @@ function scrollToItem<T extends Task>(item: T) {
     const itemIdx = tasks.value.findIndex((t) => t.id == item.id);
     el.value?.scrollTo({
       behavior: "smooth",
-      left: dateToCol(dateRange.value.start, item.startDate) * cellSizeProps.value.width,
+      left: dateToCol(dateRange.value.start, item.startDate, item.id) * cellSizeProps.value.width,
       top: itemIdx * cellSizeProps.value.height,
     });
     console.log(item.label);

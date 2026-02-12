@@ -12,12 +12,7 @@ export function useColDateConversion() {
    * represent workdays - off-days are skipped entirely.
    */
   const getColToDate = useMemoize(
-    (
-      startDate: Temporal.PlainDate,
-      col: number,
-      _key: string,
-      workDays?: Weekday[],
-    ): Temporal.PlainDate => {
+    (startDate: Temporal.PlainDate, col: number, workDays?: Weekday[]): Temporal.PlainDate => {
       if (!workDays || workDays.length === 7) {
         return startDate.add({ days: col });
       }
