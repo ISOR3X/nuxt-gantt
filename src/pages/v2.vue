@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
 import { Task } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
+
+const chart = useTemplateRef("chart");
 
 const uniqueTasks: Task[] = [
   {
@@ -15,7 +17,7 @@ const uniqueTasks: Task[] = [
     id: "f93mgi",
     label: "Milestone",
     type: "milestone",
-    startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
+    startDate: Temporal.Now.plainDateISO().add({ days: 4 }),
   },
 ];
 
@@ -34,8 +36,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full w-full bg-black p-12">
+  <div class="flex h-full w-full flex-col gap-4 bg-black p-12">
     <Chart
+      ref="chart"
       class="rounded-md"
       :dateRange="{
         start: Temporal.Now.plainDateISO(),
@@ -43,5 +46,8 @@ onMounted(() => {
       }"
       v-model:tasks="tasks"
     />
+    <div class="space-x-4">
+      <UButton label="" />
+    </div>
   </div>
 </template>

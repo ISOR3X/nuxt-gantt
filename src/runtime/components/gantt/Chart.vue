@@ -222,6 +222,7 @@ const ui = computed(() =>
           top: `${t.topOffset}px`,
           left: `${t.leftOffset}px`,
         }"
+        v-model="tasks[t.index]"
       />
     </div>
   </div>
