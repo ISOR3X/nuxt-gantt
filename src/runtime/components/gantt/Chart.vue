@@ -83,6 +83,7 @@ const { hoveredCell, colsOnScreen, rowsOnScreen } = useGanttGrid(el, {
   offset: { x: headerProps.value.firstColWidth, y: headerProps.value.firstRowHeight },
 });
 
+// #region virtualization
 const getTaskLayout = useMemoize(
   (
     taskIdx: number,
@@ -164,6 +165,7 @@ const visibleTasks = computed(() => {
   }
   return result;
 });
+// #endregion
 
 provideGanttContext({ cellSize: cellSizeProps });
 
@@ -172,6 +174,22 @@ const ui = computed(() =>
     // ...
   }),
 );
+
+function scrollToItem<T extends Task>(item: T) {
+  if (tasks.value) {
+    const itemIdx = tasks.value.findIndex((t) => t.id == item.id);
+    el.value?.scrollTo({
+      behavior: "smooth",
+      left: dateToCol(dateRange.value.start, item.startDate) * cellSizeProps.value.width,
+      top: itemIdx * cellSizeProps.value.height,
+    });
+    console.log(item.label);
+  }
+}
+
+defineExpose({
+  scrollToItem,
+});
 </script>
 
 <template>

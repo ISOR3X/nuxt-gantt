@@ -53,5 +53,5 @@ export function useGanttGrid(
     };
   });
 
-  return { hoveredCell, rowsOnScreen, colsOnScreen };
+  return { hoveredCell, rowsOnScreen, colsOnScreen, scrollTo };
 }

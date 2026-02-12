@@ -82,7 +82,6 @@ function onMouseMove(e: MouseEvent) {
   let newStartDate = originalStartDate.value;
   let newEndDate = originalEndDate.value;
 
-  console.log("2");
   if (isDragging.value) {
     newStartDate = originalStartDate.value.add({ days: daysMoved });
     newEndDate = originalEndDate.value?.add({ days: daysMoved });
@@ -98,7 +97,6 @@ function onMouseMove(e: MouseEvent) {
     }
   }
 
-  console.log("hi");
   item.value.startDate = newStartDate;
   if (item.value.endDate) item.value.endDate = newEndDate;
 }

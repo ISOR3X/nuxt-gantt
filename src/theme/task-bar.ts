@@ -10,7 +10,7 @@ export default {
     ),
     leftHandleRoot: [handleCommon, tw(" bottom-0 -left-4 -translate-x-1/2 cursor-ew-resize")],
     rightHandleRoot: [handleCommon, tw("-right-4 bottom-0 translate-x-1/2 cursor-ew-resize")],
-    handle: tw("h-full rounded-full border-2 border-accented"),
+    handle: tw("h-full rounded-full border-accented group-hover:border-2"),
   },
   variants: {
     milestone: {

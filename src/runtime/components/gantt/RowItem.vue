@@ -36,7 +36,11 @@ const ui = computed(() =>
 <template>
   <div :class="ui.root({ class: [props.ui?.root, props.class] })">
     <slot :ui="ui">
-      <UInput v-model="item.label" variant="ghost" :ui="{ base: 'rounded-none' }" />
+      <UInput
+        v-model="item.label"
+        variant="ghost"
+        :ui="{ base: ui.input({ class: props.ui?.input }) }"
+      />
     </slot>
   </div>
 </template>

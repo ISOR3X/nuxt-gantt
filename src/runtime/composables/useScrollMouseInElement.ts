@@ -14,7 +14,7 @@ export function useScrollMouseInElement(
   options: ScrollMouseInElementOptions = {},
 ) {
   const _options = defu(options, { offset: { x: 0, y: 0 } });
-  const { x: scrolledX, y: scrolledY } = useScroll(target);
+  const { x: scrolledX, y: scrolledY } = useScroll(target, { behavior: "smooth" });
   const {
     elementX: mouseX,
     elementY: mouseY,

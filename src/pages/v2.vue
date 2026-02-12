@@ -24,12 +24,14 @@ const uniqueTasks: Task[] = [
 const tasks = ref<Task[]>([]);
 
 onMounted(() => {
+  let idx = 0;
   for (let i = 0; i < 20; i++) {
     for (const task of uniqueTasks) {
       const newTask = task;
       newTask.startDate = newTask.startDate.add({ days: i });
       if (newTask.endDate) newTask.endDate = newTask.endDate.add({ days: i });
-      tasks.value.push({ ...newTask });
+      tasks.value.push({ ...newTask, label: `${newTask.label} ${idx}`, id: crypto.randomUUID() });
+      idx++;
     }
   }
 });
@@ -47,7 +49,7 @@ onMounted(() => {
       v-model:tasks="tasks"
     />
     <div class="space-x-4">
-      <UButton label="" />
+      <UButton label="Scroll to 10th task" @click="chart?.scrollToItem(tasks[10])" />
     </div>
   </div>
 </template>
