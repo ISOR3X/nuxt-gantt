@@ -1,11 +1,13 @@
+import { tw } from "../runtime/utils/common";
+
 export default {
   slots: {
-    root: "absolute text-nowrap inline-flex items-center h-full px-0.5 text-sm",
+    root: tw("absolute inline-flex h-full items-center px-0.5 text-sm text-nowrap"),
   },
   variants: {
     hasDate: {
       true: {
-        root: "border-l border-muted",
+        root: tw("border-l border-muted"),
       },
     },
   },

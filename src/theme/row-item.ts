@@ -1,11 +1,15 @@
+import { tw } from "../runtime/utils/common";
+
 export default {
   slots: {
-    root: "absolute",
+    root: tw("absolute"),
   },
   variants: {
     highlight: {
       true: {
-        root: "before:absolute before:top-0 before:left-0 before:bottom-0 before:w-[1px] before:bg-primary before:pointer-events-none z-10",
+        root: tw(
+          "z-10 before:pointer-events-none before:absolute before:top-0 before:bottom-0 before:left-0 before:w-[1px] before:bg-primary",
+        ),
       },
     },
   },

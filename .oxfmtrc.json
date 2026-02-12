@@ -3,7 +3,7 @@
   "experimentalTailwindcss": {
     "stylesheet": "./src/assets/css/main.css",
     "attributes": ["class", "className"],
-    "functions": ["clsx", "cn"],
+    "functions": ["clsx", "cn", "tw"],
     "preserveWhitespace": true
   },
   "experimentalSortImports": {

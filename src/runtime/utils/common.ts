@@ -8,3 +8,6 @@ export type Color =
       "inherit" | "current" | "transparent" | "black" | "white" | NeutralColor
     >
   | (string & {});
+
+// Helper function to allow sorting of tailwind classes in theme files.
+export const tw = (strings: string, ...values: any[]) => String.raw({ raw: strings }, ...values);
