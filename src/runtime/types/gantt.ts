@@ -49,3 +49,9 @@ export interface Deadline extends ChartObject {
 
 export type Lane = Task | Milestone;
 export type Marker = Event | Deadline;
+
+export interface TaskWithGanttMeta extends Task {
+  index: number;
+  col: number;
+  colSpan: number;
+}

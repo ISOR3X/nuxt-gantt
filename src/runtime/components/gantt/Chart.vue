@@ -7,8 +7,8 @@ import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Task } from "../../types/gantt";
 import { provideGanttContext } from "../../composables/useGanttContext";
 import { useGanttGrid } from "../../composables/useGanttGrid";
-import { useMemoize } from "@vueuse/core";
-import { colToDate, dateToCol } from "../../utils/temporal";
+import { TaskWithGanttMeta } from "../../types/gantt";
+import { useColDateConversion } from "../../composables/useColDateConversion";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 
@@ -49,6 +49,23 @@ const appConfig = useAppConfig() as Chart["AppConfig"];
 
 const tasks = defineModel<Task[]>("tasks");
 
+const { dateToCol, colToDate } = useColDateConversion();
+
+const taskMap = computed(() => {
+  const map: Map<string, TaskWithGanttMeta> = new Map();
+  if (tasks.value) {
+    for (const [idx, t] of tasks.value.entries()) {
+      map.set(t.id, {
+        ...t,
+        index: idx,
+        col: dateToCol(dateRange.value.start, t.startDate, t.id),
+        colSpan: dateToCol(t.startDate, t.endDate ?? t.startDate, t.id) + 1,
+      });
+    }
+  }
+  return map;
+});
+
 const dateRange = computed(() => {
   if (!tasks.value?.length) {
     const now = Temporal.Now.plainDateISO();
@@ -84,41 +101,20 @@ const { hoveredCell, colsOnScreen, rowsOnScreen } = useGanttGrid(el, {
 });
 
 // #region virtualization
-const getTaskLayout = useMemoize(
-  (
-    taskIdx: number,
-    taskStartDate: Temporal.PlainDate,
-    taskEndDate: Temporal.PlainDate,
-    chartStartDate: Temporal.PlainDate,
-  ) => {
-    return {
-      col: dateToCol(chartStartDate, taskStartDate),
-      // For tasks, we assume the end date is not a deadline and therefore is included.
-      colSpan: dateToCol(taskStartDate, taskEndDate) + 1,
-      index: taskIdx,
-    };
-  },
-);
-
 const visibleRowItems = computed(() => {
-  const result: (Task & { index: number; topOffset: number; col: number; colSpan: number })[] = [];
+  const result: (TaskWithGanttMeta & { topOffset: number })[] = [];
 
   if (tasks.value) {
-    for (const [idx, task] of tasks.value.entries()) {
+    for (const [idx, t] of tasks.value.entries()) {
       if (
         idx < rowsOnScreen.value.min - virtualProps.value.overscan ||
         idx > rowsOnScreen.value.max + virtualProps.value.overscan
       )
         continue;
 
-      const layout = getTaskLayout(
-        idx,
-        task.startDate,
-        task.endDate ?? task.startDate,
-        dateRange.value.start,
-      );
-
-      result.push({ ...task, ...layout, topOffset: idx * cellSizeProps.value.height });
+      const task = taskMap.value.get(t.id);
+      if (!task) continue;
+      result.push({ ...task, topOffset: idx * cellSizeProps.value.height });
     }
   }
   return result;
