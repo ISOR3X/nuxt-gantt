@@ -32,6 +32,7 @@ import { defu } from "defu";
 import GridBackground from "./GridBackground.vue";
 import RowItem from "./RowItem.vue";
 import ColItem from "./ColItem.vue";
+import TaskBar from "./TaskBar.vue";
 import ULabel from "../../../components/ULabel.vue";
 
 const props = withDefaults(defineProps<ChartProps>(), {});
@@ -91,14 +92,15 @@ const getTaskLayout = useMemoize(
   ) => {
     return {
       col: dateToCol(chartStartDate, taskStartDate),
-      width: dateToCol(taskStartDate, taskEndDate),
+      // For tasks, we assume the end date is not a deadline and therefore is included.
+      colSpan: dateToCol(taskStartDate, taskEndDate) + 1,
       index: taskIdx,
     };
   },
 );
 
 const visibleRowItems = computed(() => {
-  const result: (Task & { index: number; topOffset: number })[] = [];
+  const result: (Task & { index: number; topOffset: number; col: number; colSpan: number })[] = [];
 
   if (tasks.value) {
     for (const [idx, task] of tasks.value.entries()) {
@@ -115,8 +117,6 @@ const visibleRowItems = computed(() => {
         dateRange.value.start,
       );
 
-      // const taskColEnd = layout.col + layout.width;
-      // if (layout.col > (colsOnScreen.value.max + virtualProps.value.overscan) || taskColEnd < (colsOnScreen.value.min - virtualProps.value.overscan)) continue;
       result.push({ ...task, ...layout, topOffset: idx * cellSizeProps.value.height });
     }
   }
@@ -139,6 +139,29 @@ const visibleColItems = computed(() => {
     });
   }
 
+  return result;
+});
+
+const visibleTasks = computed(() => {
+  const result: (Task & {
+    index: number;
+    topOffset: number;
+    col: number;
+    colSpan: number;
+    leftOffset: number;
+    width: number;
+  })[] = [];
+
+  for (const i of visibleRowItems.value) {
+    const taskColEnd = i.col + i.colSpan;
+    if (i.col > colsOnScreen.value.max || taskColEnd < colsOnScreen.value.min) continue;
+
+    result.push({
+      ...i,
+      leftOffset: i.col * cellSizeProps.value.width,
+      width: i.colSpan * cellSizeProps.value.width,
+    });
+  }
   return result;
 });
 
@@ -187,6 +210,19 @@ const ui = computed(() =>
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <GridBackground />
+
+      <TaskBar
+        v-if="tasks"
+        v-for="t in visibleTasks"
+        :key="t.index"
+        :milestone="t.type && t.type == 'milestone'"
+        :style="{
+          height: `${cellSizeProps.height}px`,
+          width: `${t.width}px`,
+          top: `${t.topOffset}px`,
+          left: `${t.leftOffset}px`,
+        }"
+      />
     </div>
   </div>
   <div class="fixed right-10 bottom-4 bg-black">

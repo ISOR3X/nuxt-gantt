@@ -2,7 +2,7 @@ import { tw } from "../runtime/utils/common";
 
 export default {
   slots: {
-    root: tw("absolute"),
+    root: tw("absolute w-full border-b border-muted"),
   },
   variants: {
     highlight: {

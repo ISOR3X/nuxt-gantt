@@ -8,8 +8,8 @@ const uniqueTasks: Task[] = [
   {
     id: "19g4nh",
     label: "Task",
-    startDate: Temporal.Now.plainDateISO(),
-    endDate: Temporal.Now.plainDateISO().add({ days: 1 }),
+    startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
+    endDate: Temporal.Now.plainDateISO().add({ days: 5 }),
   },
   {
     id: "f93mgi",
@@ -24,7 +24,10 @@ const tasks = ref<Task[]>([]);
 onMounted(() => {
   for (let i = 0; i < 20; i++) {
     for (const task of uniqueTasks) {
-      tasks.value.push({ ...task });
+      const newTask = task;
+      newTask.startDate = newTask.startDate.add({ days: i });
+      if (newTask.endDate) newTask.endDate = newTask.endDate.add({ days: i });
+      tasks.value.push({ ...newTask });
     }
   }
 });
