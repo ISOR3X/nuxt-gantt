@@ -9,6 +9,7 @@ import { provideGanttContext } from "../../composables/useGanttContext";
 import { useGanttGrid } from "../../composables/useGanttGrid";
 import { TaskWithGanttMeta } from "../../types/gantt";
 import { useColDateConversion } from "../../composables/useColDateConversion";
+import { buildArrowPath, computeArrowBBox, getAnchors, isArrowVisible } from "../../utils/arrows";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 
@@ -29,11 +30,12 @@ export interface ChartProps {
 
 <script setup lang="ts">
 import { defu } from "defu";
-import GridBackground from "./GridBackground.vue";
 import RowItem from "./RowItem.vue";
+import GridPattern from "./GridPattern.vue";
 import ColItem from "./ColItem.vue";
 import TaskBar from "./TaskBar.vue";
-import ULabel from "../../../components/ULabel.vue";
+import ULabel from "../ULabel.vue";
+import DependencyArrow, { Arrow } from "./DependencyArrow.vue";
 
 const props = withDefaults(defineProps<ChartProps>(), {});
 
@@ -95,7 +97,7 @@ const gridSize = computed(() => {
 
 const el = useTemplateRef("chart");
 
-const { hoveredCell, colsOnScreen, rowsOnScreen } = useGanttGrid(el, {
+const { hoveredCell, colsOnScreen, rowsOnScreen, viewport } = useGanttGrid(el, {
   cellSize: cellSizeProps.value,
   offset: { x: headerProps.value.firstColWidth, y: headerProps.value.firstRowHeight },
 });
@@ -140,11 +142,8 @@ const visibleColItems = computed(() => {
 });
 
 const visibleTasks = computed(() => {
-  const result: (Task & {
-    index: number;
+  const result: (TaskWithGanttMeta & {
     topOffset: number;
-    col: number;
-    colSpan: number;
     leftOffset: number;
     width: number;
   })[] = [];
@@ -161,15 +160,51 @@ const visibleTasks = computed(() => {
   }
   return result;
 });
+
+const visibleArrows = computed(() => {
+  const result: (Arrow & { id: string })[] = [];
+
+  for (const fromTask of taskMap.value.values()) {
+    if (!fromTask.dependencies || fromTask.dependencies.length === 0) continue;
+
+    for (const dep of fromTask.dependencies) {
+      const toTask = taskMap.value.get(dep.taskId);
+      if (!toTask) continue; // Target task doesn't exist
+
+      const { source, target } = getAnchors(
+        fromTask.col,
+        fromTask.colSpan,
+        fromTask.index,
+        toTask.col,
+        toTask.colSpan,
+        toTask.index,
+        dep.type,
+        cellSizeProps.value,
+      );
+
+      const bbox = computeArrowBBox(source, target);
+
+      // Skip arrows entirely outside the viewport
+      if (!isArrowVisible(bbox, viewport.value)) continue;
+
+      const path = buildArrowPath(source, target, dep.type);
+
+      result.push({
+        id: fromTask.id + toTask.id,
+        fromId: fromTask.id,
+        toId: dep.taskId,
+        type: dep.type,
+        path,
+      });
+    }
+  }
+  return result;
+});
 // #endregion
 
 provideGanttContext({ cellSize: cellSizeProps });
 
-const ui = computed(() =>
-  tv({ extend: tv(theme), ...appConfig.ui?.chart })({
-    // ...
-  }),
-);
+const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
 function scrollToItem<T extends Task>(item: T) {
   if (tasks.value) {
@@ -179,7 +214,6 @@ function scrollToItem<T extends Task>(item: T) {
       left: dateToCol(dateRange.value.start, item.startDate, item.id) * cellSizeProps.value.width,
       top: itemIdx * cellSizeProps.value.height,
     });
-    console.log(item.label);
   }
 }
 
@@ -223,8 +257,10 @@ defineExpose({
       />
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
-      <GridBackground />
-
+      <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">
+        <GridPattern />
+        <DependencyArrow v-if="visibleArrows" v-for="a in visibleArrows" :key="a.id" :item="a" />
+      </svg>
       <TaskBar
         v-if="tasks"
         v-for="t in visibleTasks"

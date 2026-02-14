@@ -85,7 +85,6 @@ export function useColDateConversion() {
   );
 
   function clearCache() {
-    console.log("clear");
     getColToDate.clear();
     getDateToCol.clear();
   }

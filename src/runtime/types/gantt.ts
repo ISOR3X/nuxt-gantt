@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 export type TaskDependencyType = "FS" | "FF" | "SF" | "SS";
 
 export interface TaskDependency {
-  taskId: number;
+  taskId: string;
   type: TaskDependencyType;
 }
 
@@ -33,11 +33,6 @@ export interface Task {
   progress?: number;
 }
 
-export interface Milestone extends ChartObject {
-  label: string;
-  description?: string;
-}
-
 export interface Event extends RangedChartObject {
   label: string;
   description?: string;
@@ -46,9 +41,6 @@ export interface Event extends RangedChartObject {
 export interface Deadline extends ChartObject {
   label: string;
 }
-
-export type Lane = Task | Milestone;
-export type Marker = Event | Deadline;
 
 export interface TaskWithGanttMeta extends Task {
   index: number;

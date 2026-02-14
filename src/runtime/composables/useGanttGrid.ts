@@ -53,5 +53,12 @@ export function useGanttGrid(
     };
   });
 
-  return { hoveredCell, rowsOnScreen, colsOnScreen, scrollTo };
+  const viewport = computed(() => ({
+    left: scrolled.x.value,
+    top: scrolled.y.value,
+    right: scrolled.x.value + viewportWidth.value,
+    bottom: scrolled.y.value + viewportHeight.value,
+  }));
+
+  return { hoveredCell, rowsOnScreen, colsOnScreen, scrollTo, viewport };
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
-import { Task } from "../runtime/types/gantt";
+import { Task, TaskDependency, TaskDependencyType } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
 
@@ -29,9 +29,25 @@ onMounted(() => {
   for (let i = 0; i < 20; i++) {
     for (const task of uniqueTasks) {
       const newTask = task;
+      const prevTask = tasks.value[i - 1];
+      let dep: TaskDependency[] = [];
+      if (prevTask !== undefined) {
+        dep.push({
+          taskId: prevTask.id,
+          type: "SF",
+        });
+      }
+
       newTask.startDate = newTask.startDate.add({ days: 4 });
+
       if (newTask.endDate) newTask.endDate = newTask.endDate.add({ days: 4 });
-      tasks.value.push({ ...newTask, label: `${newTask.label} ${idx}`, id: crypto.randomUUID() });
+
+      tasks.value.push({
+        ...newTask,
+        label: `${newTask.label} ${idx}`,
+        id: crypto.randomUUID(),
+        dependencies: dep,
+      });
       idx++;
     }
   }
