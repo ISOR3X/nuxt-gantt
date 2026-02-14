@@ -46,28 +46,6 @@ const props = withDefaults(defineProps<ChartProps>(), {});
 const headerProps = toRef(() => defu(props.header, { firstRowHeight: 48, firstColWidth: 240 }));
 const cellSizeProps = toRef(() => defu(props.cellSize, { width: 24, height: 32 }));
 const virtualProps = toRef(() => defu(props.virtual, { overscan: 5 }));
-
-const appConfig = useAppConfig() as Chart["AppConfig"];
-
-const tasks = defineModel<Task[]>("tasks");
-
-const { dateToCol, colToDate } = useColDateConversion();
-
-const taskMap = computed(() => {
-  const map: Map<string, TaskWithGanttMeta> = new Map();
-  if (tasks.value) {
-    for (const [idx, t] of tasks.value.entries()) {
-      map.set(t.id, {
-        ...t,
-        index: idx,
-        col: dateToCol(dateRange.value.start, t.startDate, t.id),
-        colSpan: dateToCol(t.startDate, t.endDate ?? t.startDate, t.id) + 1,
-      });
-    }
-  }
-  return map;
-});
-
 const dateRange = computed(() => {
   if (!tasks.value?.length) {
     const now = Temporal.Now.plainDateISO();
@@ -85,6 +63,27 @@ const dateRange = computed(() => {
     }
   }
   return { start: props.dateRange?.start ?? min, end: props.dateRange?.end ?? max };
+});
+
+const appConfig = useAppConfig() as Chart["AppConfig"];
+
+const { dateToCol, colToDate } = useColDateConversion();
+
+const tasks = defineModel<Task[]>("tasks");
+
+const taskMap = computed(() => {
+  const map: Map<string, TaskWithGanttMeta> = new Map();
+  if (tasks.value) {
+    for (const [idx, t] of tasks.value.entries()) {
+      map.set(t.id, {
+        ...t,
+        index: idx,
+        col: dateToCol(dateRange.value.start, t.startDate, t.id),
+        colSpan: dateToCol(t.startDate, t.endDate ?? t.startDate, t.id) + 1,
+      });
+    }
+  }
+  return map;
 });
 
 const gridSize = computed(() => {
@@ -124,10 +123,11 @@ const visibleRowItems = computed(() => {
 
 const visibleColItems = computed(() => {
   const result: { date: Temporal.PlainDate; index: number; leftOffset: number }[] = [];
+  const maxCol = dateToCol(dateRange.value.start, dateRange.value.end, "");
 
   for (
-    let i = colsOnScreen.value.min - virtualProps.value.overscan;
-    i < colsOnScreen.value.max + virtualProps.value.overscan;
+    let i = Math.min(0, colsOnScreen.value.min - virtualProps.value.overscan);
+    i < Math.min(maxCol, colsOnScreen.value.max + virtualProps.value.overscan);
     i++
   ) {
     const d = colToDate(dateRange.value.start, i);
