@@ -1,5 +1,5 @@
 <script lang="ts">
-// This component copies the styling from tooltip since that is what it is used for, except we can't use it how regular tooltips are used.
+// This component copies the styling from Nuxt UI tooltip since that is what it is used for, except we can't use it how regular tooltips are used.
 import theme from "#build/ui/tooltip";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";

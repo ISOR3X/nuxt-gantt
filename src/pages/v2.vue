@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
-import { Task, TaskDependency, TaskDependencyType } from "../runtime/types/gantt";
+import { Task, TaskDependency } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
 
@@ -31,6 +31,7 @@ onMounted(() => {
       const newTask = task;
       const prevTask = tasks.value[i - 1];
       let dep: TaskDependency[] = [];
+
       if (prevTask !== undefined) {
         dep.push({
           taskId: prevTask.id,
@@ -55,10 +56,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-full w-full flex-col gap-4 bg-black p-12">
+  <div class="flex h-full w-full flex-col gap-4 p-12">
     <Chart
       ref="chart"
-      class="rounded-md"
+      class="rounded-md border border-muted"
       :dateRange="{
         start: Temporal.Now.plainDateISO(),
         end: Temporal.Now.plainDateISO().add({ years: 1 }),

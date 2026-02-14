@@ -1,7 +1,9 @@
+import { Temporal } from "temporal-polyfill";
 import { inject, InjectionKey, provide, Ref } from "vue";
 
 export interface GanttContext {
   cellSize: Ref<{ width: number; height: number }>;
+  dateRange: Ref<{ start: Temporal.PlainDate; end: Temporal.PlainDate }>;
 }
 
 export const GANTT_CONTEXT_KEY: InjectionKey<GanttContext> = Symbol("gantt-context");

@@ -10,6 +10,8 @@ import { useGanttGrid } from "../../composables/useGanttGrid";
 import { TaskWithGanttMeta } from "../../types/gantt";
 import { useColDateConversion } from "../../composables/useColDateConversion";
 import { buildArrowPath, computeArrowBBox, getAnchors, isArrowVisible } from "../../utils/arrows";
+import { Weekday } from "../../types/temporal";
+import { ALL_WEEKDAYS } from "../../../utils/temporal";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 
@@ -21,6 +23,9 @@ export interface ChartProps {
   };
   virtual?: {
     overscan?: number;
+  };
+  weekOptions?: {
+    workDays?: Weekday[];
   };
   cellSize?: { width?: number; height?: number };
   class?: any;
@@ -35,6 +40,7 @@ import GridPattern from "./GridPattern.vue";
 import ColItem from "./ColItem.vue";
 import TaskBar from "./TaskBar.vue";
 import ULabel from "../ULabel.vue";
+import OffDayPattern from "./OffDayPattern.vue";
 import DependencyArrow, { Arrow } from "./DependencyArrow.vue";
 
 const props = withDefaults(defineProps<ChartProps>(), {});
@@ -46,6 +52,7 @@ const props = withDefaults(defineProps<ChartProps>(), {});
 const headerProps = toRef(() => defu(props.header, { firstRowHeight: 48, firstColWidth: 240 }));
 const cellSizeProps = toRef(() => defu(props.cellSize, { width: 24, height: 32 }));
 const virtualProps = toRef(() => defu(props.virtual, { overscan: 5 }));
+const weekOptionsProps = toRef(() => defu(props.weekOptions, { workDays: [1, 2, 3, 4, 5] }));
 const dateRange = computed(() => {
   if (!tasks.value?.length) {
     const now = Temporal.Now.plainDateISO();
@@ -68,6 +75,8 @@ const dateRange = computed(() => {
 const appConfig = useAppConfig() as Chart["AppConfig"];
 
 const { dateToCol, colToDate } = useColDateConversion();
+
+const el = useTemplateRef("chart");
 
 const tasks = defineModel<Task[]>("tasks");
 
@@ -94,7 +103,9 @@ const gridSize = computed(() => {
   };
 });
 
-const el = useTemplateRef("chart");
+const offDays = computed<Weekday[]>(() =>
+  ALL_WEEKDAYS.filter((d) => !weekOptionsProps.value.workDays.includes(d)),
+);
 
 const { hoveredCell, colsOnScreen, rowsOnScreen, viewport } = useGanttGrid(el, {
   cellSize: cellSizeProps.value,
@@ -202,7 +213,7 @@ const visibleArrows = computed(() => {
 });
 // #endregion
 
-provideGanttContext({ cellSize: cellSizeProps });
+provideGanttContext({ cellSize: cellSizeProps, dateRange: dateRange });
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
@@ -259,6 +270,7 @@ defineExpose({
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">
         <GridPattern />
+        <OffDayPattern :off-days="offDays" />
         <DependencyArrow v-if="visibleArrows" v-for="a in visibleArrows" :key="a.id" :item="a" />
       </svg>
       <TaskBar
