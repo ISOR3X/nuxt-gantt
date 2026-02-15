@@ -6,11 +6,12 @@ import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Weekday } from "../../types/temporal";
 
 type OffDayPattern = ComponentConfig<typeof theme, AppConfig, "offDayPattern">;
+export type OffDayPatternUiSlots = OffDayPattern["slots"];
 
 export interface OffDayPatternProps {
   offDays: Weekday[];
   class?: any;
-  ui?: OffDayPattern["slots"];
+  ui?: OffDayPatternUiSlots;
 }
 </script>
 

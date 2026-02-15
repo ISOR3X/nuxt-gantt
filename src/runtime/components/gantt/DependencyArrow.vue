@@ -6,6 +6,7 @@ import { TaskDependencyType } from "../../types/gantt.ts";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 
 type DependencyArrow = ComponentConfig<typeof theme, AppConfig, "dependencyArrow">;
+export type DependencyArrowUiSlots = DependencyArrow["slots"];
 
 export interface Arrow {
   fromId: string;
@@ -17,7 +18,7 @@ export interface Arrow {
 export interface DependencyArrowProps {
   item: Arrow;
   class?: any;
-  ui?: DependencyArrow["slots"];
+  ui?: DependencyArrowUiSlots;
 }
 </script>
 

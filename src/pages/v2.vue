@@ -64,6 +64,11 @@ onMounted(() => {
         start: Temporal.Now.plainDateISO(),
         end: Temporal.Now.plainDateISO().add({ years: 1 }),
       }"
+      :ui="{
+        taskBar: {
+          base: 'rounded-none',
+        },
+      }"
       v-model:tasks="tasks"
     />
     <div class="space-x-4">

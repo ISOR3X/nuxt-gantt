@@ -8,11 +8,12 @@ import { Temporal } from "temporal-polyfill";
 import { useGanttContext } from "../../composables/useGanttContext";
 
 type TaskBar = ComponentConfig<typeof theme, AppConfig, "taskBar">;
+export type TaskBarUiSlots = TaskBar["slots"];
 
 export interface ChartProps {
   milestone?: boolean;
   class?: any;
-  ui?: TaskBar["slots"];
+  ui?: TaskBarUiSlots;
 }
 
 export interface TaskBarSlots {

@@ -4,24 +4,25 @@ import theme from "../../../theme/grid-pattern";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 
-type GridBackground = ComponentConfig<typeof theme, AppConfig, "gridBackground">;
+type GridPattern = ComponentConfig<typeof theme, AppConfig, "gridPattern">;
+export type GridPatternUiSlots = GridPattern["slots"];
 
-export interface ChartProps {
+export interface GridPatternProps {
   class?: any;
-  ui?: GridBackground["slots"];
+  ui?: GridPatternUiSlots;
 }
 </script>
 
 <script lang="ts" setup>
 import { useGanttContext } from "../../composables/useGanttContext";
 
-const props = defineProps<ChartProps>();
+const props = defineProps<GridPatternProps>();
 
-const appConfig = useAppConfig() as GridBackground["AppConfig"];
+const appConfig = useAppConfig() as GridPattern["AppConfig"];
 
 const { cellSize } = useGanttContext();
 
-const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.gridBackground })({}));
+const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.gridPattern })({}));
 </script>
 
 <template>

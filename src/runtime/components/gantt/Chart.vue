@@ -14,6 +14,14 @@ import { Weekday } from "../../types/temporal";
 import { ALL_WEEKDAYS } from "../../../utils/temporal";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
+export type ChartUiSlots = Chart["slots"] & {
+  colItem?: ColItemUiSlots;
+  rowItem?: RowItemUiSlots;
+  dependencyArrow?: DependencyArrowUiSlots;
+  gridPattern?: GridPatternUiSlots;
+  offDayPattern?: OffDayPatternUiSlots;
+  taskBar?: TaskBarUiSlots;
+};
 
 export interface ChartProps {
   dateRange?: { start?: Temporal.PlainDate; end?: Temporal.PlainDate };
@@ -29,19 +37,19 @@ export interface ChartProps {
   };
   cellSize?: { width?: number; height?: number };
   class?: any;
-  ui?: Chart["slots"];
+  ui?: ChartUiSlots;
 }
 </script>
 
 <script setup lang="ts">
 import { defu } from "defu";
-import RowItem from "./RowItem.vue";
-import GridPattern from "./GridPattern.vue";
-import ColItem from "./ColItem.vue";
-import TaskBar from "./TaskBar.vue";
+import RowItem, { RowItemUiSlots } from "./RowItem.vue";
+import GridPattern, { GridPatternUiSlots } from "./GridPattern.vue";
+import ColItem, { ColItemUiSlots } from "./ColItem.vue";
+import TaskBar, { TaskBarUiSlots } from "./TaskBar.vue";
 import ULabel from "../ULabel.vue";
-import OffDayPattern from "./OffDayPattern.vue";
-import DependencyArrow, { Arrow } from "./DependencyArrow.vue";
+import OffDayPattern, { OffDayPatternUiSlots } from "./OffDayPattern.vue";
+import DependencyArrow, { Arrow, DependencyArrowUiSlots } from "./DependencyArrow.vue";
 
 const props = defineProps<ChartProps>();
 
@@ -247,6 +255,7 @@ defineExpose({
         :key="t.index"
         :style="{ width: `${cellSizeProps.width}px`, left: `${t.leftOffset}px` }"
         :item="t"
+        :ui="props.ui?.colItem"
         v-slot="{ item }"
       >
         <ULabel v-if="t.index == hoveredCell?.col" class="z-10 -translate-x-1/2">{{
@@ -261,20 +270,28 @@ defineExpose({
         :key="t.index"
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
         :highlight="hoveredCell?.row == t.index"
+        :ui="props.ui?.rowItem"
         v-model="tasks[t.index]"
       />
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">
-        <GridPattern />
-        <OffDayPattern :off-days="offDays" />
-        <DependencyArrow v-if="visibleArrows" v-for="a in visibleArrows" :key="a.id" :item="a" />
+        <GridPattern :ui="props.ui?.gridPattern" />
+        <OffDayPattern :off-days="offDays" :ui="props.ui?.offDayPattern" />
+        <DependencyArrow
+          v-if="visibleArrows"
+          v-for="a in visibleArrows"
+          :key="a.id"
+          :item="a"
+          :ui="props.ui?.dependencyArrow"
+        />
       </svg>
       <TaskBar
         v-if="tasks"
         v-for="t in visibleTasks"
         :key="t.index"
         :milestone="t.type && t.type == 'milestone'"
+        :ui="props.ui?.taskBar"
         :style="{
           height: `${cellSizeProps.height}px`,
           width: `${t.width}px`,

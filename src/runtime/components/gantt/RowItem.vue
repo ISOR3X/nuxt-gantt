@@ -6,11 +6,12 @@ import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Task } from "../../types/gantt";
 
 type RowItem = ComponentConfig<typeof theme, AppConfig, "rowItem">;
+export type RowItemUiSlots = RowItem["slots"];
 
 export interface ChartProps {
   highlight?: boolean;
   class?: any;
-  ui?: RowItem["slots"];
+  ui?: RowItemUiSlots;
 }
 
 export interface RowItemSlots {

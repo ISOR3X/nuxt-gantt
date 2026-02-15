@@ -7,12 +7,13 @@ import { Temporal } from "temporal-polyfill";
 
 type HasDate = { date: Temporal.PlainDate };
 type ColItem = ComponentConfig<typeof theme, AppConfig, "colItem">;
+export type ColItemUiSlots = ColItem["slots"];
 
 export interface ChartProps<T extends HasDate> {
   item: T;
   formatDate?: (date: Temporal.PlainDate) => string | null;
   class?: any;
-  ui?: ColItem["slots"];
+  ui?: ColItemUiSlots;
 }
 
 export interface ColItemSlots<T extends HasDate> {
