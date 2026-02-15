@@ -267,7 +267,7 @@ provideGanttContext({
   cellSize: cellSizeProps,
   dateRange,
   hoveredObjectId,
-  readOnly: toRef(() => true),
+  readOnly: toRef(() => false),
 });
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
