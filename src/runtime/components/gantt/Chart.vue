@@ -11,8 +11,9 @@ import { TaskWithGanttMeta } from "../../types/gantt";
 import { useColDateConversion } from "../../composables/useColDateConversion";
 import { buildArrowPath, computeArrowBBox, getAnchors, isArrowVisible } from "../../utils/arrows";
 import { Weekday } from "../../types/temporal";
-import { ALL_WEEKDAYS } from "../../../utils/temporal";
+
 import EventMarker, { EventMarkerUiSlots } from "./EventMarker.vue";
+import { ALL_WEEKDAYS } from "../../utils/temporal";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 export type ChartUiSlots = Chart["slots"] & {

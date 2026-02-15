@@ -1,8 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Project, PersistedProject, TaskDependency, TaskDependencyType } from "../types";
-
-import { dateToCol } from "./temporal";
+import { Project } from "../types/common";
+import { Task, Event, TaskDependency, TaskDependencyType } from "../types/gantt";
+import { SerializedEvent, SerializedProject, SerializedTask } from "../types/storage";
 
 /**
  * Parse a persisted dependency string (e.g. "11FS") into a TaskDependency object.
@@ -13,7 +13,7 @@ export function parseDependencyString(dep: string): TaskDependency | null {
   if (!match) return null;
 
   return {
-    toId: parseInt(match[1], 10),
+    taskId: parseInt(match[1], 10).toString(),
     type: match[2] as TaskDependencyType,
   };
 }
@@ -22,75 +22,102 @@ export function parseDependencyString(dep: string): TaskDependency | null {
  * Serialize a TaskDependency to the persisted string format (e.g. "11FS").
  */
 export function serializeDependency(dep: TaskDependency): string {
-  return `${dep.toId}${dep.type}`;
+  return `${dep.taskId}${dep.type}`;
 }
 
 /**
- * Serialize a Project to a PersistedProject.
+ * Serialize a Project to a SerializedProject.
  */
-export function serializeProject(project: Project): PersistedProject {
+export function serializeProject(project: Project): SerializedProject {
+  let serializedTasks: SerializedTask[] = [];
+  let serializedEvents: SerializedEvent[] = [];
+
+  if (project.tasks) {
+    serializedTasks = project.tasks.map((t) => ({
+      id: t.id,
+      label: t.label,
+      description: t.description,
+      type: t.type,
+      progress: t.progress,
+      startDate: t.startDate.toString(),
+      endDate: t.endDate?.toString(),
+      dependencies: t.dependencies?.map(serializeDependency),
+    }));
+  }
+
+  if (project.events) {
+    serializedEvents = project.events.map((e) => ({
+      id: e.id,
+      label: e.label,
+      description: e.description,
+      type: e.type,
+      startDate: e.startDate.toString(),
+      endDate: e.endDate?.toString(),
+    }));
+  }
+
   return {
     label: project.label,
     startDate: project.startDate.toString(),
     endDate: project.endDate.toString(),
-    tasks: project.tasks.map((task) => ({
-      id: task.id,
-      label: task.label,
-      progress: task.progress,
-      startDate: task.startDate.toString(),
-      endDate: task.endDate.toString(),
-      dependencies: task.dependencies?.map(serializeDependency),
-    })),
-    deadlines: project.deadlines.map((deadline) => ({
-      id: deadline.id,
-      date: deadline.date.toString(),
-      label: deadline.label,
-    })),
+    tasks: serializedTasks,
+    events: serializedEvents,
   };
 }
 
 /**
- * Desarialize a PersistedProject (usually parsed straight from JSON) to a Project.
+ * Desarialize a SerializedProject (usually parsed straight from JSON) to a Project.
  */
-export function deserializeProject(persisted: PersistedProject): Project {
+export function deserializeProject(persisted: SerializedProject): Project {
   const startDate = Temporal.PlainDate.from(persisted.startDate);
   const endDate = Temporal.PlainDate.from(persisted.endDate);
+
+  let tasks: Task[] | undefined = undefined;
+  let events: Event[] | undefined = undefined;
+
+  if (persisted.tasks) {
+    tasks = persisted.tasks.map((t) => {
+      const _startDate = Temporal.PlainDate.from(t.startDate);
+      const _endDate = t.endDate ? Temporal.PlainDate.from(t.endDate) : undefined;
+
+      // Parse persisted dependency strings (e.g. "11FS") into TaskDependency objects
+      const dependencies = t.dependencies?.map(parseDependencyString).filter((d) => d !== null);
+
+      return {
+        id: t.id,
+        label: t.label,
+        description: t.description,
+        type: t.type,
+        progress: t.progress,
+        startDate: _startDate,
+        endDate: _endDate,
+        dependencies: dependencies && dependencies.length > 0 ? dependencies : undefined,
+      };
+    });
+  }
+
+  if (persisted.events) {
+    events = persisted.events.map((e) => {
+      const _startDate = Temporal.PlainDate.from(e.startDate);
+      const _endDate = e.endDate ? Temporal.PlainDate.from(e.endDate) : undefined;
+
+      return {
+        id: e.id,
+        label: e.label,
+        description: e.description,
+        type: e.type,
+        startDate: _startDate,
+        endDate: _endDate,
+      };
+    });
+  }
 
   return {
     label: persisted.label,
     startDate,
     endDate,
-    tasks: persisted.tasks.map((s_task, index) => {
-      const _startDate = Temporal.PlainDate.from(s_task.startDate);
-      const _endDate = Temporal.PlainDate.from(s_task.endDate);
-      // Parse persisted dependency strings (e.g. "11FS") into TaskDependency objects
-      const dependencies = s_task.dependencies
-        ?.map(parseDependencyString)
-        .filter((d) => d !== null);
-
-      return {
-        id: s_task.id,
-        label: s_task.label,
-        progress: s_task.progress,
-        startDate: _startDate,
-        endDate: _endDate,
-        // Computed fields
-        row: index,
-        col: dateToCol(startDate, _startDate),
-        width: _startDate.until(_endDate).days,
-        dependencies: dependencies && dependencies.length > 0 ? dependencies : undefined,
-      };
-    }),
-    deadlines: persisted.deadlines.map((deadline) => {
-      const deadlineDate = Temporal.PlainDate.from(deadline.date);
-      return {
-        id: deadline.id,
-        label: deadline.label,
-        date: deadlineDate,
-        // Computed fields
-        col: dateToCol(startDate, deadlineDate),
-      };
-    }),
+    tasks: tasks,
+    events: events,
   };
 }
 
@@ -99,6 +126,7 @@ export function deserializeProject(persisted: PersistedProject): Project {
  */
 export function saveProject(project: Project): void {
   try {
+    project.label = project.label || "nuxt-gantt";
     const persisted = serializeProject(project);
     const json = JSON.stringify(persisted, null, 2);
     const blob = new Blob([json], { type: "application/json" });
@@ -133,15 +161,6 @@ export function loadProjectFromFile(file: File): Promise<Project> {
         if (!data || typeof data !== "object") {
           throw new Error("Invalid file format: expected a project object");
         }
-        if (
-          !data.startDate ||
-          !data.endDate ||
-          !Array.isArray(data.tasks) ||
-          !Array.isArray(data.deadlines)
-        ) {
-          throw new Error("Invalid file format: missing required project fields");
-        }
-
         const project = deserializeProject(data);
         resolve(project);
       } catch (error) {

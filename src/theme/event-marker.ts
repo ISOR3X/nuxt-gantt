@@ -4,7 +4,9 @@ export default {
   slots: {
     markerRoot: tw("absolute bottom-0"),
     markerBody: tw("h-3 bg-primary"),
-    markerContent: tw("absolute -bottom-7 inline-flex w-full justify-center"),
+    markerContent: tw(
+      "pointer-events-none absolute -bottom-[29px] inline-flex w-full justify-center",
+    ),
     bodyRoot: tw("group pointer-events-auto"),
     bodyContent: tw("h-full transition-all"),
     bodyBackground: tw(""),

@@ -10,10 +10,7 @@ const app = createApp(App);
 
 app.use(
   createRouter({
-    routes: [
-      { path: "/", component: () => import("./pages/index.vue") },
-      { path: "/v2", component: () => import("./pages/v2.vue") },
-    ],
+    routes: [{ path: "/", component: () => import("./pages/index.vue") }],
     history: createWebHistory(import.meta.env.BASE_URL),
   }),
 );

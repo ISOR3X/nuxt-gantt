@@ -23,14 +23,14 @@ export interface Task {
   progress?: number;
 }
 
+export interface Event extends Omit<Task, "type" | "dependencies" | "progress"> {
+  type?: "event" | "deadline";
+}
+
 interface GanttMeta {
   index: number;
   col: number;
   colSpan: number;
-}
-
-export interface Event extends Omit<Task, "type" | "dependencies" | "progress"> {
-  type?: "event" | "deadline";
 }
 
 export type TaskWithGanttMeta = Task & GanttMeta;

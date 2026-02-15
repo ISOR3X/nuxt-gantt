@@ -1,46 +1,79 @@
-<script lang="ts" setup>
-import GanttChart from "../components/GanttChart.vue";
-import {
-  generateRandomDeadlines,
-  generateRandomTask,
-  generateRandomTasks,
-} from "../utils/random.ts";
-import { ref, useTemplateRef } from "vue";
-import { loadProjectFromFile, saveProject as _saveProject } from "../utils/storage.ts";
+<script setup lang="ts">
+import { onMounted, ref, useTemplateRef } from "vue";
+import { Task, TaskDependency } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
-import { Deadline, Project, Vec2 } from "../types";
-import { DropdownMenuItem } from "@nuxt/ui";
+import Chart from "../runtime/components/gantt/Chart.vue";
+import { loadProjectFromFile, saveProject as _saveProject } from "../runtime/utils/storage";
+import { Project } from "../runtime/types/common";
 
-const cellSize = ref<Vec2>({ x: 30, y: 30 });
-
+const chart = useTemplateRef("chart");
 const fileInput = useTemplateRef("fileInput");
-const ganttChart = useTemplateRef<InstanceType<typeof GanttChart>>("ganttChart");
 
-const startDate = Temporal.Now.plainDateISO().subtract({ months: 1 });
-const endDate = Temporal.Now.plainDateISO().add({ months: 3 });
-
-function generateRandomDeadlinesWithToday(
-  count: number,
-  dateRange: [Temporal.PlainDate, Temporal.PlainDate],
-): Deadline[] {
-  const deadlines = generateRandomDeadlines(count, dateRange);
-  const today = Temporal.Now.plainDateISO();
-
-  deadlines.push({
-    id: -1,
-    date: today,
-    label: "Today",
-  });
-
-  return deadlines;
-}
+const uniqueTasks: Task[] = [
+  {
+    id: "19g4nh",
+    label: "Task",
+    progress: 0.9,
+    startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
+    endDate: Temporal.Now.plainDateISO().add({ days: 5 }),
+  },
+  {
+    id: "f93mgi",
+    label: "Milestone",
+    type: "milestone",
+    startDate: Temporal.Now.plainDateISO().add({ days: 4 }),
+  },
+];
 
 const project = ref<Project>({
-  label: "sample-project",
-  startDate: startDate,
-  endDate: endDate,
-  tasks: generateRandomTasks(200, [startDate, endDate]),
-  deadlines: generateRandomDeadlinesWithToday(10, [startDate, endDate]),
+  label: "",
+  startDate: Temporal.Now.plainDateISO().subtract({ weeks: 1 }),
+  endDate: Temporal.Now.plainDateISO().add({ months: 6 }),
+  events: [
+    {
+      id: "10g92n",
+      label: "Today",
+      type: "deadline",
+      startDate: Temporal.Now.plainDateISO(),
+    },
+    {
+      id: "g02cnt",
+      label: "Holiday",
+      startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
+      endDate: Temporal.Now.plainDateISO().add({ weeks: 1 }),
+    },
+  ],
+  tasks: [],
+});
+
+onMounted(() => {
+  let idx = 0;
+  for (let i = 0; i < 20; i++) {
+    for (const task of uniqueTasks) {
+      const newTask = task;
+      const prevTask = project.value.tasks?.[i - 1];
+      let dep: TaskDependency[] = [];
+
+      if (prevTask !== undefined) {
+        dep.push({
+          taskId: prevTask.id,
+          type: "SF",
+        });
+      }
+
+      newTask.startDate = newTask.startDate.add({ days: 4 });
+
+      if (newTask.endDate) newTask.endDate = newTask.endDate.add({ days: 4 });
+
+      project.value.tasks?.push({
+        ...newTask,
+        label: `${newTask.label} ${idx}`,
+        id: crypto.randomUUID(),
+        dependencies: dep,
+      });
+      idx++;
+    }
+  }
 });
 
 // Save tasks to a JSON file
@@ -81,108 +114,31 @@ async function handleFileChange(event: Event) {
     target.value = "";
   }
 }
-
-// Test scrollTo function
-function testScrollTo() {
-  const d = startDate.add({ months: 1 });
-  console.log("Scrolling to", d.toString());
-  ganttChart.value?.scrollTo(startDate.until(d).days, {
-    behavior: "smooth",
-    alignment: "start",
-  });
-}
-
-function addTask() {
-  project.value.tasks.push(
-    generateRandomTask(project.value.tasks.length, [
-      project.value.startDate,
-      project.value.endDate,
-    ]),
-  );
-}
-
-const items = ref<DropdownMenuItem[][]>([
-  [
-    {
-      label: "Edit project",
-      icon: "i-lucide-calendar-cog",
-      onSelect() {
-        console.log("");
-      },
-      disabled: true,
-    },
-    {
-      label: "Edit deadlines",
-      icon: "i-lucide-flag-triangle-left",
-      onSelect() {
-        console.log("");
-      },
-      disabled: true,
-    },
-
-    {
-      label: "Load project",
-      icon: "i-lucide-upload",
-      onSelect() {
-        loadProject();
-      },
-    },
-    {
-      label: "Save project",
-      icon: "i-lucide-download",
-      onSelect() {
-        saveProject();
-      },
-    },
-    {
-      label: "Settings",
-      icon: "i-lucide-settings",
-      onSelect() {
-        console.log("");
-      },
-      disabled: true,
-    },
-  ],
-]);
 </script>
 
 <template>
-  <div class="h-full p-4">
-    <GanttChart
-      ref="ganttChart"
+  <div class="flex h-full w-full flex-col gap-4 p-12">
+    <Chart
+      ref="chart"
       v-model:tasks="project.tasks"
-      v-model:deadlines="project.deadlines"
-      class="rounded-md border border-default"
-      :start-date="project.startDate"
-      :end-date="project.endDate"
-      :cell-size
-    >
-      <template #header>
-        <UInput v-model="project.label" variant="ghost" class="font-bold" />
-        <UDropdownMenu :items="items" :content="{ align: 'start' }">
-          <UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
-        </UDropdownMenu>
-      </template>
-    </GanttChart>
-  </div>
-  <div
-    class="fixed right-12 bottom-12 z-50 flex items-center gap-4 rounded-md border border-muted bg-muted p-4"
-  >
-    <UFormField label="Cell width (px)" orientation="horizontal">
-      <UInput v-model.number="cellSize.x" max="200" min="20" type="number" />
-    </UFormField>
-    <UFormField label="Cell height (px)" orientation="horizontal">
-      <UInput v-model.number="cellSize.y" max="200" min="20" type="number" />
-    </UFormField>
-    <UButton label="scroll to date" @click="testScrollTo()" />
-    <UButton label="add task" @click="addTask()" />
-    <!-- Hidden file input for loading tasks -->
-    <input
-      ref="fileInput"
-      type="file"
-      accept="application/json,.json"
-      style="display: none"
-      @change="handleFileChange"
+      v-model:events="project.events"
+      class="rounded-md border border-muted"
+      :date-range="{
+        start: project.startDate,
+        end: project.endDate,
+      }"
     />
+    <div class="space-x-4">
+      <UButton label="Scroll to 10th task" @click="chart?.scrollToItem(project.tasks![10])" />
+      <UButton label="Save project" @click="saveProject()" />
+      <UButton label="Load project" @click="loadProject()" />
+      <input
+        ref="fileInput"
+        type="file"
+        accept="application/json,.json"
+        style="display: none"
+        @change="handleFileChange"
+      />
+    </div>
   </div>
 </template>
