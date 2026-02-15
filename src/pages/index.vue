@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { Task, TaskDependency } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
 import { loadProjectFromFile, saveProject as _saveProject } from "../runtime/utils/storage";
 import { Project } from "../runtime/types/common";
+import SearchModal from "../runtime/components/SearchModal.vue";
 
 const chart = useTemplateRef("chart");
 const fileInput = useTemplateRef("fileInput");
@@ -44,6 +45,17 @@ const project = ref<Project>({
     },
   ],
   tasks: [],
+});
+
+const tasksForSearchModal = computed(() => {
+  let result: { label: string; id: string }[] = [];
+  if (project.value.tasks) {
+    result = project.value.tasks.map((t) => ({
+      label: t.label,
+      id: t.id,
+    }));
+  }
+  return result;
 });
 
 onMounted(() => {
@@ -101,7 +113,6 @@ async function handleFileChange(event: Event) {
   }
 
   try {
-    // FIXME: Why isn't min/max dates in header updates on project load?
     project.value = await loadProjectFromFile(file);
 
     // Reset file input so the same file can be loaded again
@@ -129,8 +140,7 @@ async function handleFileChange(event: Event) {
       }"
     />
     <div class="inline-flex items-center space-x-4">
-      {{ project.tasks?.at(0)?.label }}
-      <UButton label="Scroll to 10th task" @click="chart?.scrollToItem(project.tasks![30])" />
+      <SearchModal :items="tasksForSearchModal" @itemSelect="(i) => chart?.scrollToItem(i.id)" />
       <UFieldGroup>
         <UButton label="Save project" @click="saveProject()" icon="i-lucide-download" />
         <UButton label="Load project" @click="loadProject()" icon="i-lucide-upload" />

@@ -132,13 +132,12 @@ const ui = computed(() =>
       :title="item?.label"
       @mousedown="onMouseDownBar"
     >
-      <slot :ui="ui">
-        <div
-          v-if="item && item.progress"
-          :class="ui.progress({ class: props.ui?.progress })"
-          :style="{ width: `${item.progress * 100}%` }"
-        />
-      </slot>
+      <slot :ui="ui" />
+      <div
+        v-if="item && item.progress"
+        :class="ui.progress({ class: props.ui?.progress })"
+        :style="{ width: `${item.progress * 100}%` }"
+      />
     </div>
     <div
       v-if="!props.milestone"

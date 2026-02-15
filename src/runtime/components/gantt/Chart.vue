@@ -282,15 +282,18 @@ const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}))
 type ScrollToOptions = {
   behavior?: ScrollBehavior;
   alignment?: { vertical?: "start" | "center" | "end"; horizontal?: "start" | "center" | "end" };
+  highlight?: boolean
 };
-function scrollToItem<T extends Task>(item: T, options?: ScrollToOptions) {
+function scrollToItem<T extends Task>(itemOrId: T | string, options?: ScrollToOptions) {
   if (taskMap.value) {
     const _options = defu(options, {
       behavior: "smooth" as ScrollBehavior,
       alignment: { vertical: "start", horizontal: "start" },
+      highlight: true
     });
-    const itemIdx = taskMap.value.get(item.id)?.index;
-    if (itemIdx !== undefined) {
+    const itemId = typeof itemOrId === "string" ? itemOrId : itemOrId.id;
+    const _item = taskMap.value.get(itemId);
+    if (_item !== undefined) {
       const vOffset =
         _options.alignment.vertical == "start"
           ? 0
@@ -303,16 +306,22 @@ function scrollToItem<T extends Task>(item: T, options?: ScrollToOptions) {
           : _options.alignment.horizontal == "center"
             ? 0.5
             : 1;
-      console.log(hOffset, vOffset);
+      const left =
+        dateToCol(dateRange.value.start, _item.startDate, _item.id) * cellSizeProps.value.width -
+        (viewport.value.width.value - headerProps.value.firstColWidth) * hOffset;
+      const top =
+        _item.index * cellSizeProps.value.height -
+        (viewport.value.height.value - headerProps.value.firstRowHeight) * vOffset;
       el.value?.scrollTo({
         behavior: _options.behavior,
-        left:
-          dateToCol(dateRange.value.start, item.startDate, item.id) * cellSizeProps.value.width -
-          (viewport.value.width.value - headerProps.value.firstColWidth) * hOffset,
-        top:
-          itemIdx * cellSizeProps.value.height -
-          (viewport.value.height.value - headerProps.value.firstRowHeight) * vOffset,
+        left,
+        top,
       });
+      if (_options.highlight)
+      {hoveredObjectId.value = _item.id
+      setTimeout(()=> {
+        hoveredObjectId.value = null
+      }, 3000)}
     }
   }
 }
@@ -422,6 +431,7 @@ defineExpose({
         v-model="tasks[t.index]"
         :milestone="t.type && t.type == 'milestone'"
         :ui="props.ui?.taskBar"
+        :class="{'outline-4 outline-offset-10 outline-inverted': hoveredObjectId == t.id}"
         :style="{
           height: `${cellSizeProps.height}px`,
           width: `${t.width}px`,
