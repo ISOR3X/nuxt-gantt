@@ -122,11 +122,9 @@ const ui = computed(() =>
   <div :class="ui.root({ class: props.ui?.root })">
     <div
       v-if="!props.milestone"
-      :class="ui.leftHandleRoot({ class: props.ui?.leftHandleRoot })"
+      :class="ui.leftHandle({ class: props.ui?.leftHandle })"
       @mousedown.stop="onMouseDownLeft"
-    >
-      <div :class="ui.handle({ class: props.ui?.handle })" />
-    </div>
+    />
     <div
       :class="ui.base({ class: [props.ui?.base, props.class, cursorStyle] })"
       :title="item?.label"
@@ -142,10 +140,8 @@ const ui = computed(() =>
     </div>
     <div
       v-if="!props.milestone"
-      :class="ui.rightHandleRoot({ class: props.ui?.rightHandleRoot })"
+      :class="ui.rightHandle({ class: props.ui?.rightHandle })"
       @mousedown.stop="onMouseDownRight"
-    >
-      <div :class="ui.handle({ class: props.ui?.handle })" />
-    </div>
+    />
   </div>
 </template>

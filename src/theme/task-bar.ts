@@ -1,6 +1,6 @@
 import { tw } from "../runtime/utils/common";
 
-const handleCommon = tw("absolute aspect-square h-full p-2");
+const handleCommon = tw("absolute bottom-0 z-10 h-full w-6 cursor-ew-resize");
 
 export default {
   slots: {
@@ -9,9 +9,8 @@ export default {
       "relative flex h-full w-full items-center overflow-clip rounded-sm border-2 border-primary bg-primary/30 px-1 text-sm",
     ),
     progress: tw("absolute bottom-0 left-0 h-full bg-primary"),
-    leftHandleRoot: [handleCommon, tw(" bottom-0 -left-4 -translate-x-1/2 cursor-ew-resize")],
-    rightHandleRoot: [handleCommon, tw("-right-4 bottom-0 translate-x-1/2 cursor-ew-resize")],
-    handle: tw("h-full rounded-full border-accented group-hover:border-2"),
+    leftHandle: [handleCommon, tw("-translate-x-1/2")],
+    rightHandle: [handleCommon, tw("right-0 translate-x-1/2")],
   },
   variants: {
     milestone: {
