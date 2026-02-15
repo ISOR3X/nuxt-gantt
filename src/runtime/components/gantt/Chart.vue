@@ -45,6 +45,11 @@ export interface ChartProps {
   class?: any;
   ui?: ChartUiSlots;
 }
+
+export interface ChartSlots {
+  corner(props: { ui: Chart["ui"] }): any;
+  rowItem(props: { ui: Chart["ui"]; item: TaskWithGanttMeta }): any;
+}
 </script>
 
 <script setup lang="ts">
@@ -58,6 +63,7 @@ import EventBody, { EventBodyUiSlots } from "./EventBody.vue";
 import DependencyArrow, { Arrow, DependencyArrowUiSlots } from "./DependencyArrow.vue";
 
 const props = defineProps<ChartProps>();
+const slots = defineSlots<ChartSlots>();
 
 // Using defu makes for easy merging if only partial values are passed in the props.
 const headerProps = toRef(() => defu(props.header, { firstRowHeight: 48, firstColWidth: 240 }));
@@ -298,8 +304,10 @@ defineExpose({
       gridTemplateRows: `${headerProps.firstRowHeight}px ${gridSize.height}px`,
     }"
   >
-    <div data-slot="corner" :class="ui.corner({ class: props.ui?.corner })" />
-    <div data-slot="firstRow" :class="ui.firstRow({ class: props.ui?.firstRow })">
+    <div data-slot="corner" :class="ui.corner({ class: props.ui?.corner })">
+      <slot name="corner" :ui="ui" />
+    </div>
+    <div :class="ui.firstRow({ class: props.ui?.firstRow })">
       <!-- Dates -->
       <ColItem
         v-for="t in visibleColItems"
@@ -343,7 +351,7 @@ defineExpose({
         </Transition>
       </EventMarker>
     </div>
-    <div data-slot="firstCol" :class="ui.firstCol({ class: props.ui?.firstCol })">
+    <div :class="ui.firstCol({ class: props.ui?.firstCol })">
       <RowItem
         v-for="t in visibleRowItems"
         v-if="tasks"
@@ -352,7 +360,9 @@ defineExpose({
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
         :highlight="hoveredCell?.row == t.index"
         :ui="props.ui?.rowItem"
-      />
+      >
+        <slot name="rowItem" :ui="ui" :item="t" />
+      </RowItem>
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">

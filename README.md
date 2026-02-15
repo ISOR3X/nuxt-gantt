@@ -2,7 +2,7 @@
 
 Gantt charts for Nuxt UI.
 
-A work in progress project for creating Gantt charts. 
+A work in progress project for creating Gantt charts.
 
 I have just finished rewriting v2 which has a lot better performance but still lacks the task editing GUI. Suggestions are very welcome!
 
