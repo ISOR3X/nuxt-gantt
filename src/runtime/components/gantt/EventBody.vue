@@ -1,5 +1,5 @@
 <script lang="ts">
-import { AppConfig, computed } from "vue";
+import { AppConfig, computed, ref } from "vue";
 import theme from "../../../theme/event-marker";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
@@ -28,7 +28,8 @@ const isDeadline = computed(
     props.item.type == "deadline",
 );
 
-const { hoveredObjectId, readOnly } = useGanttContext();
+const { hoveredObjectId } = useGanttContext();
+const readOnly = ref(true);
 
 const appConfig = useAppConfig() as EventBody["AppConfig"];
 

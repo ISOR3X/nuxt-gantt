@@ -1,11 +1,10 @@
 <script lang="ts">
-import { AppConfig, computed } from "vue";
+import { AppConfig, computed, ref } from "vue";
 import theme from "../../../theme/event-marker";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Event } from "../../types/gantt";
 import { Temporal } from "temporal-polyfill";
-import { useGanttContext } from "../../composables/useGanttContext";
 
 type EventMarker = ComponentConfig<typeof theme, AppConfig, "event">;
 export type EventMarkerUiSlots = EventMarker["slots"];
@@ -29,7 +28,7 @@ const isDeadline = computed(
 
 const appConfig = useAppConfig() as EventMarker["AppConfig"];
 
-const { readOnly } = useGanttContext();
+const readOnly = ref(true);
 
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.event })({
