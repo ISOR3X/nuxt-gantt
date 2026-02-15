@@ -9,7 +9,7 @@ export default {
     ),
     bodyRoot: tw("group pointer-events-auto"),
     bodyContent: tw("h-full transition-all"),
-    bodyBackground: tw(""),
+    bodyBackground: tw("h-full"),
   },
   variants: {
     deadline: {
@@ -22,6 +22,12 @@ export default {
       false: {
         markerBody: tw("h-[1px]"),
         bodyContent: tw("fill-primary/20 group-hover:fill-primary/30"),
+        bodyBackground: tw(" w-5 fill-transparent"),
+      },
+    },
+    readOnly: {
+      false: {
+        bodyBackground: tw("hover:cursor-ew-resize"),
       },
     },
   },

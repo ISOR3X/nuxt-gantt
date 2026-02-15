@@ -28,13 +28,14 @@ const isDeadline = computed(
     props.item.type == "deadline",
 );
 
-const { hoveredObjectId } = useGanttContext();
+const { hoveredObjectId, readOnly } = useGanttContext();
 
 const appConfig = useAppConfig() as EventBody["AppConfig"];
 
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.event })({
     deadline: isDeadline.value,
+    readOnly: readOnly?.value,
   }),
 );
 </script>
@@ -49,12 +50,18 @@ const ui = computed(() =>
       <line y1="0" y2="100%" :class="ui.bodyContent({ class: props.ui?.bodyContent })" />
       <line y1="0" y2="100%" :class="ui.bodyBackground({ class: props.ui?.bodyBackground })" />
     </g>
-    <g v-else>
+    <g v-else-if="props.width">
       <rect
         :width="props.width"
         x="0"
         y="0"
         :class="ui.bodyContent({ class: props.ui?.bodyContent })"
+      />
+      <rect x="-10" y="0" :class="ui.bodyBackground({ class: props.ui?.bodyBackground })" />
+      <rect
+        :x="props.width - 10"
+        y="0"
+        :class="ui.bodyBackground({ class: props.ui?.bodyBackground })"
       />
     </g>
   </g>

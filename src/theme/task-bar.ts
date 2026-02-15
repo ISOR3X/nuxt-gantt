@@ -1,6 +1,6 @@
 import { tw } from "../runtime/utils/common";
 
-const handleCommon = tw("absolute bottom-0 z-10 h-full w-6 cursor-ew-resize");
+const handleCommon = tw("absolute bottom-0 z-10 h-full w-6");
 
 export default {
   slots: {
@@ -16,6 +16,12 @@ export default {
     milestone: {
       true: {
         base: tw("bevel rounded-full"),
+      },
+    },
+    readOnly: {
+      false: {
+        leftHandle: "cursor-ew-resize",
+        rightHandle: "cursor-ew-resize",
       },
     },
   },

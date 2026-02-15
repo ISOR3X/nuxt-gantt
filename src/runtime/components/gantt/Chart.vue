@@ -263,7 +263,12 @@ const visibleEvents = computed(() => {
 });
 // #endregion
 
-provideGanttContext({ cellSize: cellSizeProps, dateRange, hoveredObjectId });
+provideGanttContext({
+  cellSize: cellSizeProps,
+  dateRange,
+  hoveredObjectId,
+  readOnly: toRef(() => true),
+});
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
@@ -387,12 +392,5 @@ defineExpose({
         }"
       />
     </div>
-  </div>
-  <div class="fixed right-10 bottom-4 bg-black">
-    {{ visibleColItems.map((t) => t.index)[0] }}
-    {{ visibleColItems.map((t) => t.index)[visibleColItems.length - 1] }}
-    {{ colsOnScreen }}
-    {{ hoveredCell }}
-    {{ hoveredObjectId }}
   </div>
 </template>

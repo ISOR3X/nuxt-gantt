@@ -28,7 +28,7 @@ const slots = defineSlots<TaskBarSlots>();
 const appConfig = useAppConfig() as TaskBar["AppConfig"];
 
 const item = defineModel<T>();
-const { cellSize } = useGanttContext();
+const { cellSize, readOnly } = useGanttContext();
 
 type DragMode = "none" | "dragging" | "resizing-left" | "resizing-right";
 
@@ -42,6 +42,7 @@ const originalStartDate = ref<Temporal.PlainDate | undefined>(undefined);
 const originalEndDate = ref<Temporal.PlainDate | undefined>(undefined);
 
 const cursorStyle = computed(() => {
+  if (readOnly?.value) return "";
   if (isDragging.value) return "cursor-grabbing";
   if (isResizingLeft.value || isResizingRight.value) return "cursor-ew-resize";
   return "cursor-grab";
@@ -75,7 +76,7 @@ function onMouseDownRight(e: MouseEvent) {
 }
 
 function onMouseMove(e: MouseEvent) {
-  if (!originalStartDate.value || !item.value) return;
+  if (!originalStartDate.value || !item.value || readOnly?.value) return;
 
   const deltaX = e.clientX - dragStartX.value;
   const daysMoved = Math.round(deltaX / cellSize.value.width);
@@ -114,6 +115,7 @@ function onMouseUp() {
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.taskBar })({
     milestone: props.milestone,
+    readOnly: readOnly?.value,
   }),
 );
 </script>
