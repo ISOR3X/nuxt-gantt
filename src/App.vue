@@ -5,14 +5,6 @@ import AppLogo from "./runtime/components/AppLogo.vue";
 <template>
   <Suspense>
     <UApp>
-      <!-- <UBanner
-        id="wip"
-        color="warning"
-        title="Nuxt Gantt is still heavily work in progress. Visit the GitHub page for more information."
-        close
-        to="https://github.com/ISOR3X/nuxt-gantt/"
-        target="_blank"
-      /> -->
       <UHeader>
         <template #left>
           <AppLogo class="h-6 w-auto shrink-0" />
