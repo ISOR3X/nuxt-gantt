@@ -248,30 +248,30 @@ defineExpose({
       gridTemplateRows: `${headerProps.firstRowHeight}px ${gridSize.height}px`,
     }"
   >
-    <div data-slot="corner" :class="ui.corner({ class: props.ui?.corner })"></div>
+    <div data-slot="corner" :class="ui.corner({ class: props.ui?.corner })" />
     <div data-slot="firstRow" :class="ui.firstRow({ class: props.ui?.firstRow })">
       <ColItem
         v-for="t in visibleColItems"
         :key="t.index"
+        v-slot="{ item }"
         :style="{ width: `${cellSizeProps.width}px`, left: `${t.leftOffset}px` }"
         :item="t"
         :ui="props.ui?.colItem"
-        v-slot="{ item }"
       >
-        <ULabel v-if="t.index == hoveredCell?.col" class="z-10 -translate-x-1/2">{{
-          item.date
-        }}</ULabel>
+        <ULabel v-if="t.index == hoveredCell?.col" class="z-10 -translate-x-1/2">
+          {{ item.date }}
+        </ULabel>
       </ColItem>
     </div>
     <div data-slot="firstCol" :class="ui.firstCol({ class: props.ui?.firstCol })">
       <RowItem
-        v-if="tasks"
         v-for="t in visibleRowItems"
+        v-if="tasks"
         :key="t.index"
+        v-model="tasks[t.index]"
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
         :highlight="hoveredCell?.row == t.index"
         :ui="props.ui?.rowItem"
-        v-model="tasks[t.index]"
       />
     </div>
     <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
@@ -279,17 +279,18 @@ defineExpose({
         <GridPattern :ui="props.ui?.gridPattern" />
         <OffDayPattern :off-days="offDays" :ui="props.ui?.offDayPattern" />
         <DependencyArrow
-          v-if="visibleArrows"
           v-for="a in visibleArrows"
+          v-if="visibleArrows"
           :key="a.id"
           :item="a"
           :ui="props.ui?.dependencyArrow"
         />
       </svg>
       <TaskBar
-        v-if="tasks"
         v-for="t in visibleTasks"
+        v-if="tasks"
         :key="t.index"
+        v-model="tasks[t.index]"
         :milestone="t.type && t.type == 'milestone'"
         :ui="props.ui?.taskBar"
         :style="{
@@ -298,7 +299,6 @@ defineExpose({
           top: `${t.topOffset}px`,
           left: `${t.leftOffset}px`,
         }"
-        v-model="tasks[t.index]"
       />
     </div>
   </div>

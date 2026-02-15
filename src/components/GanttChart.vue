@@ -179,14 +179,14 @@ defineExpose({ scrollTo });
 
 <template>
   <div
-    class="relative isolate grid h-full overflow-y-scroll"
     ref="scrollContainerRef"
-    @mousemove="handleMouseMove"
-    @mouseleave="handleMouseLeave"
+    class="relative isolate grid h-full overflow-y-scroll"
     :style="{
       gridTemplateColumns: `${HEADERWIDTH}px ${totalWidth}px`,
       gridTemplateRows: `${HEADERHEIGHT}px ${totalHeight}px`,
     }"
+    @mousemove="handleMouseMove"
+    @mouseleave="handleMouseLeave"
   >
     <div
       class="sticky-left sticky-top z-20 flex items-center justify-between border-r border-b border-muted bg-default px-1"
@@ -200,8 +200,8 @@ defineExpose({ scrollTo });
       :hovered-col="hoveredCell?.col"
     />
     <GanttRowLabels
-      class="sticky-left z-10"
       v-model:tasks="tasks"
+      class="sticky-left z-10"
       :visible-rows="visibleRows"
       :hovered-row="hoveredCell?.row"
       @settings-click="({ taskId }) => handleClick(taskId)"

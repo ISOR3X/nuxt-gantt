@@ -54,9 +54,9 @@ const endDate = computed({
           </UFormField>
           <UFormField label="Duration">
             <!-- TODO: Allow duration input -->
-            <UButton disabled variant="subtle" color="neutral">{{
-              formatDurationInDays(clonedTask.startDate.until(clonedTask.endDate))
-            }}</UButton>
+            <UButton disabled variant="subtle" color="neutral">
+              {{ formatDurationInDays(clonedTask.startDate.until(clonedTask.endDate)) }}
+            </UButton>
           </UFormField>
         </div>
         <div v-if="task.dependencies">

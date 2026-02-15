@@ -59,8 +59,9 @@ onMounted(() => {
   <div class="flex h-full w-full flex-col gap-4 p-12">
     <Chart
       ref="chart"
+      v-model:tasks="tasks"
       class="rounded-md border border-muted"
-      :dateRange="{
+      :date-range="{
         start: Temporal.Now.plainDateISO(),
         end: Temporal.Now.plainDateISO().add({ years: 1 }),
       }"
@@ -69,7 +70,6 @@ onMounted(() => {
           base: 'rounded-none',
         },
       }"
-      v-model:tasks="tasks"
     />
     <div class="space-x-4">
       <UButton label="Scroll to 10th task" @click="chart?.scrollToItem(tasks[10])" />

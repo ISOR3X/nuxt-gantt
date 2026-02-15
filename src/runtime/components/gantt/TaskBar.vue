@@ -121,8 +121,8 @@ const ui = computed(() =>
 <template>
   <div :class="ui.root({ class: props.ui?.root })">
     <div
-      :class="ui.leftHandleRoot({ class: props.ui?.leftHandleRoot })"
       v-if="!props.milestone"
+      :class="ui.leftHandleRoot({ class: props.ui?.leftHandleRoot })"
       @mousedown.stop="onMouseDownLeft"
     >
       <div :class="ui.handle({ class: props.ui?.handle })" />
@@ -141,8 +141,8 @@ const ui = computed(() =>
       </slot>
     </div>
     <div
-      :class="ui.rightHandleRoot({ class: props.ui?.rightHandleRoot })"
       v-if="!props.milestone"
+      :class="ui.rightHandleRoot({ class: props.ui?.rightHandleRoot })"
       @mousedown.stop="onMouseDownRight"
     >
       <div :class="ui.handle({ class: props.ui?.handle })" />
