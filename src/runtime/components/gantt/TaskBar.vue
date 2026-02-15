@@ -83,24 +83,29 @@ function onMouseMove(e: MouseEvent) {
 
   let newStartDate = originalStartDate.value;
   let newEndDate = originalEndDate.value;
+  const pseudoEndDate = originalEndDate.value ?? originalStartDate.value;
 
   if (isDragging.value) {
     newStartDate = originalStartDate.value.add({ days: daysMoved });
-    newEndDate = originalEndDate.value?.add({ days: daysMoved });
-  } else if (isResizingLeft.value && originalEndDate.value) {
+    if (originalEndDate.value) newEndDate = originalEndDate.value.add({ days: daysMoved });
+  } else if (isResizingLeft.value) {
     newStartDate = originalStartDate.value.add({ days: daysMoved });
-    if (Temporal.PlainDate.compare(newStartDate, originalEndDate.value) >= 0) {
+    if (newEndDate == undefined) {
+      newEndDate = originalStartDate.value;
+    }
+    if (Temporal.PlainDate.compare(newStartDate, pseudoEndDate) > 0) {
       return; // Don't update if invalid
     }
-  } else if (isResizingRight.value && originalEndDate.value) {
-    newEndDate = originalEndDate.value.add({ days: daysMoved });
-    if (Temporal.PlainDate.compare(newEndDate, originalStartDate.value) <= 0) {
+  } else if (isResizingRight.value) {
+    newEndDate = pseudoEndDate.add({ days: daysMoved });
+    if (Temporal.PlainDate.compare(newEndDate, originalStartDate.value) < 0) {
       return; // Don't update if invalid
     }
   }
 
   item.value.startDate = newStartDate;
-  if (item.value.endDate) item.value.endDate = newEndDate;
+  // if ((Temporal.PlainDate.compare(newEndDate, originalStartDate.value) <= 0))
+  item.value.endDate = newEndDate;
 }
 
 function onMouseUp() {

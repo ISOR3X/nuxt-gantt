@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { Task, TaskDependency } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
@@ -125,6 +125,20 @@ async function handleFileChange(event: Event) {
     target.value = "";
   }
 }
+
+function addTask() {
+  if (project.value.tasks) {
+    const id = crypto.randomUUID();
+    project.value.tasks.push({
+      label: "New task",
+      startDate: Temporal.Now.plainDateISO().add({ weeks: 2 }),
+      id,
+    });
+    nextTick(() => {
+      chart.value?.scrollToItem(id);
+    });
+  }
+}
 </script>
 
 <template>
@@ -140,6 +154,7 @@ async function handleFileChange(event: Event) {
       }"
     />
     <div class="inline-flex items-center space-x-4">
+      <UButton label="Add task" @click="addTask()" />
       <SearchModal :items="tasksForSearchModal" @itemSelect="(i) => chart?.scrollToItem(i.id)" />
       <UFieldGroup>
         <UButton label="Save project" @click="saveProject()" icon="i-lucide-download" />

@@ -1,6 +1,6 @@
 import { tw } from "../runtime/utils/common";
 
-const handleCommon = tw("absolute bottom-0 z-10 h-full w-6");
+const handleCommon = tw("absolute bottom-0 z-10 h-full w-3");
 
 export default {
   slots: {
