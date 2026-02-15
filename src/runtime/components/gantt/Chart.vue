@@ -49,6 +49,7 @@ export interface ChartProps {
 export interface ChartSlots {
   corner(props: { ui: Chart["ui"] }): any;
   rowItem(props: { ui: Chart["ui"]; item: TaskWithGanttMeta }): any;
+  taskBar(props: { ui: Chart["ui"]; item: TaskWithGanttMeta }): any;
 }
 </script>
 
@@ -278,14 +279,41 @@ provideGanttContext({
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
-function scrollToItem<T extends Task>(item: T) {
-  if (tasks.value) {
-    const itemIdx = tasks.value.findIndex((t) => t.id == item.id);
-    el.value?.scrollTo({
-      behavior: "smooth",
-      left: dateToCol(dateRange.value.start, item.startDate, item.id) * cellSizeProps.value.width,
-      top: itemIdx * cellSizeProps.value.height,
+type ScrollToOptions = {
+  behavior?: ScrollBehavior;
+  alignment?: { vertical?: "start" | "center" | "end"; horizontal?: "start" | "center" | "end" };
+};
+function scrollToItem<T extends Task>(item: T, options?: ScrollToOptions) {
+  if (taskMap.value) {
+    const _options = defu(options, {
+      behavior: "smooth" as ScrollBehavior,
+      alignment: { vertical: "start", horizontal: "start" },
     });
+    const itemIdx = taskMap.value.get(item.id)?.index;
+    if (itemIdx !== undefined) {
+      const vOffset =
+        _options.alignment.vertical == "start"
+          ? 0
+          : _options.alignment.vertical == "center"
+            ? 0.5
+            : 1;
+      const hOffset =
+        _options.alignment.horizontal == "start"
+          ? 0
+          : _options.alignment.horizontal == "center"
+            ? 0.5
+            : 1;
+      console.log(hOffset, vOffset);
+      el.value?.scrollTo({
+        behavior: _options.behavior,
+        left:
+          dateToCol(dateRange.value.start, item.startDate, item.id) * cellSizeProps.value.width -
+          (viewport.value.width.value - headerProps.value.firstColWidth) * hOffset,
+        top:
+          itemIdx * cellSizeProps.value.height -
+          (viewport.value.height.value - headerProps.value.firstRowHeight) * vOffset,
+      });
+    }
   }
 }
 
@@ -400,7 +428,9 @@ defineExpose({
           top: `${t.topOffset}px`,
           left: `${t.leftOffset}px`,
         }"
-      />
+      >
+        <slot name="taskBar" :ui="ui" :item="t" />
+      </TaskBar>
     </div>
   </div>
 </template>

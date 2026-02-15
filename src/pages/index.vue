@@ -128,10 +128,13 @@ async function handleFileChange(event: Event) {
         end: project.endDate,
       }"
     />
-    <div class="space-x-4">
-      <UButton label="Scroll to 10th task" @click="chart?.scrollToItem(project.tasks![10])" />
-      <UButton label="Save project" @click="saveProject()" />
-      <UButton label="Load project" @click="loadProject()" />
+    <div class="inline-flex items-center space-x-4">
+      {{ project.tasks?.at(0)?.label }}
+      <UButton label="Scroll to 10th task" @click="chart?.scrollToItem(project.tasks![30])" />
+      <UFieldGroup>
+        <UButton label="Save project" @click="saveProject()" icon="i-lucide-download" />
+        <UButton label="Load project" @click="loadProject()" icon="i-lucide-upload" />
+      </UFieldGroup>
       <input
         ref="fileInput"
         type="file"

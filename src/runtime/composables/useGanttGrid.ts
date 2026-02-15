@@ -58,6 +58,8 @@ export function useGanttGrid(
     top: scrolled.y.value,
     right: scrolled.x.value + viewportWidth.value,
     bottom: scrolled.y.value + viewportHeight.value,
+    width: viewportWidth,
+    height: viewportHeight,
   }));
 
   return { hoveredCell, rowsOnScreen, colsOnScreen, scrollTo, viewport };
