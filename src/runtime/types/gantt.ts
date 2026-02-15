@@ -7,16 +7,6 @@ export interface TaskDependency {
   type: TaskDependencyType;
 }
 
-interface ChartObject {
-  id: string;
-  date: Temporal.PlainDate;
-}
-
-interface RangedChartObject extends Omit<ChartObject, "date"> {
-  startDate: Temporal.PlainDate;
-  endDate: Temporal.PlainDate;
-}
-
 export interface Task {
   id: string;
   label: string;
@@ -33,17 +23,15 @@ export interface Task {
   progress?: number;
 }
 
-export interface Event extends RangedChartObject {
-  label: string;
-  description?: string;
-}
-
-export interface Deadline extends ChartObject {
-  label: string;
-}
-
-export interface TaskWithGanttMeta extends Task {
+interface GanttMeta {
   index: number;
   col: number;
   colSpan: number;
 }
+
+export interface Event extends Omit<Task, "type" | "dependencies" | "progress"> {
+  type?: "event" | "deadline";
+}
+
+export type TaskWithGanttMeta = Task & GanttMeta;
+export type EventWithGanttMeta = Event & GanttMeta;

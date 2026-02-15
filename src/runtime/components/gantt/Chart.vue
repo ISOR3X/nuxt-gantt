@@ -1,10 +1,10 @@
 <script lang="ts">
 import { Temporal } from "temporal-polyfill";
-import { AppConfig, computed, toRef, useTemplateRef } from "vue";
+import { AppConfig, computed, ref, toRef, useTemplateRef } from "vue";
 import theme from "../../../theme/chart";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
-import { Task } from "../../types/gantt";
+import { Event, EventWithGanttMeta, Task } from "../../types/gantt";
 import { provideGanttContext } from "../../composables/useGanttContext";
 import { useGanttGrid } from "../../composables/useGanttGrid";
 import { TaskWithGanttMeta } from "../../types/gantt";
@@ -12,6 +12,7 @@ import { useColDateConversion } from "../../composables/useColDateConversion";
 import { buildArrowPath, computeArrowBBox, getAnchors, isArrowVisible } from "../../utils/arrows";
 import { Weekday } from "../../types/temporal";
 import { ALL_WEEKDAYS } from "../../../utils/temporal";
+import EventMarker, { EventMarkerUiSlots } from "./EventMarker.vue";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 export type ChartUiSlots = Chart["slots"] & {
@@ -21,6 +22,10 @@ export type ChartUiSlots = Chart["slots"] & {
   gridPattern?: GridPatternUiSlots;
   offDayPattern?: OffDayPatternUiSlots;
   taskBar?: TaskBarUiSlots;
+  event?: {
+    marker?: EventMarkerUiSlots;
+    body?: EventBodyUiSlots;
+  };
 };
 
 export interface ChartProps {
@@ -47,8 +52,8 @@ import RowItem, { RowItemUiSlots } from "./RowItem.vue";
 import GridPattern, { GridPatternUiSlots } from "./GridPattern.vue";
 import ColItem, { ColItemUiSlots } from "./ColItem.vue";
 import TaskBar, { TaskBarUiSlots } from "./TaskBar.vue";
-import ULabel from "../ULabel.vue";
 import OffDayPattern, { OffDayPatternUiSlots } from "./OffDayPattern.vue";
+import EventBody, { EventBodyUiSlots } from "./EventBody.vue";
 import DependencyArrow, { Arrow, DependencyArrowUiSlots } from "./DependencyArrow.vue";
 
 const props = defineProps<ChartProps>();
@@ -84,11 +89,30 @@ const { dateToCol, colToDate } = useColDateConversion();
 const el = useTemplateRef("chart");
 
 const tasks = defineModel<Task[]>("tasks");
+const events = defineModel<Event[]>("events");
+
+const hoveredObjectId = ref<string | null>(null);
 
 const taskMap = computed(() => {
   const map: Map<string, TaskWithGanttMeta> = new Map();
   if (tasks.value) {
     for (const [idx, t] of tasks.value.entries()) {
+      map.set(t.id, {
+        ...t,
+        index: idx,
+        col: dateToCol(dateRange.value.start, t.startDate, t.id),
+        colSpan: dateToCol(t.startDate, t.endDate ?? t.startDate, t.id) + 1,
+      });
+    }
+  }
+  return map;
+});
+
+// TODO: deduplicate. This is near 1:1 copy of taskMap.
+const eventMap = computed(() => {
+  const map: Map<string, EventWithGanttMeta> = new Map();
+  if (events.value) {
+    for (const [idx, t] of events.value.entries()) {
       map.set(t.id, {
         ...t,
         index: idx,
@@ -216,9 +240,29 @@ const visibleArrows = computed(() => {
   }
   return result;
 });
+
+// TODO: deduplicate. This is near 1:1 copy of visibleTasks.
+const visibleEvents = computed(() => {
+  const result: (EventWithGanttMeta & {
+    leftOffset: number;
+    width: number;
+  })[] = [];
+
+  for (const i of eventMap.value.values()) {
+    const eventColEnd = i.col + i.colSpan;
+    if (i.col > colsOnScreen.value.max || eventColEnd < colsOnScreen.value.min) continue;
+
+    result.push({
+      ...i,
+      leftOffset: i.col * cellSizeProps.value.width,
+      width: i.colSpan * cellSizeProps.value.width,
+    });
+  }
+  return result;
+});
 // #endregion
 
-provideGanttContext({ cellSize: cellSizeProps, dateRange: dateRange });
+provideGanttContext({ cellSize: cellSizeProps, dateRange, hoveredObjectId });
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
@@ -250,6 +294,7 @@ defineExpose({
   >
     <div data-slot="corner" :class="ui.corner({ class: props.ui?.corner })" />
     <div data-slot="firstRow" :class="ui.firstRow({ class: props.ui?.firstRow })">
+      <!-- Dates -->
       <ColItem
         v-for="t in visibleColItems"
         :key="t.index"
@@ -258,10 +303,39 @@ defineExpose({
         :item="t"
         :ui="props.ui?.colItem"
       >
-        <ULabel v-if="t.index == hoveredCell?.col" class="z-10 -translate-x-1/2">
+        <UBadge
+          v-if="t.index == hoveredCell?.col"
+          class="z-10 -translate-x-1/2"
+          variant="outline"
+          color="neutral"
+        >
           {{ item.date }}
-        </ULabel>
+        </UBadge>
       </ColItem>
+      <!-- Events -->
+      <EventMarker
+        v-for="e in visibleEvents"
+        v-if="visibleEvents"
+        :style="{
+          left: `${e.leftOffset}px`,
+          width: `${e.width}px`,
+        }"
+        :item="e"
+        :ui="props.ui?.event?.marker"
+      >
+        <Transition
+          enter-active-class="transition-opacity duration-200"
+          leave-active-class="transition-opacity duration-200"
+          enter-from-class="opacity-0"
+          leave-to-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-from-class="opacity-100"
+        >
+          <UBadge v-if="e.id == hoveredObjectId" color="neutral" variant="outline">{{
+            e.label
+          }}</UBadge>
+        </Transition>
+      </EventMarker>
     </div>
     <div data-slot="firstCol" :class="ui.firstCol({ class: props.ui?.firstCol })">
       <RowItem
@@ -278,6 +352,16 @@ defineExpose({
       <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">
         <GridPattern :ui="props.ui?.gridPattern" />
         <OffDayPattern :off-days="offDays" :ui="props.ui?.offDayPattern" />
+        <!-- Events -->
+        <EventBody
+          v-for="e in visibleEvents"
+          v-if="visibleEvents"
+          :transform="`translate(${e.leftOffset}, 0)`"
+          :width="e.width"
+          :item="e"
+          :ui="props.ui?.event?.body"
+        />
+        <!-- Arrows -->
         <DependencyArrow
           v-for="a in visibleArrows"
           v-if="visibleArrows"
@@ -286,6 +370,7 @@ defineExpose({
           :ui="props.ui?.dependencyArrow"
         />
       </svg>
+      <!-- Tasks -->
       <TaskBar
         v-for="t in visibleTasks"
         v-if="tasks"
@@ -307,5 +392,6 @@ defineExpose({
     {{ visibleColItems.map((t) => t.index)[visibleColItems.length - 1] }}
     {{ colsOnScreen }}
     {{ hoveredCell }}
+    {{ hoveredObjectId }}
   </div>
 </template>

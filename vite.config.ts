@@ -12,7 +12,12 @@ export default defineConfig({
           primary: "green",
           neutral: "zinc",
         },
-      },
+        event: {
+          slots: {
+            body: "HELLO",
+          },
+        },
+      } as any,
     }),
   ],
 });

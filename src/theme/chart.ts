@@ -9,6 +9,6 @@ export default {
     firstRow: tw("sticky top-0 z-10 border-b border-muted bg-default"),
     firstCol: tw("sticky left-0 z-10 border-r border-muted bg-default"),
     gridContainer: tw("relative isolate bg-default"),
-    svgLayer: tw("pointer-events-none absolute inset-0 z-0 h-full w-full"),
+    svgLayer: tw("pointer-events-none absolute h-full w-full"),
   },
 };

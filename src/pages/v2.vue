@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
-import { Task, TaskDependency } from "../runtime/types/gantt";
+import { Event, Task, TaskDependency } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
 
@@ -23,6 +23,20 @@ const uniqueTasks: Task[] = [
 ];
 
 const tasks = ref<Task[]>([]);
+const events = ref<Event[]>([
+  {
+    id: "10g92n",
+    label: "Today",
+    type: "deadline",
+    startDate: Temporal.Now.plainDateISO(),
+  },
+  {
+    id: "g02cnt",
+    label: "Holiday",
+    startDate: Temporal.Now.plainDateISO().add({ days: 2 }),
+    endDate: Temporal.Now.plainDateISO().add({ weeks: 1 }),
+  },
+]);
 
 onMounted(() => {
   let idx = 0;
@@ -60,15 +74,11 @@ onMounted(() => {
     <Chart
       ref="chart"
       v-model:tasks="tasks"
+      v-model:events="events"
       class="rounded-md border border-muted"
       :date-range="{
-        start: Temporal.Now.plainDateISO(),
-        end: Temporal.Now.plainDateISO().add({ years: 1 }),
-      }"
-      :ui="{
-        taskBar: {
-          base: 'rounded-none',
-        },
+        start: Temporal.Now.plainDateISO().subtract({ weeks: 1 }),
+        end: Temporal.Now.plainDateISO().add({ months: 6 }),
       }"
     />
     <div class="space-x-4">
