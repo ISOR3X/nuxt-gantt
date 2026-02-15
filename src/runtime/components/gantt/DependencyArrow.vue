@@ -22,7 +22,7 @@ export interface DependencyArrowProps {
 </script>
 
 <script lang="ts" setup>
-const props = withDefaults(defineProps<DependencyArrowProps>(), {});
+const props = defineProps<DependencyArrowProps>();
 
 const appConfig = useAppConfig() as DependencyArrow["AppConfig"];
 

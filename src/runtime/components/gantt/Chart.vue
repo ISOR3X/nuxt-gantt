@@ -43,10 +43,7 @@ import ULabel from "../ULabel.vue";
 import OffDayPattern from "./OffDayPattern.vue";
 import DependencyArrow, { Arrow } from "./DependencyArrow.vue";
 
-const props = withDefaults(defineProps<ChartProps>(), {});
-
-// const emits = defineEmits<...>()
-// const slots = defineSlots<...>()
+const props = defineProps<ChartProps>();
 
 // Using defu makes for easy merging if only partial values are passed in the props.
 const headerProps = toRef(() => defu(props.header, { firstRowHeight: 48, firstColWidth: 240 }));

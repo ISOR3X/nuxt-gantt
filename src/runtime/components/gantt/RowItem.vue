@@ -19,7 +19,7 @@ export interface RowItemSlots {
 </script>
 
 <script setup lang="ts" generic="T extends Task">
-const props = withDefaults(defineProps<ChartProps>(), {});
+const props = defineProps<ChartProps>();
 const slots = defineSlots<RowItemSlots>();
 
 const appConfig = useAppConfig() as RowItem["AppConfig"];

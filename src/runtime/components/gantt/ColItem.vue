@@ -35,7 +35,7 @@ export function formatDate(date: Temporal.PlainDate): string | undefined {
 </script>
 
 <script setup lang="ts" generic="T extends HasDate">
-const props = withDefaults(defineProps<ChartProps<T>>(), {});
+const props = defineProps<ChartProps<T>>();
 const slots = defineSlots<ColItemSlots<T>>();
 
 const formatDateProp = props.formatDate ?? formatDate;

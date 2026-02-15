@@ -17,7 +17,7 @@ export interface OffDayPatternProps {
 <script lang="ts" setup>
 import { useGanttContext } from "../../composables/useGanttContext";
 
-const props = withDefaults(defineProps<OffDayPatternProps>(), {});
+const props = defineProps<OffDayPatternProps>();
 
 const appConfig = useAppConfig() as OffDayPattern["AppConfig"];
 

@@ -15,7 +15,7 @@ export interface ChartProps {
 <script lang="ts" setup>
 import { useGanttContext } from "../../composables/useGanttContext";
 
-const props = withDefaults(defineProps<ChartProps>(), {});
+const props = defineProps<ChartProps>();
 
 const appConfig = useAppConfig() as GridBackground["AppConfig"];
 

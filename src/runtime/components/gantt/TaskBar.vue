@@ -21,7 +21,7 @@ export interface TaskBarSlots {
 </script>
 
 <script setup lang="ts" generic="T extends Task">
-const props = withDefaults(defineProps<ChartProps>(), {});
+const props = defineProps<ChartProps>();
 const slots = defineSlots<TaskBarSlots>();
 
 const appConfig = useAppConfig() as TaskBar["AppConfig"];
