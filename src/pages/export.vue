@@ -46,11 +46,10 @@ const project = ref<Project>({
   tasks: [],
 });
 
-
-const cellSize = useStorage('cellSize', {
+const cellSize = useStorage("cellSize", {
   width: 30,
   height: 30,
-})
+});
 
 onMounted(() => {
   let idx = 0;
@@ -97,7 +96,6 @@ function loadProject() {
   fileInput.value?.click();
 }
 
-
 // Handle file selection
 async function handleFileChange(event: Event) {
   const target = event.target as HTMLInputElement;
@@ -120,7 +118,6 @@ async function handleFileChange(event: Event) {
     target.value = "";
   }
 }
-
 </script>
 
 <template>
@@ -135,30 +132,40 @@ async function handleFileChange(event: Event) {
         end: project.endDate,
       }"
       :cell-size
-      >
-          <template #corner>
-      
-      <div class="grid grid-cols-7 items-center place-items-center">
-        <UButton
-          to="https://github.com/ISOR3X/nuxt-gantt/"
-          target="_blank"
-          icon="simple-icons:github"
-          class="mr-auto"
-          color="neutral"
-          variant="ghost"
-        />
-      
-        <UButton variant="link" title="Download" @click="saveProject()" icon="i-lucide-download" size="sm"/>
-        <UButton variant="link" title="Upload" @click="loadProject()" icon="i-lucide-upload" size="sm"/>
-          
-        <UIcon name="i-lucide-arrow-left-right"/>
-        <UInput type="number" v-model="cellSize.width" />
-        <UIcon name="i-lucide-arrow-up-down"/>
-        <UInput type="number" v-model="cellSize.height" />
-      </div>
-          
-          </template>
-      </Chart>
+    >
+      <template #corner>
+        <div class="grid grid-cols-7 place-items-center items-center">
+          <UButton
+            to="https://github.com/ISOR3X/nuxt-gantt/"
+            target="_blank"
+            icon="simple-icons:github"
+            class="mr-auto"
+            color="neutral"
+            variant="ghost"
+          />
+
+          <UButton
+            variant="link"
+            title="Download"
+            @click="saveProject()"
+            icon="i-lucide-download"
+            size="sm"
+          />
+          <UButton
+            variant="link"
+            title="Upload"
+            @click="loadProject()"
+            icon="i-lucide-upload"
+            size="sm"
+          />
+
+          <UIcon name="i-lucide-arrow-left-right" />
+          <UInput type="number" v-model="cellSize.width" />
+          <UIcon name="i-lucide-arrow-up-down" />
+          <UInput type="number" v-model="cellSize.height" />
+        </div>
+      </template>
+    </Chart>
   </div>
   <input
     ref="fileInput"
