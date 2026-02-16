@@ -49,6 +49,16 @@ function deleteDep(idx: number) {
   clonedTask.value.dependencies?.splice(idx, 1);
 }
 
+const bufferedDep = computed({
+  get: () => "Add dependency",
+  set: (value) => {
+    clonedTask.value.dependencies?.push({
+      taskId: value,
+      type: "SF",
+    });
+  },
+});
+
 const startDate = computed({
   get: () => clonedTask.value.startDate,
   set: (newDate) => {
@@ -126,7 +136,7 @@ const itemType = computed({
           </UFormField>
         </div>
         <div v-if="clonedTask.dependencies">
-          <UFormField label="Dependencies">
+          <UFormField label="Dependencies" :ui="{ container: 'space-y-2' }">
             <!-- TODO: Make a table? & Show dependency label. -->
             <div
               v-for="(_, idx) in clonedTask.dependencies"
@@ -135,6 +145,7 @@ const itemType = computed({
               <USelectMenu
                 v-model="clonedTask.dependencies[idx].taskId"
                 value-key="id"
+                variant="soft"
                 :items="itemMapAsLabelKey"
                 class="w-48 grow"
               />
@@ -142,6 +153,7 @@ const itemType = computed({
                 v-model="clonedTask.dependencies[idx].type"
                 value-key="id"
                 :items="depTypeAsLabelKey"
+                variant="soft"
                 class="w-48"
               />
               <UHoldButton
@@ -151,6 +163,13 @@ const itemType = computed({
                 @click:complete="deleteDep(idx)"
               />
             </div>
+            <USelectMenu
+              v-model="bufferedDep"
+              value-key="id"
+              variant="subtle"
+              :items="itemMapAsLabelKey"
+              class="w-40"
+            />
           </UFormField>
         </div>
       </UForm>
