@@ -41,7 +41,10 @@ const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.dependencyArr
       orient="auto"
       markerUnits="strokeWidth"
     >
-      <path d="M 0 0 L 5 5 L 0 10 Z" :class="ui.head({ class: props.ui?.head })" />
+      <path
+        d="M 0 0 L 5 5 L 0 10 Z"
+        :class="ui.head({ class: props.ui?.head })"
+      />
     </marker>
   </defs>
   <path

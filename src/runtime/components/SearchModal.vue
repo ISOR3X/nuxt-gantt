@@ -35,15 +35,18 @@ defineExpose({
 <template>
   <UModal v-model:open="open">
     <slot>
-      <UButton :label="props.label" :icon="props.icon" />
+      <UButton
+        :label="props.label"
+        :icon="props.icon"
+      />
     </slot>
     <template #content>
       <UCommandPalette
         v-model:search-term="searchTerm"
-        @update:model-value="emitSelect"
         :groups="props.groups"
         :placeholder="props.label"
         class="h-80"
+        @update:model-value="emitSelect"
       />
     </template>
   </UModal>

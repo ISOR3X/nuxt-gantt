@@ -42,7 +42,10 @@ const ui = computed(() =>
   <div :class="ui.markerRoot({ class: [props.ui?.markerRoot, props.class] })">
     <div :class="ui.markerBody({ class: props.ui?.markerBody })" />
     <div :class="ui.markerContent({ class: props.ui?.markerContent })">
-      <slot :ui="ui" :item="props.item" />
+      <slot
+        :ui="ui"
+        :item="props.item"
+      />
     </div>
   </div>
 </template>

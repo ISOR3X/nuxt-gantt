@@ -48,5 +48,9 @@ const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.gridPattern }
       />
     </pattern>
   </defs>
-  <rect fill="url(#grid-pattern)" height="100%" width="100%" />
+  <rect
+    fill="url(#grid-pattern)"
+    height="100%"
+    width="100%"
+  />
 </template>

@@ -107,24 +107,40 @@ const itemType = computed({
           </UFormField>
           <UFormField label="Type">
             <USelect
+              v-model="itemType"
               :ui="{ base: 'w-full capitalize', item: 'capitalize' }"
               :items="itemTypes"
-              v-model="itemType"
             />
           </UFormField>
         </div>
         <UFormField label="Description">
-          <UTextarea v-model="clonedTask.description" class="w-full" />
+          <UTextarea
+            v-model="clonedTask.description"
+            class="w-full"
+          />
         </UFormField>
-        <UFormField label="Progress" :hint="`${((clonedTask.progress ?? 0) * 100).toFixed(0)}%`">
-          <USlider v-model="clonedTask.progress" :max="1" :step="0.01" />
+        <UFormField
+          label="Progress"
+          :hint="`${((clonedTask.progress ?? 0) * 100).toFixed(0)}%`"
+        >
+          <USlider
+            v-model="clonedTask.progress"
+            :max="1"
+            :step="0.01"
+          />
         </UFormField>
         <div class="grid grid-cols-3 gap-x-4">
           <UFormField label="Start date">
-            <UDatePicker v-model="startDate" :max-value="endDate" />
+            <UDatePicker
+              v-model="startDate"
+              :max-value="endDate"
+            />
           </UFormField>
           <UFormField label="End date">
-            <UDatePicker v-model="endDate" :min-value="startDate" />
+            <UDatePicker
+              v-model="endDate"
+              :min-value="startDate"
+            />
           </UFormField>
           <UFormField label="Duration">
             <!-- TODO: Allow duration input -->
@@ -135,7 +151,10 @@ const itemType = computed({
           </UFormField>
         </div>
         <div v-if="clonedTask.dependencies">
-          <UFormField label="Dependencies" :ui="{ container: 'space-y-2' }">
+          <UFormField
+            label="Dependencies"
+            :ui="{ container: 'space-y-2' }"
+          >
             <!-- TODO: Make a table? & Show dependency label. -->
             <div
               v-for="(_, idx) in clonedTask.dependencies"
@@ -185,7 +204,10 @@ const itemType = computed({
         variant="subtle"
         @click="emit('close', { task: undefined, mode: 'copy' })"
       />
-      <UButton label="Submit" @click="emit('close', { task: clonedTask, mode: 'copy' })" />
+      <UButton
+        label="Submit"
+        @click="emit('close', { task: clonedTask, mode: 'copy' })"
+      />
     </template>
   </UModal>
 </template>

@@ -56,8 +56,8 @@ const ui = computed(() =>
         icon="i-lucide-settings-2"
         variant="ghost"
         color="neutral"
-        @click="emit('settingsClick', item.id)"
         :class="ui.button({ class: props.ui?.button })"
+        @click="emit('settingsClick', item.id)"
       />
     </slot>
   </div>

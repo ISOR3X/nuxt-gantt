@@ -134,7 +134,7 @@ async function handleFileChange(event: Event) {
       ref="chart"
       v-model:tasks="project.tasks"
       v-model:events="project.events"
-      readOnly
+      read-only
       :date-range="{
         start: project.startDate,
         end: project.endDate,
@@ -155,22 +155,28 @@ async function handleFileChange(event: Event) {
           <UButton
             variant="link"
             title="Download"
-            @click="saveProject()"
             icon="i-lucide-download"
             size="sm"
+            @click="saveProject()"
           />
           <UButton
             variant="link"
             title="Upload"
-            @click="loadProject()"
             icon="i-lucide-upload"
             size="sm"
+            @click="loadProject()"
           />
 
           <UIcon name="i-lucide-arrow-left-right" />
-          <UInput type="number" v-model="cellSize.width" />
+          <UInput
+            v-model="cellSize.width"
+            type="number"
+          />
           <UIcon name="i-lucide-arrow-up-down" />
-          <UInput type="number" v-model="cellSize.height" />
+          <UInput
+            v-model="cellSize.height"
+            type="number"
+          />
         </div>
       </template>
     </Chart>
@@ -181,5 +187,5 @@ async function handleFileChange(event: Event) {
     accept="application/json,.json"
     style="display: none"
     @change="handleFileChange"
-  />
+  >
 </template>

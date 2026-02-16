@@ -373,7 +373,10 @@ defineExpose({
     }"
   >
     <div :class="ui.corner({ class: props.ui?.corner })">
-      <slot name="corner" :ui="ui" />
+      <slot
+        name="corner"
+        :ui="ui"
+      />
     </div>
     <div :class="ui.firstRow({ class: props.ui?.firstRow })">
       <!-- Dates -->
@@ -413,9 +416,15 @@ defineExpose({
           enter-to-class="opacity-100"
           leave-from-class="opacity-100"
         >
-          <UBadge v-if="e.id == hoveredObjectId" color="neutral" variant="outline">{{
-            e.label
-          }}</UBadge>
+          <UBadge
+            v-if="e.id == hoveredObjectId"
+            color="neutral"
+            variant="outline"
+          >
+            {{
+              e.label
+            }}
+          </UBadge>
         </Transition>
       </EventMarker>
     </div>
@@ -430,13 +439,20 @@ defineExpose({
         :ui="props.ui?.rowItem"
         @settings-click="handleSettingsClick"
       >
-        <slot name="rowItem" :ui="ui" :item="t" />
+        <slot
+          name="rowItem"
+          :ui="ui"
+          :item="t"
+        />
       </RowItem>
     </div>
     <div :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">
         <GridPattern :ui="props.ui?.gridPattern" />
-        <OffDayPattern :off-days="offDays" :ui="props.ui?.offDayPattern" />
+        <OffDayPattern
+          :off-days="offDays"
+          :ui="props.ui?.offDayPattern"
+        />
         <!-- Arrows -->
         <DependencyArrow
           v-for="a in visibleArrows"
@@ -449,9 +465,9 @@ defineExpose({
         <EventBody
           v-for="e in visibleEvents"
           v-if="events"
+          v-model="events[e.index]"
           :transform="`translate(${e.leftOffset}, 0)`"
           :width="e.width"
-          v-model="events[e.index]"
           :ui="props.ui?.event?.body"
         />
       </svg>
@@ -470,7 +486,11 @@ defineExpose({
           left: `${t.leftOffset}px`,
         }"
       >
-        <slot name="taskBar" :ui="ui" :item="t" />
+        <slot
+          name="taskBar"
+          :ui="ui"
+          :item="t"
+        />
       </TaskBar>
     </div>
   </div>

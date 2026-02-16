@@ -57,33 +57,37 @@ const ui = computed(() =>
     @mouseleave="hoveredObjectId = null"
   >
     <g v-if="isDeadline">
-      <line y1="0" y2="100%" :class="ui.bodyContent({ class: props.ui?.bodyContent })" />
       <line
-        @mousedown.stop="onMouseDownBar"
+        y1="0"
+        y2="100%"
+        :class="ui.bodyContent({ class: props.ui?.bodyContent })"
+      />
+      <line
         y1="0"
         y2="100%"
         :class="ui.bodyBackground({ class: props.ui?.bodyBackground })"
+        @mousedown.stop="onMouseDownBar"
       />
     </g>
     <g v-else-if="props.width">
       <rect
-        @mousedown.stop="onMouseDownBar"
         :width="props.width"
         x="0"
         y="0"
         :class="ui.bodyContent({ class: [props.ui?.bodyContent, cursorStyle] })"
+        @mousedown.stop="onMouseDownBar"
       />
       <rect
-        @mousedown.stop="onMouseDownLeft"
         x="-10"
         y="0"
         :class="ui.bodyBackground({ class: props.ui?.bodyBackground })"
+        @mousedown.stop="onMouseDownLeft"
       />
       <rect
-        @mousedown.stop="onMouseDownRight"
         :x="props.width - 10"
         y="0"
         :class="ui.bodyBackground({ class: props.ui?.bodyBackground })"
+        @mousedown.stop="onMouseDownRight"
       />
     </g>
   </g>

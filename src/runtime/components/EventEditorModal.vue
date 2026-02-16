@@ -68,21 +68,30 @@ const itemType = computed({
           </UFormField>
           <UFormField label="Type">
             <USelect
+              v-model="itemType"
               :ui="{ base: 'w-full capitalize', item: 'capitalize' }"
               :items="itemTypes"
-              v-model="itemType"
             />
           </UFormField>
         </div>
         <UFormField label="Description">
-          <UTextarea v-model="clonedEvent.description" class="w-full" />
+          <UTextarea
+            v-model="clonedEvent.description"
+            class="w-full"
+          />
         </UFormField>
         <div class="grid grid-cols-3 gap-x-4">
           <UFormField label="Start date">
-            <UDatePicker v-model="startDate" :max-value="endDate" />
+            <UDatePicker
+              v-model="startDate"
+              :max-value="endDate"
+            />
           </UFormField>
           <UFormField label="End date">
-            <UDatePicker v-model="endDate" :min-value="startDate" />
+            <UDatePicker
+              v-model="endDate"
+              :min-value="startDate"
+            />
           </UFormField>
           <UFormField label="Duration">
             <!-- TODO: Allow duration input -->
@@ -106,7 +115,10 @@ const itemType = computed({
         variant="subtle"
         @click="emit('close', { event: undefined, mode: 'copy' })"
       />
-      <UButton label="Submit" @click="emit('close', { event: clonedEvent, mode: 'copy' })" />
+      <UButton
+        label="Submit"
+        @click="emit('close', { event: clonedEvent, mode: 'copy' })"
+      />
     </template>
   </UModal>
 </template>

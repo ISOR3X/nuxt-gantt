@@ -233,12 +233,16 @@ function onSelect(value: CommandPaletteItem) {
     />
     <div class="inline-flex items-center space-x-4">
       <SearchModal
+        ref="searchModal"
         label="Edit item..."
         :groups="searchModalItems"
-        ref="searchModal"
-        @itemSelect="(i) => onSelect(i)"
+        @item-select="(i) => onSelect(i)"
       >
-        <UButton class="w-48" color="neutral" variant="soft">
+        <UButton
+          class="w-48"
+          color="neutral"
+          variant="soft"
+        >
           Edit items...
           <template #trailing>
             <div class="ml-auto">
@@ -252,14 +256,14 @@ function onSelect(value: CommandPaletteItem) {
         <UButton
           label="Save project"
           variant="soft"
-          @click="saveProject()"
           icon="i-lucide-download"
+          @click="saveProject()"
         />
         <UButton
           label="Load project"
           variant="soft"
-          @click="loadProject()"
           icon="i-lucide-upload"
+          @click="loadProject()"
         />
       </UFieldGroup>
       <input
@@ -268,7 +272,7 @@ function onSelect(value: CommandPaletteItem) {
         accept="application/json,.json"
         style="display: none"
         @change="handleFileChange"
-      />
+      >
     </div>
   </div>
 </template>

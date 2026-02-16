@@ -27,15 +27,15 @@ const { progress, start, cancel } = useHoldAction({
 
 <template>
   <UButton
+    color="error"
+    class="relative"
+    v-bind="props"
     @mousedown="start"
     @mouseup="cancel"
     @mouseleave="cancel"
     @touchstart="start"
     @touchend="cancel"
     @touchcancel="cancel"
-    color="error"
-    class="relative"
-    v-bind="props"
   >
     <template #trailing>
       <div
