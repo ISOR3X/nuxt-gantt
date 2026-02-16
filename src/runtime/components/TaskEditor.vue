@@ -4,13 +4,14 @@ import { Task } from "../types/gantt";
 import { cloneTask } from "../utils/common";
 import { formatDurationInDays } from "../utils/temporal";
 import UDatePicker from "./UDatePicker.vue";
+import UHoldButton from "./UHoldButton.vue";
 
 const props = defineProps<{
   item: Task;
 }>();
 
 const emit = defineEmits<{
-  close: [Task | null];
+  close: [payload: { task?: Task; mode?: "copy" | "delete" }];
 }>();
 
 const clonedTask = ref<Task>(cloneTask(props.item));
@@ -120,8 +121,17 @@ const open = ref(true);
       </UForm>
     </template>
     <template #footer>
-      <UButton label="Cancel" class="ml-auto" variant="outline" @click="emit('close', null)" />
-      <UButton label="Submit" @click="emit('close', clonedTask)" />
+      <UHoldButton
+        label="Delete task"
+        @onComplete="emit('close', { task: undefined, mode: 'delete' })"
+      />
+      <UButton
+        label="Cancel"
+        class="ml-auto"
+        variant="outline"
+        @click="emit('close', { task: undefined, mode: 'copy' })"
+      />
+      <UButton label="Submit" @click="emit('close', { task: clonedTask, mode: 'copy' })" />
     </template>
   </UModal>
 </template>

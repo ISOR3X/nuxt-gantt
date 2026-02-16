@@ -290,10 +290,14 @@ async function handleSettingsClick(id: string) {
   if (!task) return;
 
   const { open } = useGanttModal(task);
-  const updatedTask = await open();
+  const result = await open();
 
-  if (updatedTask != null && tasks.value) {
-    tasks.value[task.index] = updatedTask;
+  if (tasks.value) {
+    if ((result.mode != null || result.mode == "copy") && result.task) {
+      tasks.value[task.index] = result.task;
+    } else if (result.mode == "delete" && !result.task) {
+      tasks.value.splice(task.index, 1);
+    }
   }
 }
 
