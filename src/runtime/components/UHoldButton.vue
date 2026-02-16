@@ -1,21 +1,26 @@
+<script lang="ts">
+import { ButtonProps as UButtonProps } from "@nuxt/ui";
+
+export interface ButtonProps extends Omit<UButtonProps, "color"> {
+  duration?: number;
+}
+</script>
+
 <script setup lang="ts">
 import { useHoldAction } from "../composables/useHoldAction";
 
-const props = defineProps<{
-  label: string;
-}>();
+const props = withDefaults(defineProps<ButtonProps>(), {
+  duration: 500,
+});
 
 const emit = defineEmits<{
-  onComplete: [];
+  "click:complete": [];
 }>();
 
 const { progress, start, cancel } = useHoldAction({
-  duration: 1000,
+  duration: props.duration,
   onComplete: () => {
-    emit("onComplete");
-  },
-  onCancel: () => {
-    console.log("Delete cancelled");
+    emit("click:complete");
   },
 });
 </script>
@@ -28,13 +33,15 @@ const { progress, start, cancel } = useHoldAction({
     @touchstart="start"
     @touchend="cancel"
     @touchcancel="cancel"
-    class="relative overflow-clip"
     color="error"
-    variant="subtle"
+    class="relative"
+    v-bind="props"
   >
-    <span class="z-10">
-      {{ props.label }}
-    </span>
-    <div class="absolute left-0 z-0 h-full bg-error/50" :style="{ width: `${progress * 100}%` }" />
+    <template #trailing>
+      <div
+        class="absolute left-0 z-0 h-full bg-error/50"
+        :style="{ width: `${progress * 100}%` }"
+      />
+    </template>
   </UButton>
 </template>

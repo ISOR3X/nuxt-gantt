@@ -1,16 +1,19 @@
+import { Ref } from "vue";
+
 import TaskEditorModal from "../components/TaskEditorModal.vue";
 import { Task } from "../types/gantt";
 
-const overlay = useOverlay();
-const modal = overlay.create(TaskEditorModal);
-
-export function useGanttModal(task: Task) {
-  async function openModal() {
-    const instance = modal.open({ item: task });
-    return await instance.result;
-  }
+export function createTaskModal(taskMap: Ref<Map<string, Task>>) {
+  const overlay = useOverlay();
+  const modal = overlay.create(TaskEditorModal);
 
   return {
-    open: openModal,
+    open: async (task: Task) => {
+      const instance = modal.open({
+        item: task,
+        itemMap: taskMap.value,
+      });
+      return await instance.result;
+    },
   };
 }

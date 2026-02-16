@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Task } from "../types/gantt";
+import { Task, TaskDependencyType } from "../types/gantt";
 import { cloneTask } from "../utils/common";
 import { formatDurationInDays } from "../utils/temporal";
 import UDatePicker from "./UDatePicker.vue";
@@ -8,19 +8,47 @@ import UHoldButton from "./UHoldButton.vue";
 
 const props = defineProps<{
   item: Task;
+  itemMap?: Map<string, Task>;
 }>();
 
 const emit = defineEmits<{
   close: [payload: { task?: Task; mode?: "copy" | "delete" }];
 }>();
 
-const clonedTask = ref<Task>(cloneTask(props.item));
-
-const itemTypes = ref(["task", "milestone"]);
-
 const toast = useToast();
 
-// Create computed properties for two-way binding
+const clonedTask = ref<Task>(cloneTask(props.item));
+const itemTypes = ref(["task", "milestone"]);
+const itemMapAsLabelKey = computed(() => {
+  const arr: { label: string; id: string }[] = [];
+  if (props.itemMap) {
+    for (const t of props.itemMap) arr.push({ id: t[0], label: t[1].label });
+    return arr;
+  }
+});
+const depTypeAsLabelKey = ref<{ label: string; id: TaskDependencyType }[]>([
+  {
+    label: "Start to finish",
+    id: "SF",
+  },
+  {
+    label: "Start to start",
+    id: "SS",
+  },
+  {
+    label: "Finish to start",
+    id: "FS",
+  },
+  {
+    label: "Finish to finish",
+    id: "FF",
+  },
+]);
+
+function deleteDep(idx: number) {
+  clonedTask.value.dependencies?.splice(idx, 1);
+}
+
 const startDate = computed({
   get: () => clonedTask.value.startDate,
   set: (newDate) => {
@@ -53,16 +81,14 @@ const itemType = computed({
     clonedTask.value.type = newType;
   },
 });
-
-const open = ref(true);
 </script>
 
 <template>
   <UModal
     title="Task configuration"
     description="Edit the task configuration. Cancelling will revert all made changes."
-    v-model:open="open"
     :close="false"
+    :dismissible="false"
   >
     <template #body>
       <UForm class="space-y-4">
@@ -102,18 +128,27 @@ const open = ref(true);
         <div v-if="clonedTask.dependencies">
           <UFormField label="Dependencies">
             <!-- TODO: Make a table? & Show dependency label. -->
-            <div v-for="d in clonedTask.dependencies" class="inline-flex w-full items-center gap-2">
-              <span class="mr-4">
-                {{ d.taskId }}
-              </span>
-              {{ d.type }}
-              <UButton
+            <div
+              v-for="(_, idx) in clonedTask.dependencies"
+              class="inline-flex w-full items-center gap-2"
+            >
+              <USelectMenu
+                v-model="clonedTask.dependencies[idx].taskId"
+                value-key="id"
+                :items="itemMapAsLabelKey"
+                class="w-48 grow"
+              />
+              <USelectMenu
+                v-model="clonedTask.dependencies[idx].type"
+                value-key="id"
+                :items="depTypeAsLabelKey"
+                class="w-48"
+              />
+              <UHoldButton
                 icon="i-lucide-x"
-                size="xs"
-                variant="soft"
-                color="error"
+                variant="subtle"
                 class="ml-auto"
-                disabled
+                @click:complete="deleteDep(idx)"
               />
             </div>
           </UFormField>
@@ -123,7 +158,8 @@ const open = ref(true);
     <template #footer>
       <UHoldButton
         label="Delete task"
-        @onComplete="emit('close', { task: undefined, mode: 'delete' })"
+        variant="subtle"
+        @click:complete="emit('close', { task: undefined, mode: 'delete' })"
       />
       <UButton
         label="Cancel"

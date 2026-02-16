@@ -14,7 +14,7 @@ import { Weekday } from "../../types/temporal";
 
 import EventMarker, { EventMarkerUiSlots } from "./EventMarker.vue";
 import { ALL_WEEKDAYS } from "../../utils/temporal";
-import { useGanttModal } from "../../composables/useGanttModal";
+import { createTaskModal } from "../../composables/useGanttModal";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 export type ChartUiSlots = Chart["slots"] & {
@@ -285,12 +285,13 @@ provideGanttContext({
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
+const { open } = createTaskModal(taskMap);
 async function handleSettingsClick(id: string) {
   const task = taskMap.value.get(id);
   if (!task) return;
 
-  const { open } = useGanttModal(task);
-  const result = await open();
+  // const { open } = useGanttModal(task);
+  const result = await open(task);
 
   if (tasks.value) {
     if ((result.mode != null || result.mode == "copy") && result.task) {
