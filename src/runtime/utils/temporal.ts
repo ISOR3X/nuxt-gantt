@@ -20,3 +20,16 @@ export function IntDateToTemporal(value: CalendarDate) {
   const iso = value.toString();
   return Temporal.PlainDate.from(iso);
 }
+
+export function formatDurationInDays(
+  start: Temporal.PlainDate,
+  end: Temporal.PlainDate | undefined,
+): string {
+  if (!end) {
+    return "0 days";
+  } else {
+    const durationDays = start.until(end).days;
+    const suffix = durationDays == 1 ? "day" : "days";
+    return `${durationDays} ${suffix}`;
+  }
+}

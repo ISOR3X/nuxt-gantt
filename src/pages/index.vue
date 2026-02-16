@@ -33,9 +33,9 @@ const project = ref<Project>({
   events: [
     {
       id: "10g92n",
-      label: "Today",
+      label: "Deadline 1",
       type: "deadline",
-      startDate: Temporal.Now.plainDateISO(),
+      startDate: Temporal.Now.plainDateISO().add({ weeks: 1 }),
     },
     {
       id: "g02cnt",

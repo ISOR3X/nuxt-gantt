@@ -14,6 +14,7 @@ import { Weekday } from "../../types/temporal";
 
 import EventMarker, { EventMarkerUiSlots } from "./EventMarker.vue";
 import { ALL_WEEKDAYS } from "../../utils/temporal";
+import { useGanttModal } from "../../composables/useGanttModal";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 export type ChartUiSlots = Chart["slots"] & {
@@ -31,6 +32,7 @@ export type ChartUiSlots = Chart["slots"] & {
 
 export interface ChartProps {
   dateRange?: { start?: Temporal.PlainDate; end?: Temporal.PlainDate };
+  readOnly?: boolean;
   header?: {
     firstRowHeight?: number;
     firstColWidth?: number;
@@ -38,7 +40,7 @@ export interface ChartProps {
   virtual?: {
     overscan?: number;
   };
-  weekOptions?: {
+  calendarOptions?: {
     workDays?: Weekday[];
   };
   cellSize?: { width?: number; height?: number };
@@ -63,14 +65,16 @@ import OffDayPattern, { OffDayPatternUiSlots } from "./OffDayPattern.vue";
 import EventBody, { EventBodyUiSlots } from "./EventBody.vue";
 import DependencyArrow, { Arrow, DependencyArrowUiSlots } from "./DependencyArrow.vue";
 
-const props = defineProps<ChartProps>();
+const props = withDefaults(defineProps<ChartProps>(), { readOnly: false });
 const slots = defineSlots<ChartSlots>();
 
 // Using defu makes for easy merging if only partial values are passed in the props.
 const headerProps = toRef(() => defu(props.header, { firstRowHeight: 48, firstColWidth: 240 }));
 const cellSizeProps = toRef(() => defu(props.cellSize, { width: 24, height: 32 }));
 const virtualProps = toRef(() => defu(props.virtual, { overscan: 5 }));
-const weekOptionsProps = toRef(() => defu(props.weekOptions, { workDays: [1, 2, 3, 4, 5] }));
+const calendarOptionsProps = toRef(() =>
+  defu(props.calendarOptions, { workDays: [1, 2, 3, 4, 5] }),
+);
 const dateRange = computed(() => {
   if (!tasks.value?.length) {
     const now = Temporal.Now.plainDateISO();
@@ -141,7 +145,7 @@ const gridSize = computed(() => {
 });
 
 const offDays = computed<Weekday[]>(() =>
-  ALL_WEEKDAYS.filter((d) => !weekOptionsProps.value.workDays.includes(d)),
+  ALL_WEEKDAYS.filter((d) => !calendarOptionsProps.value.workDays.includes(d)),
 );
 
 const { hoveredCell, colsOnScreen, rowsOnScreen, viewport } = useGanttGrid(el, {
@@ -276,10 +280,22 @@ provideGanttContext({
   cellSize: cellSizeProps,
   dateRange,
   hoveredObjectId,
-  readOnly: toRef(() => false),
+  readOnly: toRef(() => props.readOnly),
 });
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
+
+async function handleSettingsClick(id: string) {
+  const task = taskMap.value.get(id);
+  if (!task) return;
+
+  const { open } = useGanttModal(task);
+  const updatedTask = await open();
+
+  if (updatedTask != null && tasks.value) {
+    tasks.value[task.index] = updatedTask;
+  }
+}
 
 type ScrollToOptions = {
   behavior?: ScrollBehavior;
@@ -391,6 +407,7 @@ defineExpose({
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
         :highlight="hoveredCell?.row == t.index"
         :ui="props.ui?.rowItem"
+        @settings-click="handleSettingsClick"
       >
         <slot name="rowItem" :ui="ui" :item="t" />
       </RowItem>

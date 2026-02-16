@@ -2,8 +2,9 @@ import { tw } from "../runtime/utils/common";
 
 export default {
   slots: {
-    root: tw("absolute w-full border-b border-muted"),
-    input: tw("truncate rounded-none"),
+    root: tw("group absolute inline-flex w-full items-center overflow-clip border-b border-muted"),
+    input: tw("truncate rounded-none disabled:cursor-default disabled:opacity-100"),
+    button: tw("rounded-none opacity-0 transition-opacity group-hover:opacity-100"),
   },
   variants: {
     highlight: {

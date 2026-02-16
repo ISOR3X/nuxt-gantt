@@ -4,6 +4,7 @@ import theme from "../../../theme/row-item";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Task } from "../../types/gantt";
+import { useGanttContext } from "../../composables/useGanttContext";
 
 type RowItem = ComponentConfig<typeof theme, AppConfig, "rowItem">;
 export type RowItemUiSlots = RowItem["slots"];
@@ -27,6 +28,12 @@ const appConfig = useAppConfig() as RowItem["AppConfig"];
 
 const item = defineModel<T>({ required: true });
 
+const { readOnly } = useGanttContext();
+
+const emit = defineEmits<{
+  settingsClick: [id: string];
+}>();
+
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.rowItem })({
     highlight: props.highlight,
@@ -39,8 +46,18 @@ const ui = computed(() =>
     <slot :ui="ui">
       <UInput
         v-model="item.label"
+        :title="item.label"
+        :disabled="readOnly"
         variant="ghost"
         :ui="{ base: ui.input({ class: props.ui?.input }) }"
+      />
+      <UButton
+        v-if="!readOnly"
+        icon="i-lucide-settings-2"
+        variant="ghost"
+        color="neutral"
+        @click="emit('settingsClick', item.id)"
+        :class="ui.button({ class: props.ui?.button })"
       />
     </slot>
   </div>
