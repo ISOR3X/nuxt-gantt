@@ -35,10 +35,7 @@ defineExpose({
 <template>
   <UModal v-model:open="open">
     <slot>
-      <UButton
-        :label="props.label"
-        :icon="props.icon"
-      />
+      <UButton :label="props.label" :icon="props.icon" />
     </slot>
     <template #content>
       <UCommandPalette

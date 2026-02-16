@@ -168,15 +168,9 @@ async function handleFileChange(event: Event) {
           />
 
           <UIcon name="i-lucide-arrow-left-right" />
-          <UInput
-            v-model="cellSize.width"
-            type="number"
-          />
+          <UInput v-model="cellSize.width" type="number" />
           <UIcon name="i-lucide-arrow-up-down" />
-          <UInput
-            v-model="cellSize.height"
-            type="number"
-          />
+          <UInput v-model="cellSize.height" type="number" />
         </div>
       </template>
     </Chart>
@@ -187,5 +181,5 @@ async function handleFileChange(event: Event) {
     accept="application/json,.json"
     style="display: none"
     @change="handleFileChange"
-  >
+  />
 </template>

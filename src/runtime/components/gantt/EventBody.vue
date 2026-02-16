@@ -57,11 +57,7 @@ const ui = computed(() =>
     @mouseleave="hoveredObjectId = null"
   >
     <g v-if="isDeadline">
-      <line
-        y1="0"
-        y2="100%"
-        :class="ui.bodyContent({ class: props.ui?.bodyContent })"
-      />
+      <line y1="0" y2="100%" :class="ui.bodyContent({ class: props.ui?.bodyContent })" />
       <line
         y1="0"
         y2="100%"

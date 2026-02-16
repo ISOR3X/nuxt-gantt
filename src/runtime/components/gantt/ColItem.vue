@@ -54,10 +54,7 @@ const ui = computed(() =>
 
 <template>
   <div :class="ui.root({ class: [props.ui?.root, props.class] })">
-    <slot
-      :ui="ui"
-      :item="props.item"
-    >
+    <slot :ui="ui" :item="props.item">
       {{ dateStr }}
     </slot>
   </div>

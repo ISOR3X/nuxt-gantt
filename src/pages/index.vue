@@ -177,44 +177,42 @@ defineShortcuts({
 
 function onSelect(value: CommandPaletteItem) {
   if (["event", "deadline"].includes(value.type)) {
-    if (project.value.events) {
-      let event = project.value.events.find((t) => t.id == value.id);
+    if (!project.value.events) project.value.events = [];
+    let event = project.value.events.find((t) => t.id == value.id);
 
-      if (!event) {
-        const id = crypto.randomUUID();
-        event = {
-          label: "New event",
-          type: "deadline",
-          startDate: Temporal.Now.plainDateISO().add({ weeks: 2 }),
-          id,
-        };
-        project.value.events.push(event);
-      }
-
-      nextTick(() => {
-        chart.value?.scrollToItem(event.id);
-        chart.value?.editEvent(event.id);
-      });
+    if (!event) {
+      const id = crypto.randomUUID();
+      event = {
+        label: "New event",
+        type: "deadline",
+        startDate: project.value.startDate.add({ days: 3 }),
+        id,
+      };
+      project.value.events.push(event);
     }
+
+    nextTick(() => {
+      chart.value?.scrollToItem(event.id);
+      chart.value?.editEvent(event.id);
+    });
   } else if (["task", "milestone"].includes(value.type)) {
-    if (project.value.tasks) {
-      let task = project.value.tasks.find((t) => t.id == value.id);
+    if (!project.value.tasks) project.value.tasks = [];
+    let task = project.value.tasks.find((t) => t.id == value.id);
 
-      if (!task) {
-        const id = crypto.randomUUID();
-        task = {
-          label: "New task",
-          startDate: Temporal.Now.plainDateISO().add({ weeks: 2 }),
-          id,
-        };
-        project.value.tasks.push(task);
-      }
-
-      nextTick(() => {
-        chart.value?.scrollToItem(task.id);
-        chart.value?.editTask(task.id);
-      });
+    if (!task) {
+      const id = crypto.randomUUID();
+      task = {
+        label: "New task",
+        startDate: project.value.startDate.add({ days: 3 }),
+        id,
+      };
+      project.value.tasks.push(task);
     }
+
+    nextTick(() => {
+      chart.value?.scrollToItem(task.id);
+      chart.value?.editTask(task.id);
+    });
   }
 }
 </script>
@@ -238,11 +236,7 @@ function onSelect(value: CommandPaletteItem) {
         :groups="searchModalItems"
         @item-select="(i) => onSelect(i)"
       >
-        <UButton
-          class="w-48"
-          color="neutral"
-          variant="soft"
-        >
+        <UButton class="w-48" color="neutral" variant="soft">
           Edit items...
           <template #trailing>
             <div class="ml-auto">
@@ -272,7 +266,7 @@ function onSelect(value: CommandPaletteItem) {
         accept="application/json,.json"
         style="display: none"
         @change="handleFileChange"
-      >
+      />
     </div>
   </div>
 </template>
