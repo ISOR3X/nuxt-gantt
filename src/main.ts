@@ -10,7 +10,22 @@ const app = createApp(App);
 
 app.use(
   createRouter({
-    routes: [{ path: "/", component: () => import("./pages/index.vue") }],
+    routes: [
+      {
+        path: "/",
+        component: () => import("./runtime/components/layout/ShellLayout.vue"),
+        children: [
+          {
+            path: "",
+            component: () => import("./pages/index.vue"),
+          },
+        ],
+      },
+      {
+        path: "/export",
+        component: () => import("./pages/export.vue"),
+      },
+    ],
     history: createWebHistory(import.meta.env.BASE_URL),
   }),
 );

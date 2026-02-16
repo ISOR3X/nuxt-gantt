@@ -5,7 +5,7 @@ export default {
     markerRoot: tw("absolute bottom-0"),
     markerBody: tw("h-3 bg-primary"),
     markerContent: tw(
-      "pointer-events-none absolute -bottom-[29px] inline-flex w-full justify-center",
+      "pointer-events-none absolute -bottom-[29px] inline-flex w-full justify-center text-nowrap",
     ),
     bodyRoot: tw("group pointer-events-auto"),
     bodyContent: tw("transition-color h-full"),
