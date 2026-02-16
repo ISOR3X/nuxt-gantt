@@ -128,7 +128,7 @@ const open = ref(true);
       <UButton
         label="Cancel"
         class="ml-auto"
-        variant="outline"
+        variant="subtle"
         @click="emit('close', { task: undefined, mode: 'copy' })"
       />
       <UButton label="Submit" @click="emit('close', { task: clonedTask, mode: 'copy' })" />
