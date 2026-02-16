@@ -8,7 +8,7 @@ export default {
       "pointer-events-none absolute -bottom-[29px] inline-flex w-full justify-center",
     ),
     bodyRoot: tw("group pointer-events-auto"),
-    bodyContent: tw("h-full transition-all"),
+    bodyContent: tw("transition-color h-full"),
     bodyBackground: tw("h-full"),
   },
   variants: {
@@ -22,7 +22,7 @@ export default {
       false: {
         markerBody: tw("h-[1px]"),
         bodyContent: tw("fill-primary/20 group-hover:fill-primary/30"),
-        bodyBackground: tw(" w-5 fill-transparent"),
+        bodyBackground: tw("w-5 fill-transparent"),
       },
     },
     readOnly: {

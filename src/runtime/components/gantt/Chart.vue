@@ -266,6 +266,8 @@ const visibleEvents = computed(() => {
       width: i.colSpan * cellSizeProps.value.width,
     });
   }
+  // Make sure deadlines are drawn first as they have a smaller interaction area.
+  result.sort((a, _) => (a.type === "deadline" ? 1 : -1));
   return result;
 });
 // #endregion
@@ -327,14 +329,13 @@ defineExpose({
 <template>
   <div
     ref="chart"
-    data-slot="root"
     :class="ui.root({ class: [props.ui?.root, props.class] })"
     :style="{
       gridTemplateColumns: `${headerProps.firstColWidth}px ${gridSize.width}px`,
       gridTemplateRows: `${headerProps.firstRowHeight}px ${gridSize.height}px`,
     }"
   >
-    <div data-slot="corner" :class="ui.corner({ class: props.ui?.corner })">
+    <div :class="ui.corner({ class: props.ui?.corner })">
       <slot name="corner" :ui="ui" />
     </div>
     <div :class="ui.firstRow({ class: props.ui?.firstRow })">
@@ -394,19 +395,10 @@ defineExpose({
         <slot name="rowItem" :ui="ui" :item="t" />
       </RowItem>
     </div>
-    <div data-slot="gridContainer" :class="ui.gridContainer({ class: props.ui?.gridContainer })">
+    <div :class="ui.gridContainer({ class: props.ui?.gridContainer })">
       <svg :class="ui.svgLayer({ class: props.ui?.svgLayer })">
         <GridPattern :ui="props.ui?.gridPattern" />
         <OffDayPattern :off-days="offDays" :ui="props.ui?.offDayPattern" />
-        <!-- Events -->
-        <EventBody
-          v-for="e in visibleEvents"
-          v-if="visibleEvents"
-          :transform="`translate(${e.leftOffset}, 0)`"
-          :width="e.width"
-          :item="e"
-          :ui="props.ui?.event?.body"
-        />
         <!-- Arrows -->
         <DependencyArrow
           v-for="a in visibleArrows"
@@ -414,6 +406,15 @@ defineExpose({
           :key="a.id"
           :item="a"
           :ui="props.ui?.dependencyArrow"
+        />
+        <!-- Events -->
+        <EventBody
+          v-for="e in visibleEvents"
+          v-if="events"
+          :transform="`translate(${e.leftOffset}, 0)`"
+          :width="e.width"
+          v-model="events[e.index]"
+          :ui="props.ui?.event?.body"
         />
       </svg>
       <!-- Tasks -->
