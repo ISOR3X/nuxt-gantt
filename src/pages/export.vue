@@ -51,6 +51,7 @@ const cellSize = useStorage("cellSize", {
   height: 30,
 });
 
+const toast = useToast();
 onMounted(() => {
   let idx = 0;
   for (let i = 0; i < 20; i++) {
@@ -79,6 +80,13 @@ onMounted(() => {
       idx++;
     }
   }
+
+  toast.add({
+    title: "Page info",
+    description:
+      "This page is mainly for capturing full size images of Gantt charts. Change the cell sizes through the inputs in the top left.",
+    icon: "i-lucide-info",
+  });
 });
 
 // Save tasks to a JSON file

@@ -1,5 +1,23 @@
 <script setup lang="ts">
+import { NavigationMenuItem } from "@nuxt/ui";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import AppLogo from "../AppLogo.vue";
+
+const route = useRoute();
+
+const items = computed<NavigationMenuItem[]>(() => [
+  {
+    label: "Demo",
+    to: "/",
+    active: route.path == "/",
+  },
+  {
+    label: "Fullscreen",
+    to: "/export",
+    active: route.path.endsWith("/export"),
+  },
+]);
 </script>
 
 <template>
@@ -7,6 +25,7 @@ import AppLogo from "../AppLogo.vue";
     <template #left>
       <AppLogo class="h-6 w-auto shrink-0" />
     </template>
+    <UNavigationMenu :items="items" />
     <template #right>
       <UColorModeButton />
       <UButton

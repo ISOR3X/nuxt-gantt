@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { CommandPaletteItem } from "@nuxt/ui";
-import { computed, ref } from "vue";
+import { CommandPaletteGroup, CommandPaletteItem } from "@nuxt/ui";
+import { ref } from "vue";
 
 const searchTerm = ref("");
 const open = ref(false);
@@ -8,33 +8,41 @@ const open = ref(false);
 const emit = defineEmits<{
   itemSelect: [id: CommandPaletteItem];
 }>();
-const props = defineProps<{
-  items: { label: string; id: string }[];
-}>();
 
-const groups = computed(() => [
-  {
-    id: "tasks",
-    label: "Tasks",
-    items: props.items,
-  },
-]);
+const props = withDefaults(
+  defineProps<{
+    groups: CommandPaletteGroup[];
+    label: string;
+    icon?: string;
+  }>(),
+  {},
+);
 
 function emitSelect(i: CommandPaletteItem) {
   open.value = false;
   emit("itemSelect", i);
 }
+
+function openModal() {
+  open.value = true;
+}
+
+defineExpose({
+  open: openModal,
+});
 </script>
 
 <template>
   <UModal v-model:open="open">
-    <UButton label="Scroll to task..." icon="i-lucide-search" />
+    <slot>
+      <UButton :label="props.label" :icon="props.icon" />
+    </slot>
     <template #content>
       <UCommandPalette
         v-model:search-term="searchTerm"
         @update:model-value="emitSelect"
-        :groups="groups"
-        placeholder="Search tasks..."
+        :groups="props.groups"
+        :placeholder="props.label"
         class="h-80"
       />
     </template>

@@ -6,9 +6,14 @@ import Chart from "../runtime/components/gantt/Chart.vue";
 import { loadProjectFromFile, saveProject as _saveProject } from "../runtime/utils/storage";
 import { Project } from "../runtime/types/common";
 import SearchModal from "../runtime/components/SearchModal.vue";
+import {
+  CommandPaletteGroup,
+  CommandPaletteItem,
+} from "@nuxt/ui/runtime/components/CommandPalette.vue.js";
 
 const chart = useTemplateRef("chart");
 const fileInput = useTemplateRef("fileInput");
+const searchModal = useTemplateRef("searchModal");
 
 const uniqueTasks: Task[] = [
   {
@@ -47,14 +52,52 @@ const project = ref<Project>({
   tasks: [],
 });
 
-const tasksForSearchModal = computed(() => {
-  let result: { label: string; id: string }[] = [];
-  if (project.value.tasks) {
-    result = project.value.tasks.map((t) => ({
-      label: t.label,
+const searchModalItems = computed(() => {
+  let events: CommandPaletteItem[] = [];
+  let tasks: CommandPaletteItem[] = [];
+  if (project.value.events) {
+    events = project.value.events.map((t) => ({
       id: t.id,
+      label: t.label,
+      type: t.type ?? "event",
     }));
   }
+  if (project.value.tasks) {
+    tasks = project.value.tasks.map((t) => ({
+      label: t.label,
+      id: t.id,
+      type: t.type ?? "task",
+    }));
+  }
+  const result: CommandPaletteGroup[] = [
+    {
+      id: "actions",
+      items: [
+        {
+          id: "newTask",
+          type: "task",
+          label: "Add new task",
+          icon: "i-lucide-file-plus-corner",
+        },
+        {
+          id: "newEvent",
+          type: "event",
+          label: "Add new event",
+          icon: "i-lucide-calendar-plus",
+        },
+      ],
+    },
+    {
+      id: "events",
+      label: "Events",
+      items: events,
+    },
+    {
+      id: "tasks",
+      label: "Tasks",
+      items: tasks,
+    },
+  ];
   return result;
 });
 
@@ -126,33 +169,52 @@ async function handleFileChange(event: Event) {
   }
 }
 
-function addTask() {
-  if (project.value.tasks) {
-    const id = crypto.randomUUID();
-    project.value.tasks.push({
-      label: "New task",
-      startDate: Temporal.Now.plainDateISO().add({ weeks: 2 }),
-      id,
-    });
-    nextTick(() => {
-      chart.value?.scrollToItem(id);
-      chart.value?.editTask(id);
-    });
-  }
-}
+defineShortcuts({
+  meta_k: () => {
+    searchModal.value?.open();
+  },
+});
 
-function addEvent() {
-  if (project.value.events) {
-    const id = crypto.randomUUID();
-    project.value.events.push({
-      label: "New deadline",
-      type: "deadline",
-      startDate: Temporal.Now.plainDateISO(),
-      id,
-    });
-    nextTick(() => {
-      chart.value?.editEvent(id);
-    });
+function onSelect(value: CommandPaletteItem) {
+  if (["event", "deadline"].includes(value.type)) {
+    if (project.value.events) {
+      let event = project.value.events.find((t) => t.id == value.id);
+
+      if (!event) {
+        const id = crypto.randomUUID();
+        event = {
+          label: "New event",
+          type: "deadline",
+          startDate: Temporal.Now.plainDateISO().add({ weeks: 2 }),
+          id,
+        };
+        project.value.events.push(event);
+      }
+
+      nextTick(() => {
+        chart.value?.scrollToItem(event.id);
+        chart.value?.editEvent(event.id);
+      });
+    }
+  } else if (["task", "milestone"].includes(value.type)) {
+    if (project.value.tasks) {
+      let task = project.value.tasks.find((t) => t.id == value.id);
+
+      if (!task) {
+        const id = crypto.randomUUID();
+        task = {
+          label: "New task",
+          startDate: Temporal.Now.plainDateISO().add({ weeks: 2 }),
+          id,
+        };
+        project.value.tasks.push(task);
+      }
+
+      nextTick(() => {
+        chart.value?.scrollToItem(task.id);
+        chart.value?.editTask(task.id);
+      });
+    }
   }
 }
 </script>
@@ -170,12 +232,35 @@ function addEvent() {
       }"
     />
     <div class="inline-flex items-center space-x-4">
-      <UButton label="Add task" @click="addTask()" />
-      <UButton label="Add event" @click="addEvent()" />
-      <SearchModal :items="tasksForSearchModal" @itemSelect="(i) => chart?.scrollToItem(i.id)" />
-      <UFieldGroup>
-        <UButton label="Save project" @click="saveProject()" icon="i-lucide-download" />
-        <UButton label="Load project" @click="loadProject()" icon="i-lucide-upload" />
+      <SearchModal
+        label="Edit item..."
+        :groups="searchModalItems"
+        ref="searchModal"
+        @itemSelect="(i) => onSelect(i)"
+      >
+        <UButton class="w-48" color="neutral" variant="soft">
+          Edit items...
+          <template #trailing>
+            <div class="ml-auto">
+              <UKbd value="meta" />
+              <UKbd value="k" />
+            </div>
+          </template>
+        </UButton>
+      </SearchModal>
+      <UFieldGroup class="ml-auto">
+        <UButton
+          label="Save project"
+          variant="soft"
+          @click="saveProject()"
+          icon="i-lucide-download"
+        />
+        <UButton
+          label="Load project"
+          variant="soft"
+          @click="loadProject()"
+          icon="i-lucide-upload"
+        />
       </UFieldGroup>
       <input
         ref="fileInput"
