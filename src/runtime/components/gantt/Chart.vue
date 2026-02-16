@@ -14,7 +14,7 @@ import { Weekday } from "../../types/temporal";
 
 import EventMarker, { EventMarkerUiSlots } from "./EventMarker.vue";
 import { ALL_WEEKDAYS } from "../../utils/temporal";
-import { createTaskModal } from "../../composables/useGanttModal";
+import { createEventModal, createTaskModal } from "../../composables/createEditorModal";
 
 type Chart = ComponentConfig<typeof theme, AppConfig, "chart">;
 export type ChartUiSlots = Chart["slots"] & {
@@ -285,13 +285,13 @@ provideGanttContext({
 
 const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}));
 
-const { open } = createTaskModal(taskMap);
+const { open: openTaskModal } = createTaskModal(taskMap);
+const { open: openEventModal } = createEventModal();
 async function handleSettingsClick(id: string) {
   const task = taskMap.value.get(id);
   if (!task) return;
 
-  // const { open } = useGanttModal(task);
-  const result = await open(task);
+  const result = await openTaskModal(task);
 
   if (tasks.value) {
     if ((result.mode != null || result.mode == "copy") && result.task) {
@@ -302,19 +302,33 @@ async function handleSettingsClick(id: string) {
   }
 }
 
+async function editEvent(id: string) {
+  const event = eventMap.value.get(id);
+  if (!event) return;
+
+  const result = await openEventModal(event);
+
+  if (events.value) {
+    if ((result.mode != null || result.mode == "copy") && result.event) {
+      events.value[event.index] = result.event;
+    } else if (result.mode == "delete" && !result.event) {
+      events.value.splice(event.index, 1);
+    }
+  }
+}
+
 type ScrollToOptions = {
   behavior?: ScrollBehavior;
   alignment?: { vertical?: "start" | "center" | "end"; horizontal?: "start" | "center" | "end" };
 };
-function scrollToItem<T extends Task>(itemOrId: T | string, options?: ScrollToOptions) {
+function scrollToItem(id: string, options?: ScrollToOptions) {
   if (taskMap.value) {
     const _options = defu(options, {
       behavior: "smooth" as ScrollBehavior,
       alignment: { vertical: "start", horizontal: "start" },
     });
-    const itemId = typeof itemOrId === "string" ? itemOrId : itemOrId.id;
-    const _item = taskMap.value.get(itemId);
-    if (_item !== undefined) {
+    const item = taskMap.value.get(id);
+    if (item !== undefined) {
       const vOffset =
         _options.alignment.vertical == "start"
           ? 0
@@ -328,10 +342,10 @@ function scrollToItem<T extends Task>(itemOrId: T | string, options?: ScrollToOp
             ? 0.5
             : 1;
       const left =
-        dateToCol(dateRange.value.start, _item.startDate, _item.id) * cellSizeProps.value.width -
+        dateToCol(dateRange.value.start, item.startDate, item.id) * cellSizeProps.value.width -
         (viewport.value.width.value - headerProps.value.firstColWidth) * hOffset;
       const top =
-        _item.index * cellSizeProps.value.height -
+        item.index * cellSizeProps.value.height -
         (viewport.value.height.value - headerProps.value.firstRowHeight) * vOffset;
       el.value?.scrollTo({
         behavior: _options.behavior,
@@ -344,6 +358,8 @@ function scrollToItem<T extends Task>(itemOrId: T | string, options?: ScrollToOp
 
 defineExpose({
   scrollToItem,
+  editTask: handleSettingsClick,
+  editEvent,
 });
 </script>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Task, TaskDependencyType } from "../types/gantt";
-import { cloneTask } from "../utils/common";
+import { cloneDateRangeItem } from "../utils/common";
 import { formatDurationInDays } from "../utils/temporal";
 import UDatePicker from "./UDatePicker.vue";
 import UHoldButton from "./UHoldButton.vue";
@@ -15,9 +15,7 @@ const emit = defineEmits<{
   close: [payload: { task?: Task; mode?: "copy" | "delete" }];
 }>();
 
-const toast = useToast();
-
-const clonedTask = ref<Task>(cloneTask(props.item));
+const clonedTask = ref<Task>(cloneDateRangeItem(props.item));
 const itemTypes = ref(["task", "milestone"]);
 const itemMapAsLabelKey = computed(() => {
   const arr: { label: string; id: string }[] = [];
@@ -73,6 +71,7 @@ const endDate = computed({
   },
 });
 
+const toast = useToast();
 const itemType = computed({
   get: () => clonedTask.value.type ?? "task",
   set: (newType) => {
@@ -81,7 +80,7 @@ const itemType = computed({
         toast.add({
           title: "Failed type conversion",
           description:
-            "A task can only be converted to milestone if the start date equals end date.",
+            "A task can only be converted to a milestone if the start date equals end date.",
           icon: "i-lucide-circle-x",
           color: "error",
         });
@@ -145,7 +144,7 @@ const itemType = computed({
               <USelectMenu
                 v-model="clonedTask.dependencies[idx].taskId"
                 value-key="id"
-                variant="soft"
+                variant="outline"
                 :items="itemMapAsLabelKey"
                 class="w-48 grow"
               />
@@ -153,12 +152,12 @@ const itemType = computed({
                 v-model="clonedTask.dependencies[idx].type"
                 value-key="id"
                 :items="depTypeAsLabelKey"
-                variant="soft"
+                variant="outline"
                 class="w-48"
               />
               <UHoldButton
                 icon="i-lucide-x"
-                variant="subtle"
+                variant="ghost"
                 class="ml-auto"
                 @click:complete="deleteDep(idx)"
               />

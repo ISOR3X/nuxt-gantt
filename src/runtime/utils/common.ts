@@ -1,8 +1,6 @@
 import type colors from "tailwindcss/colors";
 import { Temporal } from "temporal-polyfill";
 
-import { Task } from "../types/gantt";
-
 // REF: https://github.com/nuxt/ui/blob/v4/src/unplugin.ts#L27-L28
 type NeutralColor = "slate" | "gray" | "zinc" | "neutral" | "stone";
 export type Color =
@@ -15,10 +13,11 @@ export type Color =
 // Helper function to allow sorting of tailwind classes in theme files.
 export const tw = (strings: string, ...values: any[]) => String.raw({ raw: strings }, ...values);
 
-export function cloneTask(task: Task): Task {
+export type DateRangeItem = { startDate: Temporal.PlainDate; endDate?: Temporal.PlainDate };
+export function cloneDateRangeItem<T extends DateRangeItem>(item: T): T {
   return {
-    ...task,
-    startDate: Temporal.PlainDate.from(task.startDate.toString()),
-    endDate: task.endDate ? Temporal.PlainDate.from(task.endDate.toString()) : undefined,
+    ...item,
+    startDate: Temporal.PlainDate.from(item.startDate.toString()),
+    endDate: item.endDate ? Temporal.PlainDate.from(item.endDate.toString()) : undefined,
   };
 }

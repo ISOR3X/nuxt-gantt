@@ -9,7 +9,7 @@ type HasDate = { date: Temporal.PlainDate };
 type ColItem = ComponentConfig<typeof theme, AppConfig, "colItem">;
 export type ColItemUiSlots = ColItem["slots"];
 
-export interface ChartProps<T extends HasDate> {
+export interface ColItemProps<T extends HasDate> {
   item: T;
   formatDate?: (date: Temporal.PlainDate) => string | null;
   class?: any;
@@ -36,7 +36,7 @@ export function formatDate(date: Temporal.PlainDate): string | undefined {
 </script>
 
 <script setup lang="ts" generic="T extends HasDate">
-const props = defineProps<ChartProps<T>>();
+const props = defineProps<ColItemProps<T>>();
 const slots = defineSlots<ColItemSlots<T>>();
 
 const formatDateProp = props.formatDate ?? formatDate;

@@ -136,6 +136,22 @@ function addTask() {
     });
     nextTick(() => {
       chart.value?.scrollToItem(id);
+      chart.value?.editTask(id);
+    });
+  }
+}
+
+function addEvent() {
+  if (project.value.events) {
+    const id = crypto.randomUUID();
+    project.value.events.push({
+      label: "New deadline",
+      type: "deadline",
+      startDate: Temporal.Now.plainDateISO(),
+      id,
+    });
+    nextTick(() => {
+      chart.value?.editEvent(id);
     });
   }
 }
@@ -155,6 +171,7 @@ function addTask() {
     />
     <div class="inline-flex items-center space-x-4">
       <UButton label="Add task" @click="addTask()" />
+      <UButton label="Add event" @click="addEvent()" />
       <SearchModal :items="tasksForSearchModal" @itemSelect="(i) => chart?.scrollToItem(i.id)" />
       <UFieldGroup>
         <UButton label="Save project" @click="saveProject()" icon="i-lucide-download" />
