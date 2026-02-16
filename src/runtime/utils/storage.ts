@@ -5,16 +5,23 @@ import { Task, Event, TaskDependency, TaskDependencyType } from "../types/gantt"
 import { SerializedEvent, SerializedProject, SerializedTask } from "../types/storage";
 
 /**
- * Parse a persisted dependency string (e.g. "11FS") into a TaskDependency object.
+ * Parse a persisted dependency string (any string ending with <type>)
+ * into a TaskDependency object.
  * Format: <taskId><type> where type is one of FS, FF, SS, SF.
  */
 export function parseDependencyString(dep: string): TaskDependency | null {
-  const match = dep.match(/^(\d+)(FS|FF|SS|SF)$/);
-  if (!match) return null;
+  if (dep.length < 3) return null;
+
+  const type = dep.slice(-2);
+  const validTypes = ["FS", "FF", "SS", "SF"];
+
+  if (!validTypes.includes(type)) return null;
+
+  const taskId = dep.slice(0, -2);
 
   return {
-    taskId: parseInt(match[1], 10).toString(),
-    type: match[2] as TaskDependencyType,
+    taskId,
+    type: type as TaskDependencyType,
   };
 }
 
