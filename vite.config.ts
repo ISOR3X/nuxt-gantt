@@ -2,6 +2,8 @@ import ui from "@nuxt/ui/vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
+import colorUtils from "./src/vite";
+
 export default defineConfig({
   base: "/nuxt-gantt/",
   plugins: [
@@ -14,5 +16,6 @@ export default defineConfig({
         },
       },
     }),
+    colorUtils(["fill", "stroke"]),
   ],
 });

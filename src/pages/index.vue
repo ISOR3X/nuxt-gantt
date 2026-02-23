@@ -131,6 +131,12 @@ onMounted(() => {
   }
 });
 
+defineShortcuts({
+  meta_k: () => {
+    searchModal.value?.open();
+  },
+});
+
 // Save tasks to a JSON file
 function saveProject() {
   try {
@@ -168,12 +174,6 @@ async function handleFileChange(event: Event) {
     target.value = "";
   }
 }
-
-defineShortcuts({
-  meta_k: () => {
-    searchModal.value?.open();
-  },
-});
 
 function onSelect(value: CommandPaletteItem) {
   if (["event", "deadline"].includes(value.type)) {

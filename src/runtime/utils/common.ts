@@ -1,14 +1,17 @@
-import type colors from "tailwindcss/colors";
 import { Temporal } from "temporal-polyfill";
 
-// REF: https://github.com/nuxt/ui/blob/v4/src/unplugin.ts#L27-L28
-type NeutralColor = "slate" | "gray" | "zinc" | "neutral" | "stone";
+// REF: https://github.com/nuxt/ui/blob/v4/src/module.ts#L10C1-L10C96
 export type Color =
-  | Exclude<
-      keyof typeof colors,
-      "inherit" | "current" | "transparent" | "black" | "white" | NeutralColor
-    >
+  | "primary"
+  | "secondary"
+  | "success"
+  | "info"
+  | "warning"
+  | "error"
   | (string & {});
+
+const options = useAppConfig();
+export const colors: Color[] = Object.keys(options.ui?.colors ?? {});
 
 // Helper function to allow sorting of tailwind classes in theme files.
 export const tw = (strings: string, ...values: any[]) => String.raw({ raw: strings }, ...values);
