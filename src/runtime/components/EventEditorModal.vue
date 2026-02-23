@@ -5,6 +5,7 @@ import { cloneDateRangeItem } from "../utils/common";
 import { formatDurationInDays } from "../utils/temporal";
 import UDatePicker from "./UDatePicker.vue";
 import UHoldButton from "./UHoldButton.vue";
+import UColorSelect from "./UColorSelect.vue";
 
 const props = defineProps<{
   item: Event;
@@ -61,9 +62,12 @@ const itemType = computed({
   >
     <template #body>
       <UForm class="space-y-4">
-        <div class="grid grid-cols-2 gap-x-4">
+        <div class="grid grid-cols-[2fr_1fr_1fr] gap-x-4">
           <UFormField label="Label">
             <UInput v-model="clonedEvent.label" />
+          </UFormField>
+          <UFormField label="Color">
+            <UColorSelect v-model="clonedEvent.color" />
           </UFormField>
           <UFormField label="Type">
             <USelect

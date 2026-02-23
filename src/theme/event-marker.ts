@@ -22,7 +22,7 @@ export default (colors: string[]) => ({
       },
       false: {
         markerBody: tw("h-[1px]"),
-        bodyContent: tw("opacity-20 group-hover:opacity-30"),
+        bodyContent: tw("opacity-10 group-hover:opacity-20"),
         bodyBackground: tw("w-5 fill-transparent"),
       },
     },

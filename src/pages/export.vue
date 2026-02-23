@@ -84,7 +84,7 @@ onMounted(() => {
   toast.add({
     title: "Page info",
     description:
-      "This page is mainly for capturing full size images of Gantt charts. Change the cell sizes through the inputs in the top left.",
+      "This page is mainly for capturing full size images of Gantt charts (for my own usage). Change the cell sizes through the inputs in the top left.",
     icon: "i-lucide-info",
   });
 });
