@@ -49,7 +49,10 @@ const ui = computed(() =>
         :title="item.label"
         :disabled="readOnly"
         variant="ghost"
-        :ui="{ base: ui.input({ class: props.ui?.input }) }"
+        :ui="{
+          base: ui.inputBase({ class: props.ui?.inputBase }),
+          root: ui.inputRoot({ class: props.ui?.inputRoot }),
+        }"
       />
       <UButton
         v-if="!readOnly"
