@@ -1,6 +1,6 @@
 <script lang="ts">
 import { AppConfig, computed } from "vue";
-import theme from "../../../theme/off-day-pattern";
+import theme from "#build/ui/off-day-pattern";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Weekday } from "../../types/temporal";

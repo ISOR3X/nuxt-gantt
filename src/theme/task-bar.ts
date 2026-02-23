@@ -1,8 +1,8 @@
-import { colors, tw } from "../runtime/utils/common";
+import { tw } from "../runtime/utils/common";
 
 const handleCommon = tw("absolute bottom-0 z-10 h-full w-3");
 
-export default {
+export default (colors: string[]) => ({
   slots: {
     root: tw("group absolute py-1"),
     base: tw(
@@ -36,4 +36,4 @@ export default {
   defaultVariants: {
     color: "primary",
   },
-};
+});

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { AppConfig, computed } from "vue";
-import theme from "../../../theme/col-item";
+import theme from "#build/ui/col-item";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Temporal } from "temporal-polyfill";

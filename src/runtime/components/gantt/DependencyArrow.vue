@@ -1,6 +1,6 @@
 <script lang="ts">
 import { AppConfig, computed } from "vue";
-import theme from "../../../theme/dependency-arrow.ts";
+import theme from "#build/ui/dependency-arrow";
 import { ComponentConfig } from "@nuxt/ui";
 import { TaskDependencyType } from "../../types/gantt.ts";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";

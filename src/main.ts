@@ -1,4 +1,3 @@
-import "virtual:color-utilities.css";
 import "./assets/css/main.css";
 
 import ui from "@nuxt/ui/vue-plugin";

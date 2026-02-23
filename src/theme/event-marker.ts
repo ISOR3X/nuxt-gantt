@@ -1,6 +1,6 @@
-import { colors, tw } from "../runtime/utils/common";
+import { tw } from "../runtime/utils/common";
 
-export default {
+export default (colors: string[]) => ({
   slots: {
     markerRoot: tw("absolute bottom-0"),
     markerBody: tw("h-3"),
@@ -53,4 +53,4 @@ export default {
   defaultVariants: {
     color: "primary",
   },
-};
+});

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { AppConfig, computed } from "vue";
-import theme from "../../../theme/grid-pattern";
+import theme from "#build/ui/grid-pattern";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 

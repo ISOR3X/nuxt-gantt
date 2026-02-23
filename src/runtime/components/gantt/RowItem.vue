@@ -1,6 +1,6 @@
 <script lang="ts">
 import { AppConfig, computed } from "vue";
-import theme from "../../../theme/row-item";
+import theme from "#build/ui/row-item";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Task } from "../../types/gantt";

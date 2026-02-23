@@ -1,7 +1,7 @@
 <script lang="ts">
 import { Temporal } from "temporal-polyfill";
 import { AppConfig, computed, ref, toRef, useTemplateRef } from "vue";
-import theme from "../../../theme/chart";
+import theme from "#build/ui/chart";
 import { ComponentConfig } from "@nuxt/ui";
 import { tv } from "@nuxt/ui/runtime/utils/tv.js";
 import { Event, EventWithGanttMeta, Task } from "../../types/gantt";
