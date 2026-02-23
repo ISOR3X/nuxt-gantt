@@ -34,7 +34,7 @@ const uniqueTasks: Task[] = [
 const project = ref<Project>({
   label: "",
   startDate: Temporal.Now.plainDateISO().subtract({ weeks: 1 }),
-  endDate: Temporal.Now.plainDateISO().add({ months: 6 }),
+  endDate: Temporal.Now.plainDateISO().add({ years: 3 }),
   events: [
     {
       id: "10g92n",
@@ -117,7 +117,7 @@ const searchModalItems = computed(() => {
 
 onMounted(() => {
   let idx = 0;
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 200; i++) {
     for (const task of uniqueTasks) {
       const newTask = task;
       const prevTask = project.value.tasks?.[i - 1];
