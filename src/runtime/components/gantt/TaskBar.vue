@@ -19,20 +19,32 @@ export interface ChartProps {
 export interface TaskBarSlots {
   default(props: { ui: TaskBar["ui"] }): any;
 }
+
+export interface TaskBarEmits {
+  activate: [id: string];
+}
 </script>
 
 <script setup lang="ts" generic="T extends Task">
 const props = defineProps<ChartProps>();
 const slots = defineSlots<TaskBarSlots>();
+const emits = defineEmits<TaskBarEmits>();
 
 const appConfig = useAppConfig() as TaskBar["AppConfig"];
 
 const item = defineModel<T>();
 const { cellSize, readOnly } = useGanttContext();
 
+function onDragEnd(movedX: number, elapsedMs: number) {
+  if (movedX <= 5 && elapsedMs < 200 && item.value) {
+    emits("activate", item.value.id);
+  }
+}
+
 const { onMouseDownBar, onMouseDownLeft, onMouseDownRight, cursorStyle } = useDateDragging(item, {
   cellSize,
   readOnly,
+  onDragEnd,
 });
 
 const ui = computed(() =>

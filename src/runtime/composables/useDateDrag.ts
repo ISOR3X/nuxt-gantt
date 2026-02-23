@@ -7,7 +7,7 @@ export interface DragOptions {
   cellSize: Ref<{ width: number; height: number }>;
   readOnly?: Ref<boolean>;
   onDragStart?: (mode: DragMode) => void;
-  onDragEnd?: () => void;
+  onDragEnd?: (movedX: number, elapsedMs: number) => void;
 }
 
 export interface DragHandlers {
@@ -38,6 +38,7 @@ export function useDateDragging<
   const isResizingRight = computed(() => dragMode.value === "resizing-right");
 
   const dragStartX = ref(0);
+  const dragStartTime = ref(0);
   const originalStartDate = ref<Temporal.PlainDate | undefined>(undefined);
   const originalEndDate = ref<Temporal.PlainDate | undefined>(undefined);
 
@@ -45,7 +46,7 @@ export function useDateDragging<
     if (readOnly?.value) return "";
     if (isDragging.value) return "cursor-grabbing";
     if (isResizingLeft.value || isResizingRight.value) return "cursor-ew-resize";
-    return "cursor-grab";
+    return "cursor-pointer";
   });
 
   function startDrag(e: MouseEvent, mode: DragMode) {
@@ -54,6 +55,7 @@ export function useDateDragging<
     e.stopPropagation();
     dragMode.value = mode;
     dragStartX.value = e.clientX;
+    dragStartTime.value = Temporal.Now.instant().epochMilliseconds;
 
     if (item.value) {
       originalStartDate.value = item.value.startDate;
@@ -100,12 +102,14 @@ export function useDateDragging<
     item.value.endDate = newEndDate;
   }
 
-  function onMouseUp() {
+  function onMouseUp(e: MouseEvent) {
     dragMode.value = "none";
     originalStartDate.value = undefined;
     originalEndDate.value = undefined;
 
-    onDragEnd?.();
+    const deltaX = e.clientX - dragStartX.value;
+    const elapsedMs = Temporal.Now.instant().epochMilliseconds - dragStartTime.value;
+    onDragEnd?.(deltaX, elapsedMs);
 
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);

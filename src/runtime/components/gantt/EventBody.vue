@@ -16,19 +16,31 @@ export interface EventBodyProps {
   width?: number;
   ui?: EventBodyUiSlots;
 }
+
+export interface EventBodyEmits {
+  activate: [id: string];
+}
 </script>
 
 <script lang="ts" setup generic="T extends Event">
 const props = defineProps<EventBodyProps>();
+const emits = defineEmits<EventBodyEmits>();
 
 const appConfig = useAppConfig() as EventBody["AppConfig"];
 
 const item = defineModel<T>();
 const { hoveredObjectId, readOnly, cellSize } = useGanttContext();
 
+function onDragEnd(movedX: number, elapsedMs: number) {
+  if (movedX <= 5 && elapsedMs < 200 && item.value && item.value.type != "deadline") {
+    emits("activate", item.value.id);
+  }
+}
+
 const { onMouseDownBar, onMouseDownLeft, onMouseDownRight, cursorStyle } = useDateDragging(item, {
   cellSize,
   readOnly,
+  onDragEnd,
 });
 
 const isDeadline = computed(() => {

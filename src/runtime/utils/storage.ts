@@ -45,6 +45,7 @@ export function serializeProject(project: Project): SerializedProject {
       label: t.label,
       description: t.description,
       type: t.type,
+      color: t.color,
       progress: t.progress,
       startDate: t.startDate.toString(),
       endDate: t.endDate?.toString(),
@@ -58,6 +59,7 @@ export function serializeProject(project: Project): SerializedProject {
       label: e.label,
       description: e.description,
       type: e.type,
+      color: e.color,
       startDate: e.startDate.toString(),
       endDate: e.endDate?.toString(),
     }));
@@ -95,6 +97,7 @@ export function deserializeProject(persisted: SerializedProject): Project {
         label: t.label,
         description: t.description,
         type: t.type,
+        color: t.color,
         progress: t.progress,
         startDate: _startDate,
         endDate: _endDate,
@@ -113,6 +116,7 @@ export function deserializeProject(persisted: SerializedProject): Project {
         label: e.label,
         description: e.description,
         type: e.type,
+        color: e.color,
         startDate: _startDate,
         endDate: _endDate,
       };

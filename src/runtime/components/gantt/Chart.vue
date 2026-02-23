@@ -287,13 +287,13 @@ const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.chart })({}))
 
 const { open: openTaskModal } = createTaskModal(taskMap);
 const { open: openEventModal } = createEventModal();
-async function handleSettingsClick(id: string) {
+async function editTask(id: string) {
   const task = taskMap.value.get(id);
   if (!task) return;
 
   const result = await openTaskModal(task);
 
-  if (tasks.value) {
+  if (tasks.value && result) {
     if ((result.mode != null || result.mode == "copy") && result.task) {
       tasks.value[task.index] = result.task;
     } else if (result.mode == "delete" && !result.task) {
@@ -308,7 +308,7 @@ async function editEvent(id: string) {
 
   const result = await openEventModal(event);
 
-  if (events.value) {
+  if (events.value && result) {
     if ((result.mode != null || result.mode == "copy") && result.event) {
       events.value[event.index] = result.event;
     } else if (result.mode == "delete" && !result.event) {
@@ -358,7 +358,7 @@ function scrollToItem(id: string, options?: ScrollToOptions) {
 
 defineExpose({
   scrollToItem,
-  editTask: handleSettingsClick,
+  editTask,
   editEvent,
 });
 </script>
@@ -428,7 +428,7 @@ defineExpose({
         :style="{ height: `${cellSizeProps.height}px`, top: `${t.topOffset}px` }"
         :highlight="hoveredCell?.row == t.index"
         :ui="props.ui?.rowItem"
-        @settings-click="handleSettingsClick"
+        @settings-click="editTask"
       >
         <slot name="rowItem" :ui="ui" :item="t" />
       </RowItem>
@@ -453,6 +453,7 @@ defineExpose({
           :transform="`translate(${e.leftOffset}, 0)`"
           :width="e.width"
           :ui="props.ui?.event?.body"
+          @activate="editEvent"
         />
       </svg>
       <!-- Tasks -->
@@ -469,6 +470,7 @@ defineExpose({
           top: `${t.topOffset}px`,
           left: `${t.leftOffset}px`,
         }"
+        @activate="editTask"
       >
         <slot name="taskBar" :ui="ui" :item="t" />
       </TaskBar>

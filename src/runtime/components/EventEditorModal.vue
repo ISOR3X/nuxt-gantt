@@ -11,7 +11,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  close: [payload: { event?: Event; mode?: "copy" | "delete" }];
+  close: [payload?: { event?: Event; mode?: "copy" | "delete" }];
 }>();
 
 const clonedEvent = ref<Event>(cloneDateRangeItem(props.item));
@@ -58,7 +58,6 @@ const itemType = computed({
     title="Task configuration"
     description="Edit the task configuration. Cancelling will revert all made changes."
     :close="false"
-    :dismissible="false"
   >
     <template #body>
       <UForm class="space-y-4">
