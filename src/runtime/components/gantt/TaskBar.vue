@@ -12,7 +12,6 @@ export type TaskBarUiSlots = TaskBar["slots"];
 
 export interface ChartProps {
   milestone?: boolean;
-  color?: TaskBar["variants"]["color"];
   class?: any;
   ui?: TaskBarUiSlots;
 }
@@ -38,7 +37,7 @@ const { onMouseDownBar, onMouseDownLeft, onMouseDownRight, cursorStyle } = useDa
 
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.taskBar })({
-    color: props.color,
+    color: item.value?.color as TaskBar["variants"]["color"],
     milestone: props.milestone,
     readOnly: readOnly?.value,
   }),

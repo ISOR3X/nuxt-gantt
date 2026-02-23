@@ -1,5 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 
+import { Color } from "../utils/common";
+
 export type TaskDependencyType = "FS" | "FF" | "SF" | "SS";
 
 export interface TaskDependency {
@@ -11,6 +13,7 @@ export interface Task {
   id: string;
   label: string;
   description?: string;
+  color?: Color;
   // order: number, // Disabled to see if we really need it!
 
   startDate: Temporal.PlainDate;

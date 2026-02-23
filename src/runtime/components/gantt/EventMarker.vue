@@ -11,7 +11,6 @@ export type EventMarkerUiSlots = EventMarker["slots"];
 
 export interface EventMarkerProps {
   item: Event;
-  color?: EventMarker["variants"]["color"];
   class?: any;
   ui?: EventMarkerUiSlots;
 }
@@ -33,7 +32,7 @@ const readOnly = ref(true);
 
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.event })({
-    color: props.color,
+    color: props.item.color as EventMarker["variants"]["color"],
     deadline: isDeadline.value,
     readOnly: readOnly?.value,
   }),

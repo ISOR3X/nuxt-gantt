@@ -43,6 +43,7 @@ const isDeadline = computed(() => {
 
 const ui = computed(() =>
   tv({ extend: tv(theme), ...appConfig.ui?.event })({
+    color: item.value?.color as EventBody["variants"]["color"],
     deadline: isDeadline.value,
     readOnly: readOnly?.value,
   }),

@@ -41,6 +41,7 @@ const project = ref<Project>({
       label: "Deadline 1",
       type: "deadline",
       startDate: Temporal.Now.plainDateISO().add({ weeks: 1 }),
+      color: "error",
     },
     {
       id: "g02cnt",
