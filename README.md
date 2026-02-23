@@ -16,11 +16,13 @@ I have just finished rewriting v2 which has a lot better performance but still l
 
 ## To do
 
-- [ ] Fix
-- [ ] Add size props to chart
+- [ ] Figure out a solution for stacked/ overlapping events
+- [ ] Vertical dragging/ reordering of tasks
+- [ ] Grouping of tasks 
+- [ ] Size props for chart
   - [ ] Change date format on small cell sizes
 - [ ] Add view for export to pdf/png option (scale to fit page, basic styling)
-- [ ] Make the project into a library and publish on NPM.
+- [ ] Make the project into a library and publish on NPM
 
 This library was inspired by the Gantt chart found in MS Planner, [Umay Gantt Chart builder](https://github.com/aligundogdu/Umay-Gantt-Chart-Builder) and of course Nuxt UI itself for creating stylable components.
 
