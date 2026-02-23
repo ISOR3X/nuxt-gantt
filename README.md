@@ -16,7 +16,7 @@ I have just finished rewriting v2 which has a lot better performance but still l
 
 ## To do
 
-- [ ] Task editing GUI for v2
+- [ ] Fix
 - [ ] Add size props to chart
   - [ ] Change date format on small cell sizes
 - [ ] Add view for export to pdf/png option (scale to fit page, basic styling)
