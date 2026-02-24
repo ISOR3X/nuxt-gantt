@@ -1,14 +1,14 @@
 import { useElementSize } from "@vueuse/core";
 import defu from "defu";
-import { computed, ShallowRef } from "vue";
+import { computed, Ref, ShallowRef } from "vue";
 
 import { ScrollMouseInElementOptions, useScrollMouseInElement } from "./useScrollMouseInElement";
 
 export interface GanttGridOptions extends ScrollMouseInElementOptions {
-  cellSize: {
+  cellSize: Ref<{
     width: number;
     height: number;
-  };
+  }>;
 }
 
 export function useGanttGrid(
@@ -25,30 +25,32 @@ export function useGanttGrid(
   const hoveredCell = computed(() => {
     if (hovered.x.value != null && hovered.y.value != null) {
       return {
-        col: Math.floor(hovered.x.value / options.cellSize.width),
-        row: Math.floor(hovered.y.value / options.cellSize.height),
+        col: Math.floor(hovered.x.value / options.cellSize.value.width),
+        row: Math.floor(hovered.y.value / options.cellSize.value.height),
       };
     }
   });
 
   const rowsOnScreen = computed(() => {
     return {
-      min: Math.floor(scrolled.y.value / options.cellSize.height),
+      min: Math.floor(scrolled.y.value / options.cellSize.value.height),
       // -1 because we want index based rows.
       max:
         Math.ceil(
-          (scrolled.y.value + viewportHeight.value - _options.offset.y) / options.cellSize.height,
+          (scrolled.y.value + viewportHeight.value - _options.offset.y) /
+            options.cellSize.value.height,
         ) - 1,
     };
   });
 
   const colsOnScreen = computed(() => {
     return {
-      min: Math.floor(scrolled.x.value / options.cellSize.width),
+      min: Math.floor(scrolled.x.value / options.cellSize.value.width),
       // -1 because we want index based cols.
       max:
         Math.ceil(
-          (scrolled.x.value + viewportWidth.value - _options.offset.x) / options.cellSize.width,
+          (scrolled.x.value + viewportWidth.value - _options.offset.x) /
+            options.cellSize.value.width,
         ) - 1,
     };
   });

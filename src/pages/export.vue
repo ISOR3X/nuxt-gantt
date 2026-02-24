@@ -134,7 +134,6 @@ async function handleFileChange(event: Event) {
       ref="chart"
       v-model:tasks="project.tasks"
       v-model:events="project.events"
-      read-only
       :date-range="{
         start: project.startDate,
         end: project.endDate,

@@ -6,14 +6,13 @@ import Chart from "../runtime/components/gantt/Chart.vue";
 import { loadProjectFromFile, saveProject as _saveProject } from "../runtime/utils/storage";
 import { Project } from "../runtime/types/common";
 import SearchModal from "../runtime/components/SearchModal.vue";
-import {
-  CommandPaletteGroup,
-  CommandPaletteItem,
-} from "@nuxt/ui/runtime/components/CommandPalette.vue.js";
+import { CommandPaletteGroup, CommandPaletteItem } from "@nuxt/ui";
 
 const chart = useTemplateRef("chart");
 const fileInput = useTemplateRef("fileInput");
 const searchModal = useTemplateRef("searchModal");
+
+const cellSize = ref({ width: 24, height: 32 });
 
 const uniqueTasks: Task[] = [
   {
@@ -238,6 +237,7 @@ function onSelect(value: CommandPaletteItem) {
       v-model:tasks="project.tasks"
       v-model:events="project.events"
       class="rounded-md border border-muted"
+      :cell-size
       :date-range="{
         start: project.startDate,
         end: project.endDate,
@@ -260,6 +260,12 @@ function onSelect(value: CommandPaletteItem) {
           </template>
         </UButton>
       </SearchModal>
+      <UFormField label="Cell width" orientation="horizontal" class="items-center">
+        <UInputNumber v-model="cellSize.width" :ui="{ base: 'w-24' }" />
+      </UFormField>
+      <UFormField label="Cell height" orientation="horizontal" class="items-center">
+        <UInputNumber v-model="cellSize.height" :ui="{ base: 'w-24' }" />
+      </UFormField>
       <UFieldGroup class="ml-auto">
         <UButton
           label="Save project"

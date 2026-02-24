@@ -18,7 +18,7 @@ I have just finished rewriting v2 which has a lot better performance but still l
 
 - [ ] Figure out a solution for stacked/ overlapping events
 - [ ] Vertical dragging/ reordering of tasks
-- [ ] Grouping of tasks 
+- [ ] Grouping of tasks
 - [ ] Size props for chart
   - [ ] Change date format on small cell sizes
 - [ ] Add view for export to pdf/png option (scale to fit page, basic styling)

@@ -149,7 +149,7 @@ const offDays = computed<Weekday[]>(() =>
 );
 
 const { hoveredCell, colsOnScreen, rowsOnScreen, viewport } = useGanttGrid(el, {
-  cellSize: cellSizeProps.value,
+  cellSize: cellSizeProps,
   offset: { x: headerProps.value.firstColWidth, y: headerProps.value.firstRowHeight },
 });
 
