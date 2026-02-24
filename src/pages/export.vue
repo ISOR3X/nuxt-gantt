@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { Task, TaskDependency } from "../runtime/types/gantt";
 import { Temporal } from "temporal-polyfill";
 import Chart from "../runtime/components/gantt/Chart.vue";
 import { loadProjectFromFile, saveProject as _saveProject } from "../runtime/utils/storage";
 import { Project } from "../runtime/types/common";
-import { useStorage } from "@vueuse/core";
+import { useWindowSize } from "@vueuse/core";
 
 const fileInput = useTemplateRef("fileInput");
+
+const { width, height } = useWindowSize();
 
 const uniqueTasks: Task[] = [
   {
@@ -46,9 +48,15 @@ const project = ref<Project>({
   tasks: [],
 });
 
-const cellSize = useStorage("cellSize", {
-  width: 30,
-  height: 30,
+const headerSize = ref({ firstRowHeight: 48, firstColWidth: 240 });
+const cellSize = computed(() => {
+  const dateCols = project.value.startDate.until(project.value.endDate).days;
+  const itemRows = project.value.tasks?.length ?? 0;
+
+  return {
+    width: (width.value - headerSize.value.firstColWidth) / dateCols,
+    height: (height.value - headerSize.value.firstRowHeight) / itemRows,
+  };
 });
 
 const toast = useToast();
@@ -134,6 +142,7 @@ async function handleFileChange(event: Event) {
       ref="chart"
       v-model:tasks="project.tasks"
       v-model:events="project.events"
+      :header="headerSize"
       :date-range="{
         start: project.startDate,
         end: project.endDate,
@@ -142,15 +151,6 @@ async function handleFileChange(event: Event) {
     >
       <template #corner>
         <div class="grid grid-cols-7 place-items-center items-center">
-          <UButton
-            to="https://github.com/ISOR3X/nuxt-gantt/"
-            target="_blank"
-            icon="simple-icons:github"
-            class="mr-auto"
-            color="neutral"
-            variant="ghost"
-          />
-
           <UButton
             variant="link"
             title="Download"
@@ -165,11 +165,6 @@ async function handleFileChange(event: Event) {
             size="sm"
             @click="loadProject()"
           />
-
-          <UIcon name="i-lucide-arrow-left-right" />
-          <UInput v-model="cellSize.width" type="number" />
-          <UIcon name="i-lucide-arrow-up-down" />
-          <UInput v-model="cellSize.height" type="number" />
         </div>
       </template>
     </Chart>
