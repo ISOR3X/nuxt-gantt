@@ -8,9 +8,14 @@ const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: "Demo",
+    label: "Showcase",
     to: "/",
     active: route.path == "/",
+  },
+  {
+    label: "Docs",
+    to: "/docs",
+    active: route.path == "/docs",
   },
   {
     label: "Fullscreen",

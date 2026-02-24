@@ -18,6 +18,10 @@ app.use(
             path: "",
             component: () => import("./pages/index.vue"),
           },
+          {
+            path: "/docs",
+            component: () => import("./pages/docs.vue"),
+          },
         ],
       },
       {

@@ -54,8 +54,8 @@ const cellSize = computed(() => {
   const itemRows = project.value.tasks?.length ?? 0;
 
   return {
-    width: (width.value - headerSize.value.firstColWidth) / dateCols,
-    height: (height.value - headerSize.value.firstRowHeight) / itemRows,
+    width: Math.min(Math.max((width.value - headerSize.value.firstColWidth) / dateCols, 5), 100),
+    height: Math.min(Math.max((height.value - headerSize.value.firstRowHeight) / itemRows, 5), 100)
   };
 });
 
@@ -92,7 +92,7 @@ onMounted(() => {
   toast.add({
     title: "Page info",
     description:
-      "This page is mainly for capturing full size images of Gantt charts (for my own usage). Change the cell sizes through the inputs in the top left.",
+      "This page is mainly for capturing full size images of Gantt charts (for my own usage).",
     icon: "i-lucide-info",
   });
 });
@@ -151,6 +151,7 @@ async function handleFileChange(event: Event) {
     >
       <template #corner>
         <div class="grid grid-cols-7 place-items-center items-center">
+          <UButton icon="i-lucide-home" to="/" variant="link" size="sm"/>
           <UButton
             variant="link"
             title="Download"
